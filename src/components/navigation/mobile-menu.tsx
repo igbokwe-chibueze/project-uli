@@ -4,6 +4,8 @@ import { MenuIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetTrigger, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { NavLinks } from "@/components/navigation/nav-links"
+import LoginButton from "@/features/auth/components/login-button"
+import Link from "next/link"
 
 export const MobileMenu = () => {
   
@@ -11,7 +13,7 @@ export const MobileMenu = () => {
     <div>
         <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden">
+              <Button variant="ghost" className="lg:hidden">
                 <MenuIcon className="size-6" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
@@ -19,7 +21,7 @@ export const MobileMenu = () => {
 
             <SheetContent side="right" className="w-[250px] sm:w-[300px]">
                 <SheetTitle className="sr-only">Menu</SheetTitle>
-                <SheetDescription className="text-sm text-muted-foreground mb-4">
+                <SheetDescription className="sr-only">
                     Navigate to different sections of the landing page.
                 </SheetDescription>
 
@@ -28,11 +30,17 @@ export const MobileMenu = () => {
                     <NavLinks/>
 
                     <div className="md:hidden flex flex-col mt-4 space-y-2">
-                        <Button variant="outline" className="w-full justify-start">
-                            Sign In
+                        <LoginButton asChild>
+                            <Button variant={"outline"} size={"lg"} className="buttons w-full justify-start">
+                                Sign In
+                            </Button>
+                        </LoginButton>
+            
+                        <Button asChild size={"lg"} className="buttons justify-start">
+                            <Link href={"/auth/register"}>
+                                Register
+                            </Link>
                         </Button>
-
-                        <Button className="w-full justify-start bg-violet-600 hover:bg-violet-700">Register</Button>
                     </div>
                 </div>
             </SheetContent>

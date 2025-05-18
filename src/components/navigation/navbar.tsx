@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { MobileMenu } from "@/components/navigation/mobile-menu";
 import { NavLinks } from "@/components/navigation/nav-links";
+import LoginButton from "@/features/auth/components/login-button";
 
 export default function Navbar() {
 
@@ -26,15 +27,18 @@ export default function Navbar() {
         <div className="flex justify-center items-center space-x-3 lg:order-2">
 
           <div className="hidden md:flex space-x-3">
-            <Button variant="outline" className="">
-              Sign In
-            </Button>
+            {/* If you want the signIn button to open up the signup form as model instead of redirecting to the signIn page
+            then do this instead <LoginButton mode="modal" asChild> */}
+            <LoginButton asChild>
+              <Button variant={"outline"} size={"lg"} className="buttons">
+                Sign In
+              </Button>
+            </LoginButton>
 
-            <Button 
-              // asChild 
-              className=""
-            >
-              Register
+            <Button asChild size={"lg"} className="buttons">
+              <Link href={"/auth/register"}>
+                Register
+              </Link>
             </Button>
           </div>
 
