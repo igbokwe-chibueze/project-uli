@@ -1,0 +1,254 @@
+// src/notes/prisma-authjs-installation.txt
+
+Here’s a complete **`prisma-authjs-installation.md`** you can drop into your repo. It walks through installing and configuring Prisma for Auth.js v5 step by step.
+
+````markdown
+## Summary
+
+This guide shows you how to install and configure **Prisma** as the database adapter for **Auth.js v5** in a Next.js project. You’ll learn how to:
+
+- Install the necessary npm packages  
+- Initialize Prisma and set up your database schema  
+- Generate the Prisma client  
+- Create a shared Prisma client instance  
+- Configure Auth.js to use the Prisma adapter  
+
+---
+
+## 1. Prerequisites
+
+Before you begin, make sure you have:
+
+- **Node.js** ≥ 16.x installed  
+- A **Next.js** (or any other supported framework) project bootstrapped  
+- A database to connect Prisma to (e.g. PostgreSQL, MySQL, SQLite)  
+
+---
+
+## 2. Install Dependencies
+
+1. **Install Prisma & the Prisma Client**  
+   ```bash
+   npm install prisma @prisma/client
+````
+
+> * `prisma` provides the CLI for schema & migrations
+> * `@prisma/client` is the generated query client ([NextAuth][1])
+
+2. **Install the Auth.js Prisma adapter**
+
+   ```bash
+   npm install @auth/prisma-adapter
+   ```
+
+   > This is the official Auth.js v5 adapter package ([authjs.dev][2])
+
+3. (Optional) Install your database driver, e.g.:
+
+   ```bash
+   # PostgreSQL
+   npm install pg
+   # MySQL
+   npm install mysql
+   # SQLite (bundled)
+   npm install sqlite3
+   ```
+
+---
+
+## 3. Initialize Prisma
+
+Run the following to scaffold your Prisma setup and `.env` file:
+
+```bash
+npx prisma init
+```
+
+This creates:
+
+* A `prisma/schema.prisma` file
+* An `.env` file with `DATABASE_URL` set to a placeholder ([authjs.dev][2])
+
+---
+
+## 4. Configure Your Prisma Schema
+
+Edit `prisma/schema.prisma` to match Auth.js’s expected models. At minimum, include:
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // or "mysql", "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// === Auth.js Models ===
+model User {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String?  @unique
+  emailVerified DateTime?
+  image         String?
+  role          String?  // optional
+  // relations
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  // relations
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  // relations
+  user User @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+```
+
+> Adjust field names/types to match any custom needs ([NextAuth][1]).
+
+---
+
+## 5. Run Migrations (or Push)
+
+If you want SQL migrations:
+
+```bash
+npx prisma migrate dev --name init
+```
+
+Or, to push schema changes without SQL migrations (e.g. SQLite):
+
+```bash
+npx prisma db push
+```
+
+---
+
+## 6. Generate the Prisma Client
+
+Every time you update `schema.prisma`, run:
+
+```bash
+npx prisma generate
+```
+
+This updates the `@prisma/client` API you’ll import in your code ([NextAuth][1]).
+
+---
+
+## 7. Create a Shared Prisma Client Instance
+
+To avoid multiple instances in development, create `lib/prisma.ts`:
+
+```ts
+// lib/prisma.ts
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({ log: ["query"] });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
+```
+
+---
+
+## 8. Configure Auth.js to Use Prisma Adapter
+
+In your Auth.js config (e.g. `src/pages/api/auth/[...nextauth].ts` or `src/app/api/auth/[...nextauth]/route.ts`):
+
+```ts
+import NextAuth from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "@/lib/prisma";
+
+export default NextAuth({
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    // e.g. Google, GitHub, Credentials, Email…
+  ],
+  secret: process.env.AUTH_SECRET,
+  session: { strategy: "jwt" },
+  callbacks: {
+    // add any custom callbacks here
+  },
+});
+```
+
+> Replace `providers` with whichever you need ([authjs.dev][3]).
+
+---
+
+## 9. Environment Variables
+
+Ensure your `.env` includes:
+
+```env
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public
+AUTH_SECRET=$(npx auth secret)  # or any 32+ character random string
+```
+
+---
+
+## 10. Verify Your Setup
+
+1. **Start your dev server**
+
+   ```bash
+   npm run dev
+   ```
+2. **Visit** `/api/auth/signin`
+3. **Check** `prisma studio` to see tables created:
+
+   ```bash
+   npx prisma studio
+   ```
+4. **Sign in** with a test provider and ensure rows get inserted.
+
+---
+
+## Further Reading
+
+* Official Auth.js Prisma Adapter docs ([authjs.dev][2])
+* Auth.js Installation guide ([authjs.dev][3])
+* Prisma CLI & Migrate docs: [https://www.prisma.io/docs/getting‑started](https://www.prisma.io/docs/getting‑started) ([NextAuth][1])
+
+```markdown
+# End of File
+```
+
+[1]: https://next-auth.js.org/v3/adapters/prisma?utm_source=chatgpt.com "Prisma Adapter - NextAuth.js"
+[2]: https://authjs.dev/getting-started/adapters/prisma?utm_source=chatgpt.com "Prisma adapter - Auth.js"
+[3]: https://authjs.dev/getting-started/installation?utm_source=chatgpt.com "Installation - Auth.js"

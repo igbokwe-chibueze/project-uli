@@ -162,6 +162,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -172,7 +173,7 @@ const config = {
   },
   "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id                String    @id @default(cuid())\n  name              String?\n  email             String    @unique\n  emailVerified     DateTime?\n  image             String?\n  password          String?\n  passwordChangedAt DateTime? // To track password changes\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n",
   "inlineSchemaHash": "6bcab192032b5b1f4eb08f16683e9d8b231a5585f016d2aa18cec4ab0a400ffd",
-  "copyEngine": false
+  "copyEngine": true
 }
 config.dirname = '/'
 

@@ -1,16 +1,25 @@
 // src/lib/prisma/prisma.ts
 
-import { PrismaClient } from '@prisma/client'
-import { withAccelerate } from '@prisma/extension-accelerate'
+import { PrismaClient } from "@prisma/client"
 
-// Use a global variable to ensure a single instance in dev (Next.js hot reload)
-declare const global: typeof globalThis & { prisma?: PrismaClient }
+ 
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
+ 
+export const prisma = globalForPrisma.prisma || new PrismaClient()
+ 
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 
-const prisma = global.prisma
-  ?? new PrismaClient().$extends(withAccelerate())
+// import { PrismaClient } from '@prisma/client'
+// import { withAccelerate } from '@prisma/extension-accelerate'
 
-if (process.env.NODE_ENV !== 'production') {
-  global.prisma = prisma
-}
+// // Use a global variable to ensure a single instance in dev (Next.js hot reload)
+// declare const global: typeof globalThis & { prisma?: PrismaClient }
 
-export default prisma
+// const prisma = global.prisma
+//   ?? new PrismaClient().$extends(withAccelerate())
+
+// if (process.env.NODE_ENV !== 'production') {
+//   global.prisma = prisma
+// }
+
+// export default prisma
