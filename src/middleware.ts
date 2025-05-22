@@ -53,8 +53,8 @@ export default auth((req) => {
         
         // Redirect the user to the login page with the callbackUrl query parameter.
         return Response.redirect(new URL(
-        `/auth/login?callbackUrl=${encodedCallbackUrl}`, 
-        nextUrl
+            `/login?callbackUrl=${encodedCallbackUrl}`, 
+            nextUrl
         ));
     }
 

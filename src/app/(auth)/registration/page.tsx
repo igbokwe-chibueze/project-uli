@@ -1,4 +1,4 @@
-// src/app/auth/registration/page.tsx
+// src/app/(auth)/registration/page.tsx
 
 import Link from "next/link"
 import { ShieldBanIcon } from "lucide-react"

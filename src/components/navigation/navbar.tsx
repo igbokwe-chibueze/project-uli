@@ -36,7 +36,7 @@ export default function Navbar() {
             </LoginButton>
 
             <Button asChild size={"lg"} className="buttons">
-              <Link href={"/auth/registration"}>
+              <Link href={"/registration"}>
                 Register
               </Link>
             </Button>

@@ -20,7 +20,7 @@ const LoginButton = ({ children, mode = "redirect" }: LoginButtonProps) => {
     const router = useRouter();
 
     const onClick = () => {
-        router.push("/auth/login");
+        router.push("/login");
     }
 
     // Conditional rendering based on the mode prop.
