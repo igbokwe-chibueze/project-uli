@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link"
-import { ShieldIcon } from "lucide-react"
+import { ShieldBanIcon } from "lucide-react"
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ export default function Navbar() {
         {/* Logo and Company Name */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex items-center gap-2 font-bold text-xl">
-            <ShieldIcon className="size-12 sm:size-16 text-primary" />
+            <ShieldBanIcon className="size-12 sm:size-16 text-primary" />
             <span className="text-xl font-semibold self-center whitespace-nowrap">Project-Uli</span>
           </div>
         </Link>
@@ -36,7 +36,7 @@ export default function Navbar() {
             </LoginButton>
 
             <Button asChild size={"lg"} className="buttons">
-              <Link href={"/auth/register"}>
+              <Link href={"/auth/registration"}>
                 Register
               </Link>
             </Button>
