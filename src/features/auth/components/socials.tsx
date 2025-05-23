@@ -1,9 +1,8 @@
 // src/features/auth/components/socials.tsx
 
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import {signIn} from "next-auth/react";
-
-import { GemIcon } from "lucide-react";
 
 import { DEFAULT_LOGIN_REDIRECT_URL } from "@/routes";
 import { Button } from "@/components/ui/button";
@@ -29,8 +28,15 @@ const Socials = () => {
                 className="flex-1 buttons"
                 onClick={() => onClick("google")}
             >
-                {/* <FcGoogle className="h-5 w-5" /> */}
-                <GemIcon className="h-5 w-5" />
+                <div className="relative size-5">
+                    <Image
+                        src="/icons/google-icon.svg"
+                        alt="Google logo"
+                        fill
+                        sizes="20px"
+                    />
+                </div>
+                <span className="text-muted-foreground font-medium">Continue with Google</span>
             </Button>
         </div>
     )
