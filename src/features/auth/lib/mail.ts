@@ -61,7 +61,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
  */
 export const sendPasswordResetEmail = async (email: string, token: string) => {
     // Construct the URL for password reset.
-    const resetLink = `${domain}/auth/new-password?token=${token}`;
+    const resetLink = `${domain}/complete-password-reset?token=${token}`;
 
     // Generate email HTML using the reusable template function.
     const htmlContent = createEmailTemplate({
@@ -92,7 +92,7 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
  * Sends a password change confirmation email to the user.
  */
 export const sendPasswordChangeConfirmationEmail = async (email: string) => {
-    const loginLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/login`;
+    const loginLink = `${process.env.NEXT_PUBLIC_APP_URL}/access`;
 
     const htmlContent = createEmailTemplate({
         title: "Password Successfully Changed",

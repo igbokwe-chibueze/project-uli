@@ -33,14 +33,14 @@ export const RegisterSchema = z.object({
 });
 
 
-export const ResetPasswordSchema = z.object({
+export const InitiatePasswordResetSchema = z.object({
     email: z.string().email({
         message: "Email is required",
     }),
 });
 
 
-export const NewPasswordSchema = z.object({
+export const CompletePasswordResetSchema = z.object({
     password: z.string().min(6, {
         message: "Minimum 6 characters required",
     }),

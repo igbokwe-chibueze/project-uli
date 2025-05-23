@@ -206,7 +206,7 @@ export const LoginForm = () => {
                         asChild
                         className="px-0 flex justify-start font-normal"
                       >
-                        <Link href="/auth/reset-password">
+                        <Link href="/initiate-password-reset">
                           Forgot Password?
                         </Link>
                       </Button>
