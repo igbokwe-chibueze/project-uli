@@ -26,7 +26,7 @@ const domain = process.env.NEXT_PUBLIC_APP_URL;
 export const sendVerificationEmail = async (email: string, token: string) => {
     // Construct the confirmation link using the domain and token.
     // Note: The URL will change based on your environment (production vs. development).
-    const confirmLink = `${domain}/auth/new-verification?token=${token}`;
+    const confirmLink = `${domain}/email-verification?token=${token}`;
 
     // Generate email HTML using the reusable template function.
     const htmlContent = createEmailTemplate({

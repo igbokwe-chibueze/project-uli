@@ -37,7 +37,7 @@ export const MobileMenu = () => {
                         </LoginButton>
             
                         <Button asChild size={"lg"} className="buttons justify-start">
-                            <Link href={"/auth/register"}>
+                            <Link href={"/registration"}>
                                 Register
                             </Link>
                         </Button>

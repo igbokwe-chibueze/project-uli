@@ -16,11 +16,11 @@ export const publicRoutes = [
  * @type {string[]}
  */
 export const authRoutes = [
-    "/login",
+    "/access",
     "/registration",
     "/error",
-    "/reset-password",
-    "/new-password",
+    // "/reset-password",
+    // "/new-password",
 ];
 
 /**

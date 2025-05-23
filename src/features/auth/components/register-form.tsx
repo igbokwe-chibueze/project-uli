@@ -56,7 +56,7 @@ export const RegisterForm = () => {
       headerHeading="Create an account"
       headerLabel="Enter your details below to create your accoun"
       backButtonLabel="Already have an account?"
-      backButtonHref="/auth/login"
+      backButtonHref="/access"
       showSocial
     >
       <Form {...form}>
@@ -108,37 +108,37 @@ export const RegisterForm = () => {
             <FormField
               control={form.control}
               name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Enter your password"
-                          type={showPassword ? "text" : "password"}
-                          autoComplete="new-password"
-                          disabled={isPending}
-                        />
-                      </FormControl>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute inset-y-0 right-0 flex items-center text-muted-foreground"
-                      >
-                        {showPassword ? (
-                          <EyeOffIcon className="h-4 w-4" />
-                        ) : (
-                          <EyeIcon className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                    <FormDescription>At least 6 characters</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <div className="relative">
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Enter your password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-0 flex items-center text-muted-foreground"
+                    >
+                      {showPassword ? (
+                        <EyeOffIcon className="size-4" />
+                      ) : (
+                        <EyeIcon className="size-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <FormDescription className="text-left">At least 6 characters</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             {/* Confirm Password */}
@@ -166,9 +166,9 @@ export const RegisterForm = () => {
                       className="absolute inset-y-0 right-0 flex items-center text-muted-foreground"
                     >
                       {showPassword ? (
-                        <EyeOffIcon className="h-4 w-4" />
+                        <EyeOffIcon className="size-4" />
                       ) : (
-                        <EyeIcon className="h-4 w-4" />
+                        <EyeIcon className="size-4" />
                       )}
                     </Button>
                   </div>
@@ -184,7 +184,7 @@ export const RegisterForm = () => {
           <Button type="submit" className="w-full buttons" disabled={isPending}>
             {isPending ? (
               <div className="flex items-center justify-center gap-2">
-                <span className="h-4 w-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
+                <span className="size-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
                 <span>Registering</span>
               </div>
             ) : (
