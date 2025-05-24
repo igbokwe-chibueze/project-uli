@@ -1,12 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// ──────────────────────────────────────────────────────────────────────────────────────────
+// Prisma schema
+// Leverages region markers for clarity and navigation
+// ──────────────────────────────────────────────────────────────────────────────────────────
 
 generator client {
   provider = "prisma-client-js"
-  //  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -14,10 +12,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ──────────────────────────────────────────────────────────────────────────────────────────
+// Enums Region
+// ──────────────────────────────────────────────────────────────────────────────────────────
+
 enum UserRole {
   ADMIN
   USER
 }
+
+enum OrgRole {
+  OWNER
+  MANAGER
+  AUDITOR
+  MEMBER
+}
+
+enum ModuleType {
+  HSEMS
+  QMS
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ──────────────────────────────────────────────────────────────────────────────────────────
+// Auth & User Models Region (original + 2FA)
+// ──────────────────────────────────────────────────────────────────────────────────────────
 
 model User {
   id                    String                 @id @default(cuid())
@@ -26,7 +51,7 @@ model User {
   emailVerified         DateTime?
   image                 String?
   password              String?
-  passwordChangedAt     DateTime? // To track password changes
+  passwordChangedAt     DateTime?
   role                  UserRole               @default(USER)
   isTwoFactorEnabled    Boolean                @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
@@ -35,6 +60,10 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Extended Relations
+  organizations OrganizationMember[]
+  invites       InviteToken[]
 }
 
 model Account {
@@ -95,10 +124,153 @@ model TwoFactorToken {
 }
 
 model TwoFactorConfirmation {
-  id String @id @default(cuid())
-
+  id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
+}
+
+// ──────────────────────────────────────────────────────────────────────────────────────────
+// Organization & Roles Region
+// ──────────────────────────────────────────────────────────────────────────────────────────
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  logo        String?
+  industry    String?
+  country     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members   OrganizationMember[]
+  invites   InviteToken[]
+  modules   OrganizationModule[]
+  incidents Incident[]
+  audits    Audit[]
+}
+
+model OrganizationMember {
+  id       String   @id @default(cuid())
+  orgId    String
+  userId   String
+  role     OrgRole  @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Back-relations for EMS modules
+  reporterOf Incident[] @relation("Reporter")
+  assigneeOf Incident[] @relation("Assignee")
+  audits     Audit[]
+
+  @@unique([orgId, userId])
+}
+
+model InviteToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  userId    String?
+  orgId     String?
+  role      OrgRole  @default(MEMBER)
+
+  // Relations
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+}
+
+// ──────────────────────────────────────────────────────────────────────────────────────────
+// Modules Region
+// ──────────────────────────────────────────────────────────────────────────────────────────
+
+model Module {
+  id          String     @id @default(cuid())
+  type        ModuleType @unique
+  name        String
+  description String?
+  createdAt   DateTime   @default(now())
+
+  // Back-relations
+  organizationModules OrganizationModule[]
+}
+
+model OrganizationModule {
+  id          String   @id @default(cuid())
+  orgId       String
+  moduleId    String
+  installedAt DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  module       Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, moduleId])
+}
+
+// ──────────────────────────────────────────────────────────────────────────────────────────
+// HSEMS Incidents Region
+// ──────────────────────────────────────────────────────────────────────────────────────────
+
+model Incident {
+  id           String           @id @default(cuid())
+  orgId        String
+  reporterId   String
+  assigneeId   String?
+  title        String
+  description  String
+  severity     IncidentSeverity @default(LOW)
+  location     String?
+  dateOccurred DateTime
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  // Relations
+  organization Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  reporter     OrganizationMember  @relation("Reporter", fields: [reporterId], references: [id])
+  assignee     OrganizationMember? @relation("Assignee", fields: [assigneeId], references: [id])
+}
+
+// ──────────────────────────────────────────────────────────────────────────────────────────
+// QMS Audits & Nonconformities Region
+// ──────────────────────────────────────────────────────────────────────────────────────────
+
+model Audit {
+  id            String    @id @default(cuid())
+  orgId         String
+  auditorId     String
+  title         String
+  scope         String?
+  dateScheduled DateTime
+  dateCompleted DateTime?
+  findings      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  organization    Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  auditor         OrganizationMember @relation(fields: [auditorId], references: [id])
+  nonConformities NonConformity[]
+}
+
+model NonConformity {
+  id               String   @id @default(cuid())
+  auditId          String
+  description      String
+  rootCause        String?
+  correctiveAction String?
+  preventiveAction String?
+  status           String   @default("OPEN")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
 }
