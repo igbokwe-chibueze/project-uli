@@ -9,8 +9,10 @@ import {
   Command,
   Frame,
   GalleryVerticalEnd,
+  LifeBuoyIcon,
   Map,
   PieChart,
+  SendIcon,
   Settings2,
   SquareTerminal,
 } from "lucide-react"
@@ -27,6 +29,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { NavSecondaryX } from "./nav-secondaryX"
 
 // This is sample data.
 const data = {
@@ -156,6 +159,18 @@ const data = {
       icon: Map,
     },
   ],
+  navSecondary: [
+    {
+      title: "Support",
+      url: "#",
+      icon: LifeBuoyIcon,
+    },
+    {
+      title: "Feedback",
+      url: "#",
+      icon: SendIcon,
+    },
+  ],
 }
 
 export function AppSidebarX({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -168,6 +183,7 @@ export function AppSidebarX({ ...props }: React.ComponentProps<typeof Sidebar>) 
       <SidebarContent>
         <NavMainX items={data.navMain} />
         <NavProjectsX projects={data.projects} />
+        <NavSecondaryX items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
 
       <SidebarFooter>

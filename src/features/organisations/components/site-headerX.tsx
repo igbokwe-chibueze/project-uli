@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { BellIcon } from "lucide-react"
+import { SearchForm } from "./search-form"
 
 export function SiteHeaderX() {
   return (
@@ -17,7 +18,8 @@ export function SiteHeaderX() {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <div className="flex items-center space-x-4">
-          <h1 className="text-base font-medium">Search</h1>
+          <SearchForm className="w-full sm:ml-auto sm:w-auto" />
+
           <ThemeToggle />
 
           <Button variant={"outline"} size={"icon"} className="relative">
