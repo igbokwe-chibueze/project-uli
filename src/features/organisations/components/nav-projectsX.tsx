@@ -2,6 +2,7 @@
 "use client"
 
 import {
+  CirclePlusIcon,
   Folder,
   Forward,
   MoreHorizontal,
@@ -39,7 +40,11 @@ export function NavProjectsX({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <SidebarGroupLabel className="flex items-center justify-between">
+        <p className="text-xs">Projects</p>
+        <CirclePlusIcon className="cursor-pointer text-muted-foreground hover:opacity-75 transition-opacity duration-200"/>
+      </SidebarGroupLabel>
+
       <SidebarMenu>
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>

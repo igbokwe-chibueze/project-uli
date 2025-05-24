@@ -43,7 +43,9 @@ export function TeamSwitcherX({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground 
+              bg-sidebar-accent cursor-pointer hover:bg-sidebar-primary transition-colors duration-500 
+              hover:text-sidebar-primary-foreground"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <activeTeam.logo className="size-4" />
@@ -64,7 +66,7 @@ export function TeamSwitcherX({
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Teams
+              Organisations
             </DropdownMenuLabel>
             {teams.map((team, index) => (
               <DropdownMenuItem
@@ -84,7 +86,7 @@ export function TeamSwitcherX({
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">Add team</div>
+              <div className="font-medium text-muted-foreground">Add Organisation</div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -30,6 +30,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { LogoutButton } from "@/features/auth/components/logout-button"
 
 export function NavUserX({
   user,
@@ -103,10 +104,12 @@ export function NavUserX({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
+            <LogoutButton>
+              <DropdownMenuItem>
+                <LogOut />
+                Log out
+              </DropdownMenuItem>
+            </LogoutButton>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

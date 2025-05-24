@@ -1,7 +1,7 @@
 // src/features/organisations/components/nav-mainX.tsx
 "use client"
 
-import { ChevronRight, type LucideIcon } from "lucide-react"
+import { ChevronRight, CirclePlusIcon, type LucideIcon } from "lucide-react"
 
 import {
   Collapsible,
@@ -35,7 +35,11 @@ export function NavMainX({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel className="flex items-center justify-between">
+        <p className="text-xs">Platform</p>
+        <CirclePlusIcon className="cursor-pointer text-muted-foreground hover:opacity-75 transition-opacity duration-200"/>
+      </SidebarGroupLabel>
+
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible

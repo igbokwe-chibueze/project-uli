@@ -3,53 +3,42 @@
 import { AppSidebarX } from "@/features/organisations/components/app-sidebarX"
 
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { SiteHeaderX } from "@/features/organisations/components/site-headerX"
+import { SectionCards } from "@/features/organisations/components/section-cardsX"
+import { ChartAreaInteractiveX } from "@/features/organisations/components/chart-area-interactiveX"
+import { DataTableX } from "@/features/organisations/components/data-tableX"
+
+import data from "./data.json"
 
 export default function Page() {
   return (
     <SidebarProvider>
       <AppSidebarX />
+
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+        <SiteHeaderX/>
+
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col space-y-4 px-4 lg:px-6 py-4 md:py-6">
+              <h1 className="text-3xl font-bold">Organazation Name</h1>
+              <p className="text-muted-foreground">Oraganisation overview and key metrics</p>
+            </div>
+
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <SectionCards />
+              <div className="px-4 lg:px-6">
+                <ChartAreaInteractiveX />
+              </div>
+              <DataTableX data={data} />
+            </div>
           </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-          </div>
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
         </div>
       </SidebarInset>
+      
     </SidebarProvider>
   )
 }
