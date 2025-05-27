@@ -210,20 +210,27 @@ const CreateOrganisationForm = () => {
                 <FormError message={error} />
                 <FormSuccess message={success} />
                 
-                {/* Submit Button */}
-                <Button type="submit" className="w-full buttons" disabled={isPending}>
-                    {isPending ? (
-                        <div className="flex items-center justify-center gap-2">
-                            <span className="size-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
-                            <span>Registering Organization...</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-center gap-2">
-                            <Building2Icon className="w-4 h-4 mr-2" />
-                            <span>Register Organization</span>
-                        </div>
-                    )}
-                </Button>
+                <div className="flex gap-3 pt-4">
+                    {/* Submit Button */}
+                    <Button type="submit" className="flex-1 transition-all duration-200 hover:scale-[1.02]" disabled={isPending}>
+                        {isPending ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <span className="size-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
+                                <span>Registering Organization...</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center gap-2">
+                                <Building2Icon className="w-4 h-4 mr-2" />
+                                <span>Register Organization</span>
+                            </div>
+                        )}
+                    </Button>
+                    
+                    {/* Cancel Button */}
+                    <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={isPending}>
+                        Cancel
+                    </Button>
+                </div>
 
             </form>
 
