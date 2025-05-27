@@ -1,6 +1,7 @@
 // src/features/auth/components/card-wrapper.tsx
 "use client"
 
+import { cn } from "@/lib/utils";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Header } from "@/features/auth/components/header";
 import Socials from "@/features/auth/components/socials";
@@ -11,17 +12,21 @@ interface CardWrapperProps {
     children: React.ReactNode;
     headerHeading: string;
     headerLabel: string;
-    backButtonLabel: string;
-    backButtonHref: string;
+    headerIcon?: React.ReactNode;
+    backButtonLabel?: string;
+    backButtonHref?: string;
     showSocial?: boolean;
+    className?: string;
 };
 
-export const CardWrapper = ({ children, headerHeading, headerLabel, backButtonLabel, backButtonHref, showSocial }: CardWrapperProps) => {
+export const CardWrapper = ({ 
+    children, headerHeading, headerLabel, headerIcon, backButtonLabel, backButtonHref, showSocial, className 
+}: CardWrapperProps) => {
     return (
         <>
-            <Card className="w-[400px] shadow-md">
+            <Card className={cn("shadow-md", "w-[350px] lg:w-[450px]", className)}>
                 <CardHeader>
-                    <Header heading={headerHeading} label={headerLabel} />
+                    <Header heading={headerHeading} label={headerLabel} icon={headerIcon}/>
                 </CardHeader>
 
                 {showSocial && (
@@ -46,13 +51,15 @@ export const CardWrapper = ({ children, headerHeading, headerLabel, backButtonLa
                 <CardContent>
                     {children}
                 </CardContent>
-
-                <CardFooter className=" flex justify-center">
-                    <BackButton
-                        label={backButtonLabel}
-                        href={backButtonHref}
-                    />
-                </CardFooter>
+                
+                {backButtonHref && backButtonLabel && (
+                    <CardFooter className=" flex justify-center">
+                        <BackButton
+                            label={backButtonLabel}
+                            href={backButtonHref}
+                        />
+                    </CardFooter>
+                )}
             </Card>
         </>
     )

@@ -1,0 +1,48 @@
+// src/app/(protected)/organisations/create/page.tsx
+
+import ClientToast from "@/components/client-toast"
+import { currentUser } from "@/features/auth/lib/authenticate";
+import CreateOrganisationForm from "@/features/organisations/components/create-organisation-form";
+import { ShieldBanIcon } from "lucide-react"
+import Link from "next/link"
+import { redirect } from "next/navigation";
+
+type OrganisationCreatePageProps = {
+  searchParams: Promise<{
+    message?: string | string[];
+  }>;
+};
+
+const OrganisationCreatePage = async ({ searchParams }: OrganisationCreatePageProps) => {
+    // Authenticate user
+      const user = await currentUser();
+      if (!user || !user?.id) redirect("/access"); //If user is not authenticated redirect to signIn(/access)
+
+    const resolvedSearchParams = await searchParams;
+    const message = resolvedSearchParams.message;
+    return (
+        <div className=" flex flex-col justify-center items-center gap-4 ">
+            {message && <ClientToast message={message} />}
+            <Link href="/" className="flex items-center gap-2 self-center font-medium">
+                <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                    <ShieldBanIcon className="size-6" />
+                </div>
+                Project-Uli.
+            </Link>
+
+            <div className="text-center space-y-2">
+                <h1 className="text-3xl sm:text-4xl font-bold text-primary">Organization Registration</h1>
+                <p className="text-lg text-muted-foreground">Join up and connect with other organizations worldwide</p>
+            </div>
+
+            <CreateOrganisationForm/>
+
+            <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
+                By clicking register, you agree to our <a href="#">Terms of Service</a>{" "}
+                and <a href="#">Privacy Policy</a>.
+            </div>
+        </div>
+    )
+}
+
+export default OrganisationCreatePage

@@ -1,15 +1,21 @@
 // src/app/(protected)/organisations/page.tsx
 
+import { currentUser } from "@/features/auth/lib/authenticate";
+import { getOrganizationsForUser } from "@/features/organisations/data/organizations";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-const OrgHomePage = () => {
-  const organisationsCount = 1;
+const OrgHomePage = async () => {
+  // Authenticate user
+  const user = await currentUser();
+  if (!user || !user?.id) redirect("/access"); //If user is not authenticated redirect to signIn(/access)
 
-  // If the user already belongs to an organisation, redirect on the server
-  if (organisationsCount > 0) {
-    // Replace `1` with your dynamic organisation ID
-    redirect(`/organisations/1`);
+  const memberships = await getOrganizationsForUser(user.id);
+
+  //Fetch all memberships for this user, including the Organization
+  //If they belong to at least one org, redirect to the first org’s page
+  if (memberships.length > 0) {
+    redirect(`/organisations/${memberships[0].organization.id}`);
   }
 
   // Render create/join UI if no organisations exist
