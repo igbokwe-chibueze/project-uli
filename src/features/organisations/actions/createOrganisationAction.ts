@@ -15,46 +15,33 @@ export const createOrganisationAction = async (values: z.infer<typeof CreateOrga
 
     const { organizationName, description, industry, country, logo } = validatedFields.data;
 
-    // Upload logo if provided
-    let logoUrl: string | undefined;
-    if (logo) {
-        //const buffer = Buffer.from(await logo.arrayBuffer());
-        // logoUrl = await uploadImage(buffer, { resource_type: 'image' });
-        logoUrl = "https://upload";
-    }
-
     //Ensure user is authenticated
     const user = await currentUser();
-
     if (!user?.id) {
         return { error: "You must be logged in to create an organization." };
     }
 
-    // const organization = await prisma.organization.create({
-    //     data: {
-    //         name: organizationName,
-    //         description,
-    //         industry,
-    //         country,
-    //         logo: logoUrl,
-    //         members: {
-    //             create: {
-    //                 userId: user.id,
-    //                 role:   "OWNER",
-    //             },
-    //         },
-    //     },
-    // });
-    console.log("Creating organization with data:", {
-        name: organizationName,
-        description,
-        industry,
-        country,
-        logo,
-        ownerId: user.id,
+    // Normalize logo into a string URL (or undefined)
+    // After client‐side upload, logo should already be a string.
+    // If something slipped through as a File, we drop it.
+    const logoUrl: string | undefined =
+        typeof logo === "string" ? logo : undefined;
+
+    const organization = await prisma.organization.create({
+        data: {
+            name: organizationName,
+            description,
+            industry,
+            country,
+            logo: logoUrl,
+            members: {
+                create: {
+                    userId: user.id,
+                    role:   "OWNER",
+                },
+            },
+        },
     });
 
-    return { success: "Organization logged successfully!" };
-
-    //return { success: "Organization created successfully!", organizationId: organization.id};
+    return { success: "Organization created successfully!", organizationId: organization.id};
 }

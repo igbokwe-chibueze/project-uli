@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, MailIcon } from "lucide-react";
 
 import { LoginSchema } from "@/features/auth/schemas";
 import { loginAction } from "@/features/auth/actions/login-action";
@@ -153,15 +153,19 @@ export const LoginForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field}
-                          placeholder="Enter your email"
-                          type="email"
-                          autoComplete="email"
-                          disabled={isPending}
-                        />
-                      </FormControl>
+                      <div className="relative">
+                        <MailIcon className="absolute left-3 top-3 size-4 text-muted-foreground" />
+                        <FormControl>
+                          <Input 
+                            {...field}
+                            placeholder="Enter your email"
+                            type="email"
+                            autoComplete="email"
+                            className="pl-10"
+                            disabled={isPending}
+                          />
+                        </FormControl>
+                      </div>
                       <FormMessage/>
                     </FormItem>
                   )}

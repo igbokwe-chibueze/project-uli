@@ -18,6 +18,7 @@ import { SelectPopover } from "@/components/select-popover";
 import { useRouter } from "next/navigation";
 import { FileUploadField } from "@/components/file-upload-field";
 import { Building2Icon, GlobeIcon,  } from "lucide-react";
+import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
 
 const industries = [
     "Technology",
@@ -72,7 +73,7 @@ const countries = [
 ]
 
 const CreateOrganisationForm = () => {
-    //const router = useRouter();
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
@@ -91,22 +92,58 @@ const CreateOrganisationForm = () => {
         },
     });
 
+    /**
+   * onSubmit
+   * --------
+   * 1. If a File is present in `values.logo`, upload it to Cloudinary first.
+   * 2. Replace `values.logo` with the returned URL string.
+   * 3. Call the server action to write to your Prisma DB.
+   * 4. On success, reset the form, bump the logoKey (to clear the file input),
+   *    and navigate to the new organisation’s detail page.
+   */
+
     const onSubmit = (values: z.infer<typeof CreateOrganisationSchema>) => {
         setError("");
         setSuccess("");
 
         startTransition(() => {
-            createOrganisationAction(values)
-                .then((res) => {
-                    setError(res.error);
-                    setSuccess(res.success);
-                    form.reset();
-                    setLogoKey((prev) => prev + 1); // Triggers re-render of FileUploadField
-                    //router.push(`/organisations/${res.organizationId}`);
-                })
-                .catch((err) => {
-                    setError(err.message);
-                });
+            (async () => {
+                try {
+                    // 1 If the user selected a File, upload to Cloudinary
+                    let logoUrl: string | undefined;
+                    if (values.logo instanceof File) {
+                        logoUrl = await uploadToCloudinary(
+                            values.logo,
+                            "logo_upload_project_uli",     // your unsigned preset
+                            "organisations/logos"     // target folder (optional)
+                        );
+                    }
+
+                    // 2 Build a new payload: notice logo is now string | undefined
+                    const payload = {
+                        ...values,
+                        logo: logoUrl,
+                    };
+
+                    // 3 Persist to database
+                    const res = await createOrganisationAction(payload);
+
+                    // 3 Handle response
+                    if (res.error) {
+                        setError(res.error);
+                    } else {
+                        setSuccess(res.success);
+                        form.reset();
+                        //setLogoKey((k) => k + 1);
+                        setLogoKey((prev) => prev + 1); // Triggers re-render of FileUploadField
+                        // Redirect to detail page
+                        router.push(`/organisations/${res.organizationId}`);
+                    }
+                } catch (err: unknown) {
+                    // Narrow unknown to Error for .message
+                    setError(err instanceof Error ? err.message : "Something went wrong");
+                }
+            })();
         });
     };
 
@@ -173,7 +210,7 @@ const CreateOrganisationForm = () => {
                         label="Organization Logo"
                         accept="image/*"
                         acceptLabel="Images/ PNG, JPG, SVG"
-                        maxSizeMB={1}
+                        maxSizeMB={3}
                         previewWidth={128}
                         previewHeight={128}
                     />
