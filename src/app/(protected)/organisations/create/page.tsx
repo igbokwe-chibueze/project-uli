@@ -1,7 +1,7 @@
 // src/app/(protected)/organisations/create/page.tsx
 
 import ClientToast from "@/components/client-toast"
-import { currentUser } from "@/features/auth/lib/authenticate";
+import { currentID } from "@/features/auth/lib/authenticate";
 import CreateOrganisationForm from "@/features/organisations/components/create-organisation-form";
 import { ShieldBanIcon } from "lucide-react"
 import Link from "next/link"
@@ -14,9 +14,11 @@ type OrganisationCreatePageProps = {
 };
 
 const OrganisationCreatePage = async ({ searchParams }: OrganisationCreatePageProps) => {
-    // Authenticate user
-      const user = await currentUser();
-      if (!user || !user?.id) redirect("/access"); //If user is not authenticated redirect to signIn(/access)
+    // Authenticate user by getting the session Id
+    const user = await currentID();
+
+    // Not logged in → send to login (access)
+    if (!user) redirect('/access');
 
     const resolvedSearchParams = await searchParams;
     const message = resolvedSearchParams.message;

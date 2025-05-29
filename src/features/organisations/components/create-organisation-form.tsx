@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { FileUploadField } from "@/components/file-upload-field";
 import { Building2Icon, GlobeIcon,  } from "lucide-react";
 import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
+import { toast } from "sonner";
 
 const industries = [
     "Technology",
@@ -74,6 +75,7 @@ const countries = [
 
 const CreateOrganisationForm = () => {
     const router = useRouter();
+    const [isLoading, setIsLoading]     = useState(false);
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
@@ -103,49 +105,53 @@ const CreateOrganisationForm = () => {
    */
 
     const onSubmit = (values: z.infer<typeof CreateOrganisationSchema>) => {
+        // 1️⃣ Reset messages & show spinner immediately
         setError("");
         setSuccess("");
+        setIsLoading(true);
 
+        // 2️⃣ Do *all* of the async work inside a single transition
         startTransition(() => {
-            (async () => {
-                try {
-                    // 1 If the user selected a File, upload to Cloudinary
-                    let logoUrl: string | undefined;
-                    if (values.logo instanceof File) {
-                        logoUrl = await uploadToCloudinary(
-                            values.logo,
-                            "logo_upload_project_uli",     // your unsigned preset
-                            "organisations/logos"     // target folder (optional)
-                        );
-                    }
+        (async () => {
+            try {
+                // — Upload logo if user picked one
+                let logoUrl: string | undefined;
+                if (values.logo instanceof File) {
+                    logoUrl = await uploadToCloudinary(
+                        values.logo,
+                        "logo_upload_project_uli",
+                        "organisations/logos"
+                    );
+                }
 
-                    // 2 Build a new payload: notice logo is now string | undefined
-                    const payload = {
-                        ...values,
-                        logo: logoUrl,
-                    };
+                // — Persist to Prisma
+                const res = await createOrganisationAction({ ...values, logo: logoUrl });
 
-                    // 3 Persist to database
-                    const res = await createOrganisationAction(payload);
-
-                    // 3 Handle response
-                    if (res.error) {
-                        setError(res.error);
-                    } else {
-                        setSuccess(res.success);
-                        form.reset();
-                        //setLogoKey((k) => k + 1);
-                        setLogoKey((prev) => prev + 1); // Triggers re-render of FileUploadField
-                        // Redirect to detail page
-                        router.push(`/organisations/${res.organizationId}`);
-                    }
+                // — Show toast + form feedback
+                if (res.error) {
+                    setError(res.error);
+                    toast.error("Creation Failed", { description: res.error });
+                } else {
+                    setSuccess(res.success!);
+                    toast.success("Organization Created", {
+                        description: `"${values.organizationName}" is ready!`,
+                    });
+                    form.reset();
+                    setLogoKey((prev) => prev + 1);
+                    router.push(`/organisations/${res.organizationId}`);
+                }
                 } catch (err: unknown) {
-                    // Narrow unknown to Error for .message
-                    setError(err instanceof Error ? err.message : "Something went wrong");
+                    const msg = err instanceof Error ? err.message : "Something went wrong";
+                    setError(msg);
+                    toast.error("Error", { description: msg });
+                } finally {
+                    // 3️⃣ Always turn off spinner when done
+                    setIsLoading(false);
                 }
             })();
         });
     };
+
 
   return (
     <CardWrapper
@@ -173,7 +179,7 @@ const CreateOrganisationForm = () => {
                                         placeholder="Enter your organization name"
                                         type="text"
                                         autoComplete="organizationName"
-                                        disabled={isPending}
+                                        disabled={isLoading}
                                     />
                                 </FormControl>
                                 <FormMessage className="text-left"/>
@@ -192,7 +198,7 @@ const CreateOrganisationForm = () => {
                                     <Textarea
                                         {...field}
                                         placeholder="Describe your organization, its mission, and what you do..."
-                                        disabled={isPending}
+                                        disabled={isLoading}
                                         className="min-h-[120px]"
                                     />
                                 </FormControl>
@@ -245,12 +251,16 @@ const CreateOrganisationForm = () => {
                 </div>
 
                 <FormError message={error} />
-                <FormSuccess message={success} />
+                {/* <FormSuccess message={success} /> */}
+                <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
+                    <FormSuccess message={success} />
+                </div>
+
                 
                 <div className="flex gap-3 pt-4">
                     {/* Submit Button */}
-                    <Button type="submit" className="flex-1 transition-all duration-200 hover:scale-[1.02]" disabled={isPending}>
-                        {isPending ? (
+                    <Button type="submit" className="flex-1 transition-all duration-200 hover:scale-[1.02]" disabled={isLoading}>
+                        {isLoading ? (
                             <div className="flex items-center justify-center gap-2">
                                 <span className="size-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
                                 <span>Registering Organization...</span>
@@ -264,7 +274,7 @@ const CreateOrganisationForm = () => {
                     </Button>
                     
                     {/* Cancel Button */}
-                    <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={isPending}>
+                    <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={isLoading}>
                         Cancel
                     </Button>
                 </div>

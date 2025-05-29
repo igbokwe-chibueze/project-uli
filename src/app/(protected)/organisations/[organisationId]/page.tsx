@@ -1,13 +1,49 @@
 // src/app/(protected)/organisations/[organisationId]/page.tsx
 
+import NotFound from "@/app/not-found"
+import { currentID } from "@/features/auth/lib/authenticate"
 import { ChartAreaInteractiveX } from "@/features/organisations/components/chart-area-interactiveX"
 import { DataTableX } from "@/features/organisations/components/data-tableX"
 import { SectionCards } from "@/features/organisations/components/section-cardsX"
 import { SiteHeaderX } from "@/features/organisations/components/site-headerX"
+import { getOrganisationById, isUserOrganizationMember } from "@/features/organisations/data/organizations"
 
 import data from "@/lib/data.json"
+import { redirect } from "next/navigation"
 
-const OrganisationIdPage = () => {
+interface PageProps {
+  //params: { organisationId: string };
+  params: Promise<{ organisationId: string }>;
+}
+
+const OrganisationIdPage = async ({params}: PageProps) => {
+    // Authenticate user by getting the session Id
+    const user = await currentID();
+
+    // Not logged in → send to login (access)
+    if (!user) redirect('/access');
+
+    // Get the OrganisationId from the URL
+    const orgId = (await params).organisationId;
+
+    // Fetch the organization details by its ID.
+    // If the organization does not exist, render a 404-like page.
+    const organisation = await getOrganisationById(orgId);
+    if (!organisation) {
+        return <NotFound message="Organisation not found." />;
+    }
+
+    // Check if the authenticated user is a member of the organization.
+    // If not a member, render a 404-like page with an access denied message.
+    const isMember = await isUserOrganizationMember(user, orgId);
+    if (!isMember) {
+        return (
+            <NotFound message="Access denied: you are not a member of this organisation." />
+        );
+    }
+
+    
+
   return (
     <>
         <SiteHeaderX/>

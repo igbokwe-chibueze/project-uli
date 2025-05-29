@@ -1,16 +1,17 @@
 // src/app/(protected)/organisations/page.tsx
 
-import { currentUser } from "@/features/auth/lib/authenticate";
+import { currentID } from "@/features/auth/lib/authenticate";
 import { getOrganizationsForUser } from "@/features/organisations/data/organizations";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 const OrgHomePage = async () => {
-  // Authenticate user
-  const user = await currentUser();
-  if (!user || !user?.id) redirect("/access"); //If user is not authenticated redirect to signIn(/access)
+  // Authenticate user by getting the session Id
+  const user = await currentID();
 
-  const memberships = await getOrganizationsForUser(user.id);
+  if (!user) redirect("/access"); //If user is not authenticated redirect to signIn(/access)
+
+  const memberships = await getOrganizationsForUser(user);
 
   //Fetch all memberships for this user, including the Organization
   //If they belong to at least one org, redirect to the first org’s page
