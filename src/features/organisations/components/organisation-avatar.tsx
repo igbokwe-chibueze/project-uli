@@ -27,27 +27,25 @@ export const OrganisationAvatar = ({
 }: OrganisationAvatarProps) => {
   // If we have a valid `image` URL, render that as a small square with object-cover
   if (image) {
-    return (
-      <div
-        className={cn(
-          "relative overflow-hidden rounded-lg bg-background", // container is a rounded box
-          className
-        )}
-      >
-        <Image
-          src={image}
-          alt={`${name} logo`}
-          fill
-          sizes="20px" 
-          className="object-cover"
-        />
-      </div>
-    );
-  }
+        return (
+            <div className={cn(
+                "size-5 relative rounded-md overflow-hidden",
+                className,
+            )}>
+                <Image
+                    src={image}
+                    alt={name}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                />
+            </div>
+        )
+    }
 
   // Otherwise, show a fallback avatar with the first letter of `name`
   return (
-    <Avatar className={cn("size-8 overflow-hidden rounded-lg")}>
+    <Avatar className={cn("size-7 overflow-hidden rounded-lg")}>
     {/* <Avatar className={cn("size-8 overflow-hidden rounded-lg", className)}> */}
       <AvatarFallback className="flex items-center justify-center bg-sidebar-primary rounded-lg 
         text-lg text-sidebar-primary-foreground font-semibold uppercase"

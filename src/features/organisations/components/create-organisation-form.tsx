@@ -1,7 +1,7 @@
 // src/features/organisations/components/create-organisation-form.tsx
 "use client"
 
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { CardWrapper } from "@/features/auth/components/card-wrapper"
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CreateOrganisationSchema } from "../schemas";
 import { createOrganisationAction } from "../actions/createOrganisationAction";
-import { Textarea } from "@/components/ui/textarea";
+//import { Textarea } from "@/components/ui/textarea";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { Button } from "@/components/ui/button";
@@ -73,7 +73,11 @@ const countries = [
     "Saudi Arabia",
 ]
 
-const CreateOrganisationForm = () => {
+interface CreateOrganisationFormProps {
+    onCancel?: () => void;
+};
+
+const CreateOrganisationForm = ({onCancel}: CreateOrganisationFormProps) => {
     const router = useRouter();
     const [isLoading, setIsLoading]     = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -112,43 +116,43 @@ const CreateOrganisationForm = () => {
 
         // 2️⃣ Do *all* of the async work inside a single transition
         startTransition(() => {
-        (async () => {
-            try {
-                // — Upload logo if user picked one
-                let logoUrl: string | undefined;
-                if (values.logo instanceof File) {
-                    logoUrl = await uploadToCloudinary(
-                        values.logo,
-                        "logo_upload_project_uli",
-                        "organisations/logos"
-                    );
-                }
+            (async () => {
+                try {
+                    // — Upload logo if user picked one
+                    let logoUrl: string | undefined;
+                    if (values.logo instanceof File) {
+                        logoUrl = await uploadToCloudinary(
+                            values.logo,
+                            "logo_upload_project_uli",
+                            "organisations/logos"
+                        );
+                    }
 
-                // — Persist to Prisma
-                const res = await createOrganisationAction({ ...values, logo: logoUrl });
+                    // — Persist to Prisma
+                    const res = await createOrganisationAction({ ...values, logo: logoUrl });
 
-                // — Show toast + form feedback
-                if (res.error) {
-                    setError(res.error);
-                    toast.error("Creation Failed", { description: res.error });
-                } else {
-                    setSuccess(res.success!);
-                    toast.success("Organization Created", {
-                        description: `"${values.organizationName}" is ready!`,
-                    });
-                    form.reset();
-                    setLogoKey((prev) => prev + 1);
-                    router.push(`/organisations/${res.organizationId}`);
-                }
-                } catch (err: unknown) {
-                    const msg = err instanceof Error ? err.message : "Something went wrong";
-                    setError(msg);
-                    toast.error("Error", { description: msg });
-                } finally {
-                    // 3️⃣ Always turn off spinner when done
-                    setIsLoading(false);
-                }
-            })();
+                    // — Show toast + form feedback
+                    if (res.error) {
+                        setError(res.error);
+                        toast.error("Creation Failed", { description: res.error });
+                    } else {
+                        setSuccess(res.success!);
+                        toast.success("Organization Created", {
+                            description: `"${values.organizationName}" is ready!`,
+                        });
+                        form.reset();
+                        setLogoKey((prev) => prev + 1);
+                        router.push(`/organisations/${res.organizationId}`);
+                    }
+                    } catch (err: unknown) {
+                        const msg = err instanceof Error ? err.message : "Something went wrong";
+                        setError(msg);
+                        toast.error("Error", { description: msg });
+                    } finally {
+                        // 3️⃣ Always turn off spinner when done
+                        setIsLoading(false);
+                    }
+                })();
         });
     };
 
@@ -188,7 +192,7 @@ const CreateOrganisationForm = () => {
                     />
 
                     {/* Description */}
-                    <FormField
+                    {/* <FormField
                         control={form.control}
                         name="description"
                         render={({ field }) => (
@@ -206,7 +210,7 @@ const CreateOrganisationForm = () => {
                                 <FormMessage className="text-left"/>
                             </FormItem>
                         )}
-                    />
+                    /> */}
 
                     {/* Organization Logo */}
                     <FileUploadField
@@ -257,7 +261,7 @@ const CreateOrganisationForm = () => {
                 </div>
 
                 
-                <div className="flex gap-3 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                     {/* Submit Button */}
                     <Button type="submit" className="flex-1 transition-all duration-200 hover:scale-[1.02]" disabled={isLoading}>
                         {isLoading ? (
@@ -274,9 +278,16 @@ const CreateOrganisationForm = () => {
                     </Button>
                     
                     {/* Cancel Button */}
-                    <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={isLoading}>
-                        Cancel
-                    </Button>
+                    {onCancel ? (
+                        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                            Cancel Create
+                        </Button>
+                    ) : (
+
+                        <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={isLoading}>
+                            Cancel
+                        </Button>
+                    )}
                 </div>
 
             </form>

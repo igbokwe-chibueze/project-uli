@@ -1,12 +1,14 @@
 // src/features/organisations/actions/get-user-organisations-action.ts
 "use server";
 
+//This useful for getting organisatin data that would be used by client component, 
+// For server components organisation.ts is to be used.
 import { currentID } from "@/features/auth/lib/authenticate";
 import { getOrganizationsForUser } from "../data/organizations";
 
 /**
  * Fetches the current user’s ID via `currentID()` (server‐side),
- * then returns an array of Organization objects (not the full membership).
+ * then returns an array of Organization objects (not the full membership) to be used by a client.
  *
  * If the user is not authenticated, we throw so the client can catch and show an error.
  */

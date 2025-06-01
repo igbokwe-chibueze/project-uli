@@ -66,7 +66,7 @@ export const SelectPopover = <T extends FieldValues>({
               <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
+          <PopoverContent className="w-full bg-red-500 z-50 p-0 pointer-events-auto">
             <Command>
               <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
               <CommandList>
@@ -85,7 +85,7 @@ export const SelectPopover = <T extends FieldValues>({
                     >
                       <Check
                         className={cn(
-                          "mr-2 h-4 w-4",
+                          "mr-2 size-4",
                           field.value === opt ? "opacity-100" : "opacity-0"
                         )}
                       />

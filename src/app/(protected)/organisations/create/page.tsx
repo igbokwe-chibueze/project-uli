@@ -23,7 +23,7 @@ const OrganisationCreatePage = async ({ searchParams }: OrganisationCreatePagePr
     const resolvedSearchParams = await searchParams;
     const message = resolvedSearchParams.message;
     return (
-        <div className=" flex flex-col justify-center items-center gap-4 ">
+        <div className=" flex flex-col justify-center items-center gap-4 py-4 ">
             {message && <ClientToast message={message} />}
             <Link href="/" className="flex items-center gap-2 self-center font-medium">
                 <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
