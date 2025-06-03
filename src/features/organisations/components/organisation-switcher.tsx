@@ -3,6 +3,9 @@
 
 import { CheckCircleIcon, ChevronsUpDown, CirclePlusIcon, Plus } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,10 +24,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 
 import { UseGetOrganisationId } from "@/features/organisations/hooks/use-get-organisation-Id";
-import { OrganisationAvatar } from "./organisation-avatar";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useCreateOrganisationModal } from "../hooks/use-create-organisation-modal";
+import { OrganisationAvatar } from "@/features/organisations/components/organisation-avatar";
+import { useCreateOrganisationModal } from "@/features/organisations/hooks/use-create-organisation-modal";
 
 interface Org {
   id: string

@@ -3,19 +3,20 @@
 "use client"
 
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarRail,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
 } from "@/components/ui/sidebar"
-import { OrganisationSwitcher } from "./organisation-switcher"
-import { NavUserX } from "./nav-userX"
 
-import { sidebarData as data } from "@/lib/sidebar-data"
-import { useUserOrganizations } from "../hooks/use-user-organisations"
-import { NavMain } from "./nav-main"
-import { NavMainX } from "./nav-mainX"
+import { OrganisationSwitcher } from "@/features/organisations/components/organisation-switcher"
+import { useUserOrganizations } from "@/features/organisations/hooks/use-user-organisations"
+
+import { NavMain } from "@/features/organisations/components/nav-main"
+import { NavUser } from "@/features/organisations/components/nav-user"
+
+//import { sidebarData as data } from "@/lib/sidebar-data"
 
 export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
   const { organizations, loading, error } = useUserOrganizations();
@@ -31,12 +32,12 @@ export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) =
 
         <SidebarContent>
           <NavMain/>
-          <NavMainX items={data.navMain} />
         </SidebarContent>
 
         <SidebarFooter>
-          {/* <NavUserX user={data.user} /> */}
+          <NavUser/>
         </SidebarFooter>
+
         <SidebarRail />
     </Sidebar>
   )

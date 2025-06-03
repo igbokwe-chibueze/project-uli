@@ -4,6 +4,9 @@
 
 import { Building2Icon, ChevronRight, SettingsIcon, } from "lucide-react"
 
+import { usePathname } from "next/navigation"
+import Link from "next/link"
+
 import {
     Collapsible,
     CollapsibleContent,
@@ -19,8 +22,9 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import { usePathname } from "next/navigation"
-import { UseGetOrganisationId } from "../hooks/use-get-organisation-Id"
+
+import { UseGetOrganisationId } from "@/features/organisations/hooks/use-get-organisation-Id"
+
 
 const routes = [
     {
@@ -79,14 +83,16 @@ export const NavMain = () => {
                                     ? `/organisations/${organisationId}${subItem.url}`
                                     : subItem.url
 
+                                    const isActive = pathname === href
+
                                     return (
-                                    <SidebarMenuSubItem key={subItem.title}>
-                                        <SidebarMenuSubButton asChild>
-                                        <a href={href}>
-                                            <span>{subItem.title}</span>
-                                        </a>
-                                        </SidebarMenuSubButton>
-                                    </SidebarMenuSubItem>
+                                        <SidebarMenuSubItem key={subItem.title}>
+                                            <SidebarMenuSubButton asChild isActive={isActive}>
+                                                <Link href={href}>
+                                                    <span>{subItem.title}</span>
+                                                </Link>
+                                            </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
                                     )
                                 })}
                             </SidebarMenuSub>

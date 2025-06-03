@@ -1,10 +1,10 @@
 // src/app/(protected)/organisations/[organisationId]/page.tsx
 
+import { redirect } from "next/navigation"
+
 import NotFound from "@/app/not-found"
 import { currentID } from "@/features/auth/lib/authenticate"
-import { SiteHeaderX } from "@/features/organisations/components/site-headerX"
 import { getOrganisationById, isUserOrganizationMember } from "@/features/organisations/data/organizations"
-import { redirect } from "next/navigation"
 
 interface PageProps {
   //params: { organisationId: string };
@@ -40,9 +40,7 @@ const OrganisationIdPage = async ({params}: PageProps) => {
     
 
   return (
-    <>
-        <SiteHeaderX/>
-        
+    <>        
         <div className="flex flex-1 flex-col">
             <div className="@container/main flex flex-1 flex-col gap-2">
                 <div className="flex flex-col space-y-4 px-4 lg:px-6 py-4 md:py-6">
