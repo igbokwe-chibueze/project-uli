@@ -2,13 +2,8 @@
 
 import NotFound from "@/app/not-found"
 import { currentID } from "@/features/auth/lib/authenticate"
-import { ChartAreaInteractiveX } from "@/features/organisations/components/chart-area-interactiveX"
-import { DataTableX } from "@/features/organisations/components/data-tableX"
-import { SectionCards } from "@/features/organisations/components/section-cardsX"
 import { SiteHeaderX } from "@/features/organisations/components/site-headerX"
 import { getOrganisationById, isUserOrganizationMember } from "@/features/organisations/data/organizations"
-
-import data from "@/lib/data.json"
 import { redirect } from "next/navigation"
 
 interface PageProps {
@@ -56,13 +51,7 @@ const OrganisationIdPage = async ({params}: PageProps) => {
                 </div>
 
                 <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                    <SectionCards />
-
-                    <div className="px-4 lg:px-6">
-                        <ChartAreaInteractiveX />
-                    </div>
-
-                    <DataTableX data={data} />
+                    
                 </div>
             </div>
         </div>
