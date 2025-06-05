@@ -1,9 +1,10 @@
 // src/app/(protected)/organisations/page.tsx
 
-import { currentID } from "@/features/auth/lib/authenticate";
-import { getOrganizationsForUser } from "@/features/organisations/data/organizations";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+import { currentID } from "@/features/auth/lib/authenticate";
+import { getOrganizationsForUser } from "@/features/organisations/data/organizations";
 
 const OrgHomePage = async () => {
   // Authenticate user by getting the session Id
