@@ -7,8 +7,6 @@ export const CreateOrganisationSchema = z.object({
         message: "Organization name is required",
     }).max(100, { message: "Organization name must not be more than 100 characters" }),
 
-    description: z.string().optional(),
-    industry: z.string().optional(),
     country: z.string().optional(),
 
     logo: z.union([

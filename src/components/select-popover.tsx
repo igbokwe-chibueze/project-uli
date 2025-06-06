@@ -19,11 +19,21 @@ import {
 import { ChevronsUpDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Each option in the dropdown should have:
+ *  - value: the actual string (e.g. country.id)
+ *  - label: the human-readable text (e.g. "Nigeria (NG)")
+ */
+export interface OptionPair {
+  value: string;
+  label: string;
+}
+
 interface SelectPopoverProps<T extends FieldValues> {
   control: Control<T>;
   name: Path<T>;
   label: string;
-  options: string[];
+  options: OptionPair[];
   placeholder?: string;
   icon?: React.ReactNode;
   required?: boolean;
@@ -34,6 +44,9 @@ export const SelectPopover = <T extends FieldValues>({
 }: SelectPopoverProps<T>) => {
   const { field, fieldState: { error } } = useController({ name, control });
   const [open, setOpen] = useState(false);
+
+  // Helper: find the label for the currently selected value (ID)
+  const selectedLabel = options.find((opt) => opt.value === field.value)?.label;
 
   return (
     <FormItem>
@@ -61,7 +74,8 @@ export const SelectPopover = <T extends FieldValues>({
                 <div className="size-4 text-muted-foreground">
                   {icon}
                 </div>
-                {field.value || placeholder || `Select ${label.toLowerCase()}`}
+                {/* Show the selected label, or placeholder/default text */}
+                {selectedLabel ?? placeholder ?? `Select ${label.toLowerCase()}`}
               </div>
               <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
             </Button>
@@ -74,22 +88,22 @@ export const SelectPopover = <T extends FieldValues>({
                 <CommandGroup>
                   {options.map((opt) => (
                     <CommandItem
-                      key={opt}
-                      value={opt}
-                      onSelect={(value: string) => {
-                        field.onChange(
-                          value === field.value ? undefined : value
-                        );
+                      key={opt.value}
+                      // Set `value` to `opt.label` so filtering matches against the human‐readable text
+                      value={opt.label}
+                      onSelect={() => {
+                        // When an option is clicked, write the ID (opt.value) into the form
+                        field.onChange(opt.value);
                         setOpen(false);
                       }}
                     >
                       <Check
                         className={cn(
                           "mr-2 size-4",
-                          field.value === opt ? "opacity-100" : "opacity-0"
+                          field.value === opt.value ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      {opt}
+                      {opt.label}
                     </CommandItem>
                   ))}
                 </CommandGroup>

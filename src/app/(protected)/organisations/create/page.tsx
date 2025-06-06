@@ -1,11 +1,16 @@
 // src/app/(protected)/organisations/create/page.tsx
 
-import ClientToast from "@/components/client-toast"
-import { currentID } from "@/features/auth/lib/authenticate";
-import CreateOrganisationForm from "@/features/organisations/components/create-organisation-form";
 import { ShieldBanIcon } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation";
+
+import ClientToast from "@/components/client-toast"
+
+import { getAvailableCountries } from "@/data/static-data";
+
+import { currentID } from "@/features/auth/lib/authenticate";
+import CreateOrganisationForm from "@/features/organisations/components/create-organisation-form";
+
 
 type OrganisationCreatePageProps = {
   searchParams: Promise<{
@@ -19,6 +24,9 @@ const OrganisationCreatePage = async ({ searchParams }: OrganisationCreatePagePr
 
     // Not logged in → send to login (access)
     if (!user) redirect('/access');
+
+    // Fetch countryOptions (id + label) on the server
+    const countryOptions = await getAvailableCountries();
 
     const resolvedSearchParams = await searchParams;
     const message = resolvedSearchParams.message;
@@ -37,7 +45,7 @@ const OrganisationCreatePage = async ({ searchParams }: OrganisationCreatePagePr
                 <p className="text-lg text-muted-foreground">Join up and connect with other organizations worldwide</p>
             </div>
 
-            <CreateOrganisationForm/>
+            <CreateOrganisationForm countryOptions={countryOptions}/>
 
             <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
                 By clicking register, you agree to our <a href="#">Terms of Service</a>{" "}

@@ -1,83 +1,42 @@
 // src/features/organisations/components/create-organisation-form.tsx
 "use client"
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { CardWrapper } from "@/features/auth/components/card-wrapper"
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CreateOrganisationSchema } from "../schemas";
-import { createOrganisationAction } from "../actions/createOrganisationAction";
-//import { Textarea } from "@/components/ui/textarea";
-import { FormError } from "@/components/form-error";
-import { FormSuccess } from "@/components/form-success";
-import { Button } from "@/components/ui/button";
-import { SelectPopover } from "@/components/select-popover";
-import { useRouter } from "next/navigation";
-import { FileUploadField } from "@/components/file-upload-field";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2Icon, GlobeIcon,  } from "lucide-react";
-import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
 import { toast } from "sonner";
 
-const industries = [
-    "Technology",
-    "Healthcare",
-    "Education",
-    "Finance",
-    "Manufacturing",
-    "Retail",
-    "Construction",
-    "Transportation",
-    "Energy",
-    "Agriculture",
-    "Entertainment",
-    "Non-profit",
-    "Government",
-    "Consulting",
-    "Real Estate",
-    "Other",
-]
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
 
-const countries = [
-    "Nigeria",
-    "United States",
-    "Canada",
-    "United Kingdom",
-    "Germany",
-    "France",
-    "Italy",
-    "Spain",
-    "Netherlands",
-    "Sweden",
-    "Norway",
-    "Denmark",
-    "Finland",
-    "Australia",
-    "New Zealand",
-    "Japan",
-    "South Korea",
-    "Singapore",
-    "India",
-    "China",
-    "Brazil",
-    "Mexico",
-    "Argentina",
-    "Chile",
-    "South Africa",
-    "Kenya",
-    "Egypt",
-    "Israel",
-    "United Arab Emirates",
-    "Saudi Arabia",
-]
+import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
+import { CountryOption } from "@/data/static-data";
 
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+
+import { FormError } from "@/components/form-error";
+import { FormSuccess } from "@/components/form-success";
+import { SelectPopover } from "@/components/select-popover";
+import { FileUploadField } from "@/components/file-upload-field";
+
+import { CardWrapper } from "@/features/auth/components/card-wrapper"
+import { CreateOrganisationSchema } from "@/features/organisations/schemas";
+import { createOrganisationAction } from "@/features/organisations/actions/createOrganisationAction";
+
+/**
+ * Props for the CreateOrganisationForm component:
+ * - onCancel?: an optional callback for when the user clicks "Cancel".
+ * - countryOptions: an array of { value: id, label: "Name (ISO2)" } pairs populated server-side.
+ */
 interface CreateOrganisationFormProps {
     onCancel?: () => void;
+    countryOptions: CountryOption[];
 };
 
-const CreateOrganisationForm = ({onCancel}: CreateOrganisationFormProps) => {
+const CreateOrganisationForm = ({onCancel, countryOptions}: CreateOrganisationFormProps) => {
     const router = useRouter();
     const [isLoading, setIsLoading]     = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -91,9 +50,7 @@ const CreateOrganisationForm = ({onCancel}: CreateOrganisationFormProps) => {
         reValidateMode: "onBlur",
         defaultValues: {
             organizationName: "",
-            description: "",
-            industry: "",
-            country: "",
+            country: "", // will store the country.id from countryOptions
             logo: undefined,
         },
     });
@@ -142,7 +99,9 @@ const CreateOrganisationForm = ({onCancel}: CreateOrganisationFormProps) => {
                         });
                         form.reset();
                         setLogoKey((prev) => prev + 1);
-                        router.push(`/organisations/${res.organizationId}`);
+                        // Redirect to /organisations/[id]?created=true
+                        // Pass a `created=true` flag so the details page knows “we just created this org”
+                        router.push(`/organisations/${res.organizationId}?created=true`);
                     }
                     } catch (err: unknown) {
                         const msg = err instanceof Error ? err.message : "Something went wrong";
@@ -191,27 +150,6 @@ const CreateOrganisationForm = ({onCancel}: CreateOrganisationFormProps) => {
                         )}
                     />
 
-                    {/* Description */}
-                    {/* <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Description</FormLabel>
-                                <FormControl>
-                                    <Textarea
-                                        {...field}
-                                        placeholder="Describe your organization, its mission, and what you do..."
-                                        disabled={isLoading}
-                                        className="min-h-[120px]"
-                                    />
-                                </FormControl>
-                                <FormDescription className="text-left">{field.value?.length}/500 characters</FormDescription>
-                                <FormMessage className="text-left"/>
-                            </FormItem>
-                        )}
-                    /> */}
-
                     {/* Organization Logo */}
                     <FileUploadField
                         key={logoKey}
@@ -225,43 +163,25 @@ const CreateOrganisationForm = ({onCancel}: CreateOrganisationFormProps) => {
                         previewHeight={128}
                     />
 
+                    {/* Country */}
+                    <SelectPopover
+                        control={form.control}
+                        name="country"
+                        label="Country"
+                        placeholder="Select your country"
+                        icon={<GlobeIcon/>}
+                        options={countryOptions}
+                    />
 
-                    {/* Industry and Country - Responsive Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                        {/* Industry */}
-                        <SelectPopover
-                            control={form.control}
-                            name="industry"
-                            label="Industry"
-                            options={industries}
-                            placeholder="Select your industry"
-                            icon={<Building2Icon/>}
-                            required={true}
-                        />
-
-                        {/* Country */}
-                        <SelectPopover
-                            control={form.control}
-                            name="country"
-                            label="Country"
-                            options={countries}
-                            placeholder="Select your country"
-                            icon={<GlobeIcon/>}
-                            required={true}
-                        />
-
-                    </div>
                 </div>
 
                 <FormError message={error} />
-                {/* <FormSuccess message={success} /> */}
                 <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
                     <FormSuccess message={success} />
                 </div>
 
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                <div className="flex gap-3 pt-4">
                     {/* Submit Button */}
                     <Button type="submit" className="flex-1 transition-all duration-200 hover:scale-[1.02]" disabled={isLoading}>
                         {isLoading ? (

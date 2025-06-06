@@ -13,7 +13,7 @@ export const createOrganisationAction = async (values: z.infer<typeof CreateOrga
         return { error: "Invalid fields!" };
     }
 
-    const { organizationName, description, industry, country, logo } = validatedFields.data;
+    const { organizationName, country, logo } = validatedFields.data;
 
     //Ensure user is authenticated
     const user = await currentUser();
@@ -30,9 +30,8 @@ export const createOrganisationAction = async (values: z.infer<typeof CreateOrga
     const organization = await prisma.organization.create({
         data: {
             name: organizationName,
-            description,
-            industry,
-            country,
+            // If country is undefined or empty string, Prisma will set countryId = null
+            countryId: country || undefined,
             logo: logoUrl,
             members: {
                 create: {
