@@ -9,7 +9,17 @@ export const getOrganizationsForUser = async(userId: string) => {
     try {
         const memberships = await prisma.organizationMember.findMany({
             where: { userId },
-            include: { organization: true },
+            include: { 
+                organization: {
+                    include: {
+                        // ← Include the nested country object (so we can read .name and .iso2)
+                        country: {
+                            select: { id: true, name: true, iso2: true },
+                        },
+                        // You can include other needed lookups (industry, orgType, etc)
+                    },
+                }
+            },
         });
         
         return memberships;

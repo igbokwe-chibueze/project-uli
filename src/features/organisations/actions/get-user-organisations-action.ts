@@ -22,13 +22,24 @@ export async function GetUserOrganisationsAction() {
   // Fetch all memberships for this user, include the nested Organization
   const memberships = await getOrganizationsForUser(userId);
   // Return only the Organization objects; you can pick whichever fields you need
-  return memberships.map((m) => ({
-    id: m.organization.id,
-    name: m.organization.name,
-    logo: m.organization.logo,
-    country: m.organization.country,
-    // If you need more fields, add them here:
-    // description: m.organization.description,
-    // …
-  }));
+  // return memberships.map((m) => ({
+  //   id: m.organization.id,
+  //   name: m.organization.name,
+  //   logo: m.organization.logo,
+  //   country: m.organization.country,
+  //   // If you need more fields, add them here:
+  //   // description: m.organization.description,
+  //   // …
+  // }));
+  return memberships.map((m) => {
+    // Extract the nested country object from Prisma
+    const countryObj = m.organization.country;
+    return {
+      id: m.organization.id,
+      name: m.organization.name,
+      logo: m.organization.logo,
+      // Only return the country name & iso2 together (e.g. "Nigeria (NG)") as a (string) or null
+      country: countryObj ? `${countryObj.name} (${countryObj.iso2})` : null,
+    };
+  });
 }

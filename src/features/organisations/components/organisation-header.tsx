@@ -52,7 +52,9 @@ export const OrganisationHeader = () => {
                         //* TODO : Add Organisation Logo *****
                         <div className="flex items-center gap-2 text-sm leading-tight">
                             <span className="truncate font-semibold">{org?.name}</span>
-                            <span className="truncate">({org?.country})</span>
+                            {org?.country ? (
+                                <span className="truncate">[{org?.country}]</span>
+                            ) : (<span>(Update your country)</span>)}
                         </div>
                     )}
                 </div>
