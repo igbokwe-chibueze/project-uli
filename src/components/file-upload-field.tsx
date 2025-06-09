@@ -30,40 +30,57 @@ export function FileUploadField<T extends FieldValues>({
     previewWidth = 128,
     previewHeight = 128,
 }: FileUploadFieldProps<T>) {
-  // useController connects this field to react-hook-form
-  const {
-    field: { onChange, onBlur, value: file, disabled },
-    fieldState: { error },
-  } = useController({ name, control });
 
-  // track drag-over state for styling
-  const [isDragOver, setIsDragOver] = useState(false);
+    // Connect this field to React Hook Form, grabbing the onChange/onBlur handlers,
+    // the current value (which might be a File or a URL string), and disabled state.
+    const {
+        field: { onChange, onBlur, value: fileOrUrl, disabled },
+        fieldState: { error },
+    } = useController({ name, control });
 
-  // initialFile if form has existing File value
-  const initialFile = file as File | undefined;
-  // preview URL state: create object URL for existing File to preview
-  const [previewUrl, setPreviewUrl] = useState<string | undefined>(
-    initialFile instanceof File ? URL.createObjectURL(initialFile) : undefined
-  );
+    // fileOrUrl is a generic PathValue, so cast it to unknown first
+    // so TypeScript will allow us to test `instanceof File`.
+    const maybeFile = fileOrUrl as unknown;
 
-  // reference to hidden file input to trigger click programmatically
-  const inputRef = useRef<HTMLInputElement>(null);
+    // Determine the very first preview URL to show:
+    //  • If the form value is a File, create a temporary object URL for preview.
+    //  • Else, if the value is a non-empty string, we assume it’s an existing image URL.
+    //  • Otherwise, there’s no preview (undefined).
+    const initialPreview =
+        maybeFile instanceof File
+        ? URL.createObjectURL(maybeFile)            // preview new File
+        : typeof fileOrUrl === "string" &&
+            fileOrUrl.trim() !== ""                   // non-empty string?
+        ? fileOrUrl                                  // use existing URL
+        : undefined;                                 // no preview
 
-  /**
-   * Unified handler for file selection via drop or input change
-   * @param file - the selected File object or undefined
-   */
-  const handleFile = (file?: File) => {
-    onChange(file);        // update react-hook-form value
-    onBlur();              // mark as touched for validation
-    // if file is present and within size limit, create preview URL
-    if (file && file.size <= maxSizeMB * 1024 * 1024) {
-      setPreviewUrl(URL.createObjectURL(file));
-    } else {
-      // if no file or file too large, clear preview
-      setPreviewUrl(undefined);
-    }
-  };
+    // previewUrl state drives what image is shown in the dropzone.
+    // Initialize it to the computed initialPreview.
+    const [previewUrl, setPreviewUrl] = useState<string | undefined>(
+        initialPreview
+    );
+
+    // track drag-over state for styling
+    const [isDragOver, setIsDragOver] = useState(false);
+
+    // reference to hidden file input to trigger click programmatically
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    /**
+     * Unified handler for file selection via drop or input change
+     * @param file - the selected File object or undefined
+     */
+    const handleFile = (file?: File) => {
+        onChange(file);        // update react-hook-form value
+        onBlur();              // mark as touched for validation
+        // if file is present and within size limit, create preview URL
+        if (file && file.size <= maxSizeMB * 1024 * 1024) {
+        setPreviewUrl(URL.createObjectURL(file));
+        } else {
+        // if no file or file too large, clear preview
+        setPreviewUrl(undefined);
+        }
+    };
 
   return (
     <FormItem>
@@ -100,7 +117,7 @@ export function FileUploadField<T extends FieldValues>({
           disabled && "opacity-50 cursor-not-allowed",
           isDragOver ? "border-primary bg-primary/10" :
           previewUrl ? "border-green-500 bg-muted" :
-          "hover:border-gray-400 hover:bg-gray-50"
+          "hover:border-primary hover:bg-primary/10"
         )}
       >
         {/* Hidden file input for clicking */}
@@ -135,8 +152,8 @@ export function FileUploadField<T extends FieldValues>({
               )}
             </div>
 
-            {/* File name and size info */}
-            {file && (
+            {/* File name and size info — only when it’s an actual File */}
+            {maybeFile instanceof File && (
               <div className="text-center">
                 <p className={cn(
                   "text-sm font-medium flex items-center justify-center gap-1",
@@ -144,10 +161,10 @@ export function FileUploadField<T extends FieldValues>({
                 )}>
                   {/* Inline check icon if no error */}
                   {!error && <Check className="size-3 animate-in zoom-in duration-300" />}
-                  {file.name}
+                  {maybeFile.name}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                  {(maybeFile.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
             )}

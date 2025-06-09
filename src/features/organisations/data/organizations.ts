@@ -1,4 +1,5 @@
 // src/features/organisations/data/organizations.ts
+import "server-only";
 
 import { prisma } from "@/lib/prisma/prisma";
 
