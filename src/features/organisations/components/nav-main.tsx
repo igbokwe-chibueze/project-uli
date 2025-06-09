@@ -25,11 +25,19 @@ import {
 
 import { UseGetOrganisationId } from "@/features/organisations/hooks/use-get-organisation-Id"
 
+/**
+ * Each top-level route now has a `url` which serves as the “base” for all its children.
+ * - If you want a section at `/organisations/${orgId}/foo/bar`, set `url: "/foo"` and then
+ *   put child URLs like `"/bar"`.
+ * - For Company Navigation we set `url: ""`, meaning “no extra segment” before the child-page.
+ */
 
 const routes = [
     {
         title: "Company Navigation",
-        url: "#",
+        // An empty string means “no extra segment here”:
+        // children will become `/organisations/${orgId}${subItem.url}`
+        url: "",
         icon: Building2Icon,
         isActive: true,
         items: [
@@ -41,13 +49,14 @@ const routes = [
     },
     {
       title: "Settings",
-      url: "#",
+      // All children will live under `/organisations/${orgId}/settings/...`
+      url: "/settings",
       icon: SettingsIcon,
       items: [
-        { title: "General", url: "/general-settings" },
-        { title: "Team", url: "#" },
-        { title: "Billing", url: "#" },
-        { title: "Limits", url: "#" },
+        { title: "General", url: "/general" },
+        { title: "Team", url: "/#" },
+        { title: "Billing", url: "/#" },
+        { title: "Limits", url: "/#" },
       ],
     },
 ]
@@ -80,7 +89,7 @@ export const NavMain = () => {
                             <SidebarMenuSub>
                                 {route.items?.map((subItem) => {
                                     const href = organisationId
-                                    ? `/organisations/${organisationId}${subItem.url}`
+                                    ? `/organisations/${organisationId}${route.url}${subItem.url}`
                                     : subItem.url
 
                                     const isActive = pathname === href

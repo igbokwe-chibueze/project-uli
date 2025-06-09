@@ -74,7 +74,7 @@ const OrganisationIdPage = async ({params, searchParams}: PageProps) => {
                                     </Link>
 
                                     {/* Button to “Update Profile” (you might have a separate edit page) */}
-                                    <Link href={`/organisations/${orgId}/update-organisation`} passHref>
+                                    <Link href={`/organisations/${orgId}/settings/general`} passHref>
                                         <Button variant="outline" size="lg" className="flex items-center gap-2">
                                             <Settings2Icon className="size-4" />
                                             Update Company Profile

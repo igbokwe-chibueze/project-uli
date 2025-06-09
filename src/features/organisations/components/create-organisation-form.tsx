@@ -11,7 +11,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
-import { CountryOption } from "@/data/static-data";
+import { OptionProps } from "@/data/static-data";
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ import { createOrganisationAction } from "@/features/organisations/actions/creat
  */
 interface CreateOrganisationFormProps {
     onCancel?: () => void;
-    countryOptions: CountryOption[];
+    countryOptions: OptionProps[];
 };
 
 const CreateOrganisationForm = ({onCancel, countryOptions}: CreateOrganisationFormProps) => {
