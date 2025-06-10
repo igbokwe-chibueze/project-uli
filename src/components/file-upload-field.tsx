@@ -1,6 +1,6 @@
 // src/components/file-upload-field.tsx
 
-import { useRef, useState, DragEvent, MouseEvent } from "react";
+import { useRef, useState, DragEvent, MouseEvent, useEffect } from "react"; // Import useEffect
 import { useController, Control, FieldValues, Path } from "react-hook-form";
 import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import Image from "next/image";
@@ -10,14 +10,14 @@ import { cn } from "@/lib/utils";
 
 // Define the props for the FileUploadField component, generic on form values T
 interface FileUploadFieldProps<T extends FieldValues> {
-    control: Control<T>;           // react-hook-form control object
-    name: Path<T>;                // form field name corresponding to File (or undefined)
-    label: string;                // label text displayed above the dropzone/input
-    accept?: string;              // accepted file MIME types (defaults to any)
-    acceptLabel?: string;         // human-readable accepted file description
-    maxSizeMB?: number;           // maximum file size in megabytes
-    previewWidth?: number;        // width of the preview image
-    previewHeight?: number;       // height of the preview image
+    control: Control<T>;
+    name: Path<T>;
+    label: string;
+    accept?: string;
+    acceptLabel?: string;
+    maxSizeMB?: number;
+    previewWidth?: number;
+    previewHeight?: number;
 }
 
 export function FileUploadField<T extends FieldValues>({
@@ -31,168 +31,173 @@ export function FileUploadField<T extends FieldValues>({
     previewHeight = 128,
 }: FileUploadFieldProps<T>) {
 
-    // Connect this field to React Hook Form, grabbing the onChange/onBlur handlers,
-    // the current value (which might be a File or a URL string), and disabled state.
     const {
         field: { onChange, onBlur, value: fileOrUrl, disabled },
         fieldState: { error },
     } = useController({ name, control });
 
-    // fileOrUrl is a generic PathValue, so cast it to unknown first
-    // so TypeScript will allow us to test `instanceof File`.
     const maybeFile = fileOrUrl as unknown;
 
-    // Determine the very first preview URL to show:
-    //  • If the form value is a File, create a temporary object URL for preview.
-    //  • Else, if the value is a non-empty string, we assume it’s an existing image URL.
-    //  • Otherwise, there’s no preview (undefined).
-    const initialPreview =
-        maybeFile instanceof File
-        ? URL.createObjectURL(maybeFile)            // preview new File
-        : typeof fileOrUrl === "string" &&
-            fileOrUrl.trim() !== ""                   // non-empty string?
-        ? fileOrUrl                                  // use existing URL
-        : undefined;                                 // no preview
-
-    // previewUrl state drives what image is shown in the dropzone.
-    // Initialize it to the computed initialPreview.
-    const [previewUrl, setPreviewUrl] = useState<string | undefined>(
-        initialPreview
-    );
-
-    // track drag-over state for styling
+    const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
     const [isDragOver, setIsDragOver] = useState(false);
-
-    // reference to hidden file input to trigger click programmatically
     const inputRef = useRef<HTMLInputElement>(null);
 
-    /**
-     * Unified handler for file selection via drop or input change
-     * @param file - the selected File object or undefined
-     */
-    const handleFile = (file?: File) => {
-        onChange(file);        // update react-hook-form value
-        onBlur();              // mark as touched for validation
-        // if file is present and within size limit, create preview URL
-        if (file && file.size <= maxSizeMB * 1024 * 1024) {
-        setPreviewUrl(URL.createObjectURL(file));
+    // Effect to update previewUrl when fileOrUrl (the form value) changes
+    // This is crucial for reacting to form.reset() or initial data loading
+    useEffect(() => {
+        if (maybeFile instanceof File) {
+            setPreviewUrl(URL.createObjectURL(maybeFile));
+        } else if (typeof fileOrUrl === "string" && fileOrUrl.trim() !== "") {
+            setPreviewUrl(fileOrUrl);
         } else {
-        // if no file or file too large, clear preview
-        setPreviewUrl(undefined);
+            setPreviewUrl(undefined);
         }
+    }, [fileOrUrl, maybeFile]); // Re-run when fileOrUrl changes
+
+    /**
+     * Unified handler for file selection via drop or input change, or clearing
+     * @param file - the selected File object, an empty string (to clear), or undefined
+     */
+    const handleFile = (file: File | string | undefined) => {
+        // If file is explicitly passed as an empty string, set it as such
+        // If file is undefined, it means clearing the selection
+        if (file === undefined) {
+            onChange(undefined); // Clear form value to undefined
+            setPreviewUrl(undefined);
+            if (inputRef.current) inputRef.current.value = ''; // Clear file input
+        } else if (typeof file === 'string' && file.trim() === '') {
+            onChange(''); // Set form value to empty string
+            setPreviewUrl(undefined);
+            if (inputRef.current) inputRef.current.value = ''; // Clear file input
+        } else if (file instanceof File) {
+            // Handle actual file upload
+            if (file.size <= maxSizeMB * 1024 * 1024) {
+                onChange(file); // Update react-hook-form value to the File object
+                setPreviewUrl(URL.createObjectURL(file));
+            } else {
+                // If file too large, clear it and let RHF validation handle the error
+                onChange(undefined);
+                setPreviewUrl(undefined);
+                if (inputRef.current) inputRef.current.value = '';
+            }
+        }
+        onBlur(); // Mark as touched for validation
     };
 
-  return (
-    <FormItem>
-      {/* Label and info tooltip row */}
-      <div className="flex items-center gap-2 mb-1">
-        <FormLabel>{label}</FormLabel>
-        {acceptLabel && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {/* Info icon triggers tooltip */}
-              <Info className="size-4 text-muted-foreground cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent>
-              {/* Tooltip shows accepted types and size limit */}
-              <p>{acceptLabel} up to {maxSizeMB}MB</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-
-      {/* Dropzone / clickable upload area */}
-      <div
-        onDragOver={(e: DragEvent) => { e.preventDefault(); setIsDragOver(true); }}
-        onDragLeave={() => setIsDragOver(false)}
-        onDrop={(e: DragEvent) => {
-          e.preventDefault();
-          setIsDragOver(false);
-          const dropped = e.dataTransfer.files?.[0];
-          handleFile(dropped);
-        }}
-        onClick={() => !disabled && inputRef.current?.click()}
-        className={cn(
-          "relative border-2 border-dashed rounded-lg p-6 text-center transition",
-          disabled && "opacity-50 cursor-not-allowed",
-          isDragOver ? "border-primary bg-primary/10" :
-          previewUrl ? "border-green-500 bg-muted" :
-          "hover:border-primary hover:bg-primary/10"
-        )}
-      >
-        {/* Hidden file input for clicking */}
-        <input
-          ref={inputRef}
-          type="file"
-          accept={accept}
-          className="hidden"
-          disabled={disabled}
-          onChange={(e) => handleFile(e.target.files?.[0])}
-        />
-
-        {/* If previewUrl exists, show preview */}
-        {previewUrl ? (
-          <div>
-            {/* Image preview with close and check icons */}
-            <div className="relative mx-auto" style={{ width: previewWidth, height: previewHeight }}>
-              <Image src={previewUrl} alt="Preview" fill className="object-cover rounded" />
-              {/* Button to remove selected file */}
-              <button
-                type="button"
-                onClick={(e: MouseEvent) => { e.stopPropagation(); handleFile(undefined); }}
-                className="absolute -top-2 -right-2 p-1 bg-white rounded-full shadow hover:scale-110 transition"
-              >
-                <X className="size-4 text-destructive" />
-              </button>
-              {/* Visual success indicator if no error */}
-              {!error && (
-                <div className="absolute -bottom-2 -right-2 size-5 bg-green-500 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
-                  <Check className="size-3 text-white" />
-                </div>
-              )}
+    return (
+        <FormItem>
+            {/* Label and info tooltip row */}
+            <div className="flex items-center gap-2 mb-1">
+                <FormLabel>{label}</FormLabel>
+                {acceptLabel && (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Info className="size-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{acceptLabel} up to {maxSizeMB}MB</p>
+                        </TooltipContent>
+                    </Tooltip>
+                )}
             </div>
 
-            {/* File name and size info — only when it’s an actual File */}
-            {maybeFile instanceof File && (
-              <div className="text-center">
-                <p className={cn(
-                  "text-sm font-medium flex items-center justify-center gap-1",
-                  error ? "text-destructive" : "text-green-600"
-                )}>
-                  {/* Inline check icon if no error */}
-                  {!error && <Check className="size-3 animate-in zoom-in duration-300" />}
-                  {maybeFile.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {(maybeFile.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Placeholder UI when no file is selected */
-          <div className="text-center space-y-3">
-            <div className="mx-auto size-12 text-muted-foreground">
-              {/* Icon changes on drag-over */}
-              {isDragOver ? <Upload className="w-full h-full animate-bounce" /> : <ImageIcon className="w-full h-full"/>}
-            </div>
-            <p className="text-sm font-medium">
-              {isDragOver ? `Drop ${label}` : `Click or drag to upload ${label.toLowerCase()}`}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {acceptLabel} up to {maxSizeMB}MB
-            </p>
-          </div>
-        )}
-      </div>
+            {/* Dropzone / clickable upload area */}
+            <div
+                onDragOver={(e: DragEvent) => { e.preventDefault(); setIsDragOver(true); }}
+                onDragLeave={() => setIsDragOver(false)}
+                onDrop={(e: DragEvent) => {
+                    e.preventDefault();
+                    setIsDragOver(false);
+                    const dropped = e.dataTransfer.files?.[0];
+                    handleFile(dropped);
+                }}
+                onClick={() => !disabled && inputRef.current?.click()}
+                className={cn(
+                    "relative border-2 border-dashed rounded-lg p-6 text-center transition",
+                    disabled && "opacity-50 cursor-not-allowed",
+                    isDragOver ? "border-primary bg-primary/10" :
+                        previewUrl ? "border-green-500 bg-muted" :
+                            "hover:border-primary hover:bg-primary/10"
+                )}
+            >
+                {/* Hidden file input for clicking */}
+                <input
+                    ref={inputRef}
+                    type="file"
+                    accept={accept}
+                    className="hidden"
+                    disabled={disabled}
+                    onChange={(e) => handleFile(e.target.files?.[0])}
+                />
 
-      {/* Display validation error message, if any */}
-      {error && 
-        <FormMessage className="text-left text-destructive animate-in slide-in-from-top duration-200">
-          {error.message}
-        </FormMessage>
-      }
-    </FormItem>
-  );
+                {/* If previewUrl exists, show preview */}
+                {previewUrl ? (
+                    <div>
+                        <div className="relative mx-auto" style={{ width: previewWidth, height: previewHeight }}>
+                            <Image src={previewUrl} alt="Preview" fill className="object-cover rounded" />
+                            {/* Button to remove selected file or clear existing URL */}
+                            <button
+                                type="button"
+                                onClick={(e: MouseEvent) => {
+                                    e.stopPropagation();
+                                    // If it's an existing URL, pass an empty string to clear it
+                                    // Otherwise, pass undefined to clear a newly selected File
+                                    handleFile(typeof fileOrUrl === "string" && fileOrUrl.trim() !== "" ? "" : undefined);
+                                }}
+                                className="absolute -top-2 -right-2 p-1 bg-white rounded-full shadow hover:scale-110 transition"
+                            >
+                                <X className="size-4 text-destructive" />
+                            </button>
+                            {!error && (
+                                <div className="absolute -bottom-2 -right-2 size-5 bg-green-500 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                                    <Check className="size-3 text-white" />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* File name and size info — only when it’s an actual File */}
+                        {maybeFile instanceof File && (
+                            <div className="text-center">
+                                <p className={cn(
+                                    "text-sm font-medium flex items-center justify-center gap-1",
+                                    error ? "text-destructive" : "text-green-600"
+                                )}>
+                                    {!error && <Check className="size-3 animate-in zoom-in duration-300" />}
+                                    {maybeFile.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {(maybeFile.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                            </div>
+                        )}
+                        {/* Show "Existing Logo" or similar if it's an existing URL */}
+                        {typeof fileOrUrl === "string" && fileOrUrl.trim() !== "" && !(maybeFile instanceof File) && (
+                            <p className="text-sm text-muted-foreground mt-2">
+                                Current Logo
+                            </p>
+                        )}
+                    </div>
+                ) : (
+                    /* Placeholder UI when no file is selected */
+                    <div className="text-center space-y-3">
+                        <div className="mx-auto size-12 text-muted-foreground">
+                            {isDragOver ? <Upload className="w-full h-full animate-bounce" /> : <ImageIcon className="w-full h-full" />}
+                        </div>
+                        <p className="text-sm font-medium">
+                            {isDragOver ? `Drop ${label}` : `Click or drag to upload ${label.toLowerCase()}`}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            {acceptLabel} up to {maxSizeMB}MB
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            {error &&
+                <FormMessage className="text-left text-destructive animate-in slide-in-from-top duration-200">
+                    {error.message}
+                </FormMessage>
+            }
+        </FormItem>
+    );
 }
-

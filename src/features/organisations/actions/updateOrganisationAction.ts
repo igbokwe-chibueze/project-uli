@@ -14,9 +14,12 @@ export const updateOrganisationAction = async (
     organisationId: string, 
     values: Partial<z.infer<typeof UpdateOrganisationSchema>> // Accept Partial to only receive changed fields
 ) => {
+
+    //*********************************************************************************** */
     console.log("Server Action: updateOrganisationAction called.");
     console.log("Received organisationId:", organisationId);
     console.log("Received values (from client payload):", values);
+    //*********************************************************************************** */
 
     // 1) Validate against UpdateOrganisationSchema (organizationName + ≥1 other field)
     // Note: Since we're passing a partial object, safeParse will still work,
@@ -29,7 +32,9 @@ export const updateOrganisationAction = async (
     }
 
     const data = validatedFields.data;
+    //*********************************************************************************** */
     console.log("Validated data after partial schema parse:", data);
+    //*********************************************************************************** */
 
     // 2) Authenticate user by getting the session Id
     const userId = await currentID();
@@ -59,28 +64,11 @@ export const updateOrganisationAction = async (
         updatePayload.countryId = data.country;
     }
 
-    // logo: string URL or File. We want a string URL or leave undefined.
-    // let logoUrl: string | undefined = undefined;
-    // if (data.logo !== undefined) {
-    //     if (typeof data.logo === "string") {
-    //         logoUrl = data.logo;
-    //     }
-    //     // if it's a File, drop it on update (client should have uploaded it already)
-    //     if (logoUrl) {
-    //         updatePayload.logo = logoUrl;
-    //     } else {
-    //     // if client passed a File, we simply do not include `logo` in the payload
-    //         updatePayload.logo = undefined;
-    //     }
-    // }
-
-    // If data.logo is provided (either a URL string or empty string),
-    // set it explicitly—string stays string, empty string becomes null
     if (data.logo !== undefined) {
-        if (typeof data.logo === "string") {
-            updatePayload.logo = data.logo.trim() ? data.logo.trim() : null;
-        }
-        // if it's a File, we assume client never lets raw File through here
+        // If data.logo is explicitly set (meaning it was dirty on client),
+        // we handle its transformation to null if it's an empty string.
+        // If it's a valid URL string, it stays a string.
+        updatePayload.logo = data.logo === "" ? null : data.logo;
     }
 
     // description → description
@@ -110,7 +98,7 @@ export const updateOrganisationAction = async (
 
     // If somehow no other key was added (shouldn't happen thanks to .refine in the schema, but just in case), abort
     if (Object.keys(updatePayload).length === 0) {
-        return { error: "No changes detected." };
+        return { error: "No changes detected. Please edit at least one field." };
     }
 
     // 5) Perform the update (Prisma will only touch the keys in `updatePayload`)

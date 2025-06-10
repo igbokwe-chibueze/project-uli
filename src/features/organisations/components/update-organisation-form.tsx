@@ -100,63 +100,76 @@ const UpdateOrganisationForm = ({
             return;
         }
 
-        // Add this logging
-    console.log("Form is dirty:", isDirty);
-    console.log("Dirty Fields detected by react-hook-form:", dirtyFields);
+        // Add this logging************************************************************************
+        console.log("Form is dirty:", isDirty);
+        console.log("Dirty Fields detected by react-hook-form:", dirtyFields);
+        //*********************************************************************************** */
 
         // 2️⃣ Do *all* of the async work inside a single transition
         startTransition(() => {
             (async () => {
                 try {
                     // — Upload logo if user picked one
-                    let logoUrl: string | null | undefined;
+                    let finalLogoValue: string | null | undefined; // This will hold the value for the payload
+
                     // Only process logo if it was changed
                     if (dirtyFields.logo) {
                         if (values.logo instanceof File) {
-                            logoUrl = await uploadToCloudinary(
+                            // New file uploaded
+                            finalLogoValue = await uploadToCloudinary(
                                 values.logo,
                                 "logo_upload_project_uli",
                                 "organisations/logos"
                             );
                         } else if (typeof values.logo === "string") {
-                            // If it's non-empty, keep it; otherwise clear it (null for empty string)
-                            logoUrl = values.logo.trim() ? values.logo.trim() : null;
+                            // Existing URL or explicitly cleared to empty string
+                            // If it's an empty string, set to null, otherwise keep the URL
+                            finalLogoValue = values.logo.trim() ? values.logo.trim() : null;
+                        } else {
+                            // If values.logo is undefined (e.g., cleared from new file selection)
+                            finalLogoValue = null; // Explicitly set to null for deletion in DB
                         }
                     } else {
-                        // If logo field is not dirty, use the initial logo value
-                        logoUrl = initialData.logo ?? null;
+                        // Logo field was NOT dirty, keep its initial value from DB.
+                        // Important: Initial value might be null in DB, which would be undefined in initialData
+                        finalLogoValue = initialData.logo ?? null;
                     }
-
-                    // logoUrl is currently `string | null | undefined`
-                    // (if logoUrl is null or undefined, normalizedLogo will be undefined)
-                    const normalizedLogo = logoUrl ?? undefined; 
 
                     // Construct a payload with only the dirty fields
                     const payload: Partial<z.infer<typeof UpdateOrganisationSchema>> = {};
 
                     if (dirtyFields.organizationName) payload.organizationName = values.organizationName;
                     if (dirtyFields.country) payload.country = values.country;
-                    if (dirtyFields.logo || (dirtyFields.logo === false && typeof values.logo === 'string' && values.logo !== initialData.logo)) {
-                        // This complex condition for logo handles cases where it might be explicitly set to null/empty string by user
-                        payload.logo = normalizedLogo;
+
+                    // IMPORTANT: If logo is dirty, add it to payload.
+                    // This covers new upload, keeping existing, or clearing (null).
+                    // If logo is dirty, include it in the payload
+                    if (dirtyFields.logo) {
+                        payload.logo = finalLogoValue; // This will be URL string, or null
+                    } else {
+                        // Edge case: if logo was in initialData, and user didn't touch it,
+                        // but it needs to be included for consistency or other reasons,
+                        // you might add it here. But typically, if !dirty, you don't send.
+                        // However, if the initialData.logo was null, and the form default is undefined,
+                        // and nothing was done, it shouldn't be in dirtyFields.logo.
+                        // The current structure correctly handles new uploads and explicit clears.
                     }
+
                     if (dirtyFields.description) payload.description = values.description;
                     if (dirtyFields.industry) payload.industry = values.industry;
                     if (dirtyFields.orgType) payload.orgType = values.orgType;
                     if (dirtyFields.employeeCountRange) payload.employeeCountRange = values.employeeCountRange;
                     if (dirtyFields.revenueRange) payload.revenueRange = values.revenueRange;
 
-                    // Ensure organizationName is always included if it's dirty, as it's required
-                    if (dirtyFields.organizationName && payload.organizationName === undefined) {
-                         // This case might happen if organizationName is dirty but somehow invalidates to undefined
-                         // For this schema, it's string.min(1), so it would be empty string, which is caught by dirtyFields.organizationName
-                         // and still passed to payload.organizationName. Just a safeguard.
-                        payload.organizationName = values.organizationName;
+                    if (Object.keys(payload).length === 0) {
+                        setError("No changes detected. Please edit at least one field to save.");
+                        toast.info("No Changes", { description: "No changes detected. Please edit at least one field to save." });
+                        setIsLoading(false);
+                        return;
                     }
 
                     // Call the server action with the constructed payload
                     const res = await updateOrganisationAction(organisationId, payload);
-
 
                     // — Show toast + form feedback
                     if (res.error) {
