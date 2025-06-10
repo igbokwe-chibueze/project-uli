@@ -16,7 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { FileUploadField } from "@/components/file-upload-field";
 import { SelectPopover } from "@/components/select-popover";
-import { Building2Icon, GlobeIcon } from "lucide-react";
+import { Building2Icon, GlobeIcon, PencilLineIcon, RotateCcw } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
@@ -58,7 +58,7 @@ const UpdateOrganisationForm = ({
     const defaultValues: z.infer<typeof UpdateOrganisationSchema> = {
         organizationName: initialData.name, // Prisma 'name' -> form 'organizationName'
         country: initialData.countryId ?? undefined, // Prisma 'countryId' -> form 'country'
-        logo: initialData.logo ?? undefined,
+        logo: initialData.logo ?? undefined, // Ensure initialData.logo is correctly mapped
         description: initialData.description ?? undefined,
         industry: initialData.industryId ?? undefined, // Prisma 'industryId' -> form 'industry'
         orgType: initialData.orgTypeId ?? undefined, // Prisma 'orgTypeId' -> form 'orgType'
@@ -75,6 +75,9 @@ const UpdateOrganisationForm = ({
 
     const { formState } = form;
     const { isDirty, dirtyFields } = formState;
+
+    // Calculate number of modified fields
+    const modifiedCount = Object.keys(dirtyFields).length;
 
     /**
    * onSubmit ‒ When the user clicks “Save Changes”:
@@ -180,7 +183,13 @@ const UpdateOrganisationForm = ({
                         toast.success("Organisation updated successfully.", {
                             description: `"${values.organizationName}" has been saved.`,
                         });
-                        form.reset(values)
+                        //form.reset(values) // ******this seems better, the way below seems to take longer time*****************
+                        form.reset({
+                            ...values, // Use the submitted values
+                            // Ensure logo is correctly set for reset,
+                            // particularly if it went from File to URL, or to null
+                            logo: finalLogoValue === undefined ? initialData.logo ?? undefined : finalLogoValue ?? undefined
+                        });
                         setLogoKey((prev) => prev + 1);
                         // revalidate the current page
                         router.refresh();
@@ -195,6 +204,18 @@ const UpdateOrganisationForm = ({
                     }
                 })();
         });
+    };
+
+    /**
+     * Resets the form to its initial default values.
+     * This will clear all changes and dirty states.
+     */
+    const handleReset = () => {
+        form.reset(defaultValues); // Pass defaultValues to reset the form
+        setLogoKey((prev) => prev + 1); // Force FileUploadField to re-render with initial logo
+        setError(""); // Clear any error messages
+        setSuccess(""); // Clear any success messages
+        toast.info("Form Reset", { description: "All changes have been reverted." });
     };
 
   return (
@@ -214,9 +235,14 @@ const UpdateOrganisationForm = ({
                 name="organizationName"
                 render={({ field }) => (
                 <FormItem>
-                    <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
-                    Organization Name
-                    </FormLabel>
+                    <div className="flex items-center gap-2">
+                        <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
+                            Organization Name
+                        </FormLabel>
+                        {dirtyFields.organizationName && (
+                            <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                        )}
+                    </div>
                     <FormControl>
                     <Input
                         {...field}
@@ -245,8 +271,12 @@ const UpdateOrganisationForm = ({
                 // If you want to allow “remove logo,” you could add a little “Clear” button
                 // that does: form.setValue("logo", "");
             />
-
-            <span>{initialData.logo}</span>
+            {/* Pencil icon for Logo, placed separately due to FileUploadField's structure */}
+            {dirtyFields.logo && (
+                <div className="flex justify-end -mt-4 mr-2"> {/* Adjust margin as needed */}
+                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                </div>
+            )}
 
             {/* ── Country ────────────────────────────────────────────────────────── */}
             <SelectPopover
@@ -256,6 +286,8 @@ const UpdateOrganisationForm = ({
                 placeholder="Select country"
                 icon={<GlobeIcon />}
                 options={countryOptions}
+                // Pass dirty state to SelectPopover to display icon
+                isDirty={dirtyFields.country}
             />
 
             {/* ── Description ────────────────────────────────────────────────────── */}
@@ -264,7 +296,12 @@ const UpdateOrganisationForm = ({
                 name="description"
                 render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Description (optional)</FormLabel>
+                    <div className="flex items-center gap-2">
+                        <FormLabel>Description (optional)</FormLabel>
+                        {dirtyFields.description && (
+                            <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                        )}
+                    </div>
                     <FormControl>
                     <Textarea
                         {...field}
@@ -285,6 +322,7 @@ const UpdateOrganisationForm = ({
                 label="Industry (optional)"
                 placeholder="Select industry"
                 options={industryOptions}
+                isDirty={dirtyFields.industry}
             />
 
             {/* ── Organization Type ──────────────────────────────────────────────── */}
@@ -294,6 +332,7 @@ const UpdateOrganisationForm = ({
                 label="Organization Type (optional)"
                 placeholder="Select type"
                 options={orgTypeOptions}
+                isDirty={dirtyFields.orgType}
             />
 
             {/* ── Employee Count Range ───────────────────────────────────────────── */}
@@ -303,6 +342,7 @@ const UpdateOrganisationForm = ({
                 label="Employee Count Range (optional)"
                 placeholder="Select employee count"
                 options={employeeCountRangeOptions}
+                isDirty={dirtyFields.employeeCountRange}
             />
 
             {/* ── Revenue Range ──────────────────────────────────────────────────── */}
@@ -312,11 +352,15 @@ const UpdateOrganisationForm = ({
                 label="Revenue Range (optional)"
                 placeholder="Select revenue range"
                 options={revenueRangeOptions}
+                isDirty={dirtyFields.revenueRange}
             />
 
-            {/* <div className="text-right text-sm text-muted-foreground">
-                {modifiedCount} {modifiedCount === 1 ? 'field' : 'fields'} modified
-            </div> */}
+            {/* Note for modified fields */}
+            {isDirty && (
+                <div className="text-right text-sm text-muted-foreground animate-in slide-in-from-bottom duration-200">
+                    {modifiedCount} {modifiedCount === 1 ? 'field' : 'fields'} modified
+                </div>
+            )}
 
             <FormError message={error} />
             <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
@@ -324,44 +368,58 @@ const UpdateOrganisationForm = ({
             </div>
 
             <div className="flex gap-3 pt-4">
+
+                {/* Reset Changes Button */}
+                {isDirty && ( // Only show reset button if there are changes
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={handleReset}
+                        disabled={isLoading}
+                    >
+                        <RotateCcw className="size-4 mr-2" />
+                        Reset Changes
+                    </Button>
+                )}
+
                 {/* Save Changes */}
                 <Button
-                type="submit"
-                className="flex-1 transition-all duration-200 hover:scale-[1.02]"
-                disabled={isLoading}
+                    type="submit"
+                    className="flex-1 transition-all duration-200 hover:scale-[1.02]"
+                    disabled={isLoading}
                 >
-                {isLoading ? (
-                    <div className="flex items-center justify-center gap-2">
-                    <span className="size-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
-                    <span>Saving Changes…</span>
-                    </div>
-                ) : (
-                    <div className="flex items-center justify-center gap-2">
-                    <Building2Icon className="w-4 h-4 mr-2" />
-                    <span>Save Changes</span>
-                    </div>
-                )}
+                    {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                            <span className="size-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
+                            <span>Saving Changes…</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center gap-2">
+                            <Building2Icon className="size-4 mr-2" />
+                            <span>Save Changes</span>
+                        </div>
+                    )}
                 </Button>
 
                 {/* Cancel */}
                 {onCancel ? (
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onCancel}
-                    disabled={isLoading}
-                >
-                    Cancel
-                </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onCancel}
+                        disabled={isLoading}
+                    >
+                        Cancel
+                    </Button>
                 ) : (
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => window.history.back()}
-                    disabled={isLoading}
-                >
-                    Cancel
-                </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => window.history.back()}
+                        disabled={isLoading}
+                    >
+                        Cancel
+                    </Button>
                 )}
             </div>
             </form>

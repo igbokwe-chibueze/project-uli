@@ -16,7 +16,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { ChevronsUpDown, Check } from "lucide-react";
+import { ChevronsUpDown, Check, PencilLineIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,10 +37,11 @@ interface SelectPopoverProps<T extends FieldValues> {
   placeholder?: string;
   icon?: React.ReactNode;
   required?: boolean;
+  isDirty?: boolean;
 }
 
 export const SelectPopover = <T extends FieldValues>({
-  control, name, label, options, placeholder, icon, required = false
+  control, name, label, options, placeholder, icon, required = false,  isDirty = false,
 }: SelectPopoverProps<T>) => {
   const { field, fieldState: { error } } = useController({ name, control });
   const [open, setOpen] = useState(false);
@@ -50,14 +51,21 @@ export const SelectPopover = <T extends FieldValues>({
 
   return (
     <FormItem>
-      <FormLabel>
-        {label}
-        {required && (
-          <span className="ml-0.5 text-destructive" aria-hidden="true">
-            *
-          </span>
+      <div className="flex items-center gap-2">
+        <FormLabel>
+          {label}
+          {required && (
+            <span className="ml-0.5 text-destructive" aria-hidden="true">
+              *
+            </span>
+          )}
+        </FormLabel>
+
+        {isDirty && (
+          <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
         )}
-      </FormLabel>
+      </div>
+      
       <FormControl>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>

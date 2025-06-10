@@ -134,7 +134,7 @@ export function FileUploadField<T extends FieldValues>({
                 {previewUrl ? (
                     <div>
                         <div className="relative mx-auto" style={{ width: previewWidth, height: previewHeight }}>
-                            <Image src={previewUrl} alt="Preview" fill className="object-cover rounded" />
+                            <Image src={previewUrl} alt="Preview" fill className="object-cover rounded" unoptimized />
                             {/* Button to remove selected file or clear existing URL */}
                             <button
                                 type="button"
