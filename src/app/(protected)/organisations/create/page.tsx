@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import ClientToast from "@/components/client-toast"
 
-import { getAvailableCountries } from "@/data/static-data";
+import { getAvailableCountries, getAvailableStates } from "@/data/static-data";
 
 import { currentID } from "@/features/auth/lib/authenticate";
 import CreateOrganisationForm from "@/features/organisations/components/create-organisation-form";
@@ -25,8 +25,10 @@ const OrganisationCreatePage = async ({ searchParams }: OrganisationCreatePagePr
     // Not logged in → send to login (access)
     if (!user) redirect('/access');
 
-    // Fetch countryOptions (id + label) on the server
-    const countryOptions = await getAvailableCountries();
+    //Fetch the countries and states
+    const countries = await getAvailableCountries();
+    const states = await getAvailableStates();
+
 
     const resolvedSearchParams = await searchParams;
     const message = resolvedSearchParams.message;
@@ -45,10 +47,10 @@ const OrganisationCreatePage = async ({ searchParams }: OrganisationCreatePagePr
                 <p className="text-lg text-muted-foreground">Join up and connect with other organizations worldwide</p>
             </div>
 
-            <CreateOrganisationForm countryOptions={countryOptions}/>
+            <CreateOrganisationForm countries={countries} states={states}/>
 
             <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
-                By clicking register, you agree to our <a href="#">Terms of Service</a>{" "}
+                By continuing, you agree to our <a href="#">Terms of Service</a>{" "}
                 and <a href="#">Privacy Policy</a>.
             </div>
         </div>

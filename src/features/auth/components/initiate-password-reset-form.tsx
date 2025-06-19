@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { CardWrapper } from "@/features/auth/components/card-wrapper"
 import { InitiatePasswordResetSchema } from "@/features/auth/schemas";
 import { InitiatePasswordResetAction } from "@/features/auth/actions/initiate-password-reset-action";
+import { LoaderCircleIcon, MailIcon } from "lucide-react";
 
 
 export const InitiatePasswordResetForm = () => {
@@ -57,17 +58,20 @@ export const InitiatePasswordResetForm = () => {
                         control={form.control}
                         name="email"
                         render={({ field }) => (
-                    
                             <FormItem>
                                 <FormLabel>Email</FormLabel>
                                 <FormControl>
-                                    <Input 
-                                        {...field}
-                                        placeholder="Enter your email"
-                                        type="email"
-                                        autoComplete="email"
-                                        disabled={isPending}
-                                    />
+                                    <div className="relative">
+                                        <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                                        <Input 
+                                            {...field}
+                                            placeholder="Enter your email"
+                                            type="email"
+                                            autoComplete="email"
+                                            className="pl-10"
+                                            disabled={isPending}
+                                        />
+                                    </div>
                                 </FormControl>
                                 <FormMessage/>
                             </FormItem>
@@ -86,7 +90,7 @@ export const InitiatePasswordResetForm = () => {
                 >
                     {isPending ? (
                         <div className="flex items-center justify-center gap-2">
-                            <span className="h-4 w-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
+                            <LoaderCircleIcon className="size-4 animate-spin" />
                         </div>
                     ) : (
                         "Reset Password"

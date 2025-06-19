@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { CheckCircleIcon, EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon, UserIcon } from "lucide-react";
 
 import { RegisterSchema } from "@/features/auth/schemas";
 import { register } from "@/features/auth/actions/register";
@@ -27,6 +27,8 @@ export const RegisterForm = () => {
 
     const form = useForm<z.infer<typeof RegisterSchema>>({
       resolver: zodResolver(RegisterSchema),
+      mode: "onBlur",
+      reValidateMode: "onBlur",
       defaultValues: {
         name: "",
         email: "",
@@ -66,19 +68,27 @@ export const RegisterForm = () => {
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Enter your name"
-                      type="text"
-                      autoComplete="name"
-                      disabled={isPending}
-                    />
+                    <div className="relative">
+                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                      <Input
+                        {...field}
+                        placeholder="Enter your name"
+                        type="text"
+                        autoComplete="name"
+                        className="pl-10"
+                        disabled={isPending}
+                      />
+                      {/* show check icon when valid */}
+                      {!fieldState.invalid && field.value && (
+                        <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
+                      )}
+                    </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-left"/>
                 </FormItem>
               )}
             />
@@ -87,19 +97,27 @@ export const RegisterForm = () => {
             <FormField
               control={form.control}
               name="email"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Enter your email"
-                      type="email"
-                      autoComplete="email"
-                      disabled={isPending}
-                    />
+                    <div className="relative">
+                      <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                      <Input
+                        {...field}
+                        placeholder="Enter your email"
+                        type="email"
+                        autoComplete="email"
+                        className="pl-10"
+                        disabled={isPending}
+                      />
+                      {/* show check icon when valid */}
+                      {!fieldState.invalid && field.value && (
+                        <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
+                      )}
+                    </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-left"/>
                 </FormItem>
               )}
             />
@@ -108,7 +126,7 @@ export const RegisterForm = () => {
             <FormField
               control={form.control}
               name="password"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <div className="relative">
@@ -126,17 +144,21 @@ export const RegisterForm = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute inset-y-0 right-0 flex items-center text-muted-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
                     >
                       {showPassword ? (
-                        <EyeOffIcon className="size-4" />
+                        <EyeOffIcon />
                       ) : (
-                        <EyeIcon className="size-4" />
+                        <EyeIcon />
                       )}
                     </Button>
                   </div>
-                  <FormDescription className="text-left">At least 6 characters</FormDescription>
-                  <FormMessage />
+                  <FormDescription
+                    className={`text-left ${!fieldState.invalid && field.value ? "text-green-500" : ""}`}
+                  >
+                    At least 6 characters
+                  </FormDescription>
+                  <FormMessage className="text-left"/>
                 </FormItem>
               )}
             />
@@ -163,16 +185,16 @@ export const RegisterForm = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute inset-y-0 right-0 flex items-center text-muted-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
                     >
                       {showPassword ? (
-                        <EyeOffIcon className="size-4" />
+                        <EyeOffIcon />
                       ) : (
-                        <EyeIcon className="size-4" />
+                        <EyeIcon />
                       )}
                     </Button>
                   </div>
-                  <FormMessage />
+                  <FormMessage className="text-left"/>
                 </FormItem>
               )}
             />
@@ -184,7 +206,7 @@ export const RegisterForm = () => {
           <Button type="submit" className="w-full buttons" disabled={isPending}>
             {isPending ? (
               <div className="flex items-center justify-center gap-2">
-                <span className="size-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
+                <LoaderCircleIcon className="size-4 animate-spin" />
                 <span>Registering</span>
               </div>
             ) : (

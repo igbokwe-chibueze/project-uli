@@ -4,39 +4,78 @@
 
 import { prisma } from "@/lib/prisma/prisma";
 
-// Define a TypeScript interface to describe each country option.
-// "value" will hold the country ID (string), and "label" will be "Name (ISO2)".
-export interface OptionProps {
-  value: string; // The Prisma-generated ID for the country
-  label: string; // A human-readable string, e.g. "Nigeria (NG)"
+export interface CountryOptionProps {
+  id: string;
+  name: string;
+  iso2?: string;
+  emoji?: string;
 }
+
 /**
- * Fetch all countries (id, name, iso2) from the database,
+ * Fetch all countries (id, name, emoji) from the database,
  * sort them alphabetically by name, then return an array of
- * CountryOption objects.
+ * CountryOptionProps objects.
  */
-export const getAvailableCountries = async (): Promise<OptionProps[]> => {
+export const getAvailableCountries = async (): Promise<CountryOptionProps[]> => {
     try {
-        // Query Prisma for id, name, and iso2 for each country
         const countries = await prisma.country.findMany({
-            select: { id: true, name: true, iso2: true },
+            select: { id: true, name: true, iso2: true, emoji: true },
             orderBy: { name: "asc" },
         });
 
-        // Map each country row into a CountryOption
-        const countryOptions: OptionProps[] = countries.map((c) => ({
-            value: c.id,
-            // If c.iso2 is null/undefined, just show c.name without parentheses
-            label: c.iso2 ? `${c.name} (${c.iso2})` : c.name,
+        return countries.map((c) => ({
+            id: c.id,
+            name: c.name,
+            // if the database field is null, emoji will be `null`
+            // TS will allow that to become `undefined` in our interface
+            emoji: c.emoji ?? undefined,
+            iso2: c.iso2 ?? undefined,
         }));
-
-        return countryOptions;
-    } catch (error) {
-        console.error("Error fetching countries", { error });
-        throw error; // Let the caller handle the error
+    } catch (err) {
+        // <-- Log the raw error so you see the message, stack, etc.
+        console.error("[getAvailableCountries] Prisma failed:", err);
+        // Rethrow so your page can catch it
+        throw err;
     }
 };
 
+export interface StateOptionProps {
+  id: string;
+  name: string;
+  countryId: string;
+}
+
+/**
+ * Fetch all countries (id, name, emoji) from the database,
+ * sort them alphabetically by name, then return an array of
+ * CountryOptionProps objects.
+ */
+export const getAvailableStates = async (): Promise<StateOptionProps[]> => {
+    try {
+        const states = await prisma.state.findMany({
+            select: { id: true, name: true, countryId: true },
+            orderBy: { name: "asc" },
+        });
+
+        return states.map((s) => ({
+            id: s.id,
+            name: s.name,
+            countryId: s.countryId,
+        }));
+    } catch (err) {
+        // <-- Log the raw error so you see the message, stack, etc.
+        console.error("[getAvailableCountries] Prisma failed:", err);
+        // Rethrow so your page can catch it
+        throw err;
+    }
+};
+
+
+// Define a TypeScript interface to describe each country option.
+export interface OptionProps {
+  value: string; // The Prisma-generated ID for an Industry type
+  label: string; // A human-readable string, e.g. "Manufacturing"
+}
 
 //
 // 2) Fetch Industries
@@ -98,3 +137,82 @@ export const getAvailableRevenueRanges = async (): Promise<OptionProps[]> => {
         label: r.label,
     }));
 };
+
+//
+// 6) Fetch Languages
+//
+export const getAvailableLanguages = async (): Promise<OptionProps[]> => {
+    const languages = await prisma.language.findMany({
+        select: { id: true, name: true, code: true },
+        orderBy: { name: "asc" },
+    });
+
+    return languages.map((l) => ({
+        value: l.id,
+        // If l.code is null/undefined, just show l.name without parentheses
+        label: l.code ? `${l.name} (${l.code})` : l.name,
+    }));
+};
+
+//
+// 7) Fetch Specialties
+//
+export const getAvailableSpecialties = async (): Promise<OptionProps[]> => {
+    const specialties = await prisma.specialty.findMany({
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+    });
+
+    return specialties.map((s) => ({
+        value: s.id,
+        label: s.name,
+    }));
+};
+
+//
+// 8) Fetch SocialPlatforms
+//
+export const getAvailableSocialPlatforms = async (): Promise<OptionProps[]> => {
+    const socialPlatforms = await prisma.socialPlatform.findMany({
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+    });
+
+    return socialPlatforms.map((s) => ({
+        value: s.id,
+        label: s.name,
+    }));
+};
+
+//
+// 8) Fetch Certifications
+//
+export const getAvailableCertifications = async (): Promise<OptionProps[]> => {
+    const certifications = await prisma.certification.findMany({
+        select: { id: true, name: true,  issuer: true },
+        orderBy: { name: "asc" },
+    });
+
+    return certifications.map((c) => ({
+        value: c.id,
+        label: c.name ?  `${c.name}- ${c.issuer}` : c.name,
+    }));
+};
+
+//
+// 9) Fetch ColorSchemes
+//
+export const getAvailableColorSchemes = async (): Promise<OptionProps[]> => {
+    const colorSchemes = await prisma.colorScheme.findMany({
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+    });
+
+    return colorSchemes.map((c) => ({
+        value: c.id,
+        label: c.name,
+    }));
+};
+
+
+

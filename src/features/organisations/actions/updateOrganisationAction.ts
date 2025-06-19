@@ -3,117 +3,148 @@
 
 import { z } from "zod";
 
-import { UpdateOrganisationSchema } from "@/features/organisations/schemas/updateOrganisationSchema";
+import { UpdateOrganisationSchema } from "@/features/organisations/schemas";
 import { currentID } from "@/features/auth/lib/authenticate";
 import { isUserOrganizationMember } from "@/features/organisations/data/organizations";
 import { prisma } from "@/lib/prisma/prisma";
-//import { revalidatePath } from "next/cache";
-
 
 export const updateOrganisationAction = async (
-    organisationId: string, 
+    organisationId: string,
     values: Partial<z.infer<typeof UpdateOrganisationSchema>> // Accept Partial to only receive changed fields
 ) => {
 
-    //*********************************************************************************** */
-    console.log("Server Action: updateOrganisationAction called.");
-    console.log("Received organisationId:", organisationId);
-    console.log("Received values (from client payload):", values);
-    //*********************************************************************************** */
-
-    // 1) Validate against UpdateOrganisationSchema (organizationName + ≥1 other field)
-    // Note: Since we're passing a partial object, safeParse will still work,
-    // but the schema's 'required' fields will only be validated if they are present in 'values'.
-    // The client-side form handles the initial required validation.
-    const validatedFields = UpdateOrganisationSchema.partial().safeParse(values);
-      
-    if (!validatedFields.success) {
-        return { error: "Invalid fields!" };
+    // 1) Validate incoming fields against the UpdateOrganisationSchema
+    const validated = UpdateOrganisationSchema.safeParse(values);
+    if (!validated.success) {
+        return { error: "Invalid fields!", details: validated.error.format() };
     }
+    const data = validated.data;
 
-    const data = validatedFields.data;
-    //*********************************************************************************** */
-    console.log("Validated data after partial schema parse:", data);
-    //*********************************************************************************** */
-
-    // 2) Authenticate user by getting the session Id
+    // 2) Authenticate user by session
     const userId = await currentID();
     if (!userId) {
         return { error: "You must be logged in to update an organisation." };
     }
 
-    // Check if the authenticated user is a member of the organization.
-    // If not a member, render a 404-like page with an access denied message.
+    // 3) Authorization: ensure user is a member of this org
     const isMember = await isUserOrganizationMember(userId, organisationId);
-    // TODO ************ Check role permission (maybe only OWNER Should have access)
     if (!isMember) {
         return { error: "You do not have permission to update this organisation." };
     }
 
-    // 4) Normalize & pick only the fields that are defined
-    //  (UpdateOrganisationSchemaBase has: organizationName, country, logo, description, industry, orgType, employeeCountRange, revenueRange)
+    // 4) Build Prisma update payload with only defined fields
     const updatePayload: Record<string, unknown> = {};
 
-    // organizationName → name, because the organisation prisma model expects name and not organizationName
+    // Map form keys to Prisma fields
     if (typeof data.organizationName === "string") {
         updatePayload.name = data.organizationName;
     }
-
-    // country (string | undefined) → countryId
     if (data.country !== undefined && data.country !== "") {
         updatePayload.countryId = data.country;
     }
-
+    if (data.state !== undefined && data.state !== "") {
+        updatePayload.stateId = data.state;
+    }
     if (data.logo !== undefined) {
-        // If data.logo is explicitly set (meaning it was dirty on client),
-        // we handle its transformation to null if it's an empty string.
-        // If it's a valid URL string, it stays a string.
         updatePayload.logo = data.logo === "" ? null : data.logo;
     }
-
-    // description → description
     if (data.description !== undefined) {
         updatePayload.description = data.description;
     }
-
-    // industry → industryId
     if (data.industry !== undefined && data.industry !== "") {
         updatePayload.industryId = data.industry;
     }
-
-    // orgType → orgTypeId
     if (data.orgType !== undefined && data.orgType !== "") {
         updatePayload.orgTypeId = data.orgType;
     }
-
-    // employeeCountRange → employeeCountRangeId
     if (data.employeeCountRange !== undefined && data.employeeCountRange !== "") {
         updatePayload.employeeCountRangeId = data.employeeCountRange;
     }
-
-    // revenueRange → revenueRangeId
     if (data.revenueRange !== undefined && data.revenueRange !== "") {
         updatePayload.revenueRangeId = data.revenueRange;
     }
 
-    // If somehow no other key was added (shouldn't happen thanks to .refine in the schema, but just in case), abort
+
+    if (data.website !== undefined && data.website !== "") {
+        updatePayload.website = data.website;
+    }
+    if (data.primaryEmail !== undefined && data.primaryEmail !== "") {
+        updatePayload.primaryEmail = data.primaryEmail;
+    }
+    if (data.alternateEmail !== undefined && data.alternateEmail !== "") {
+        updatePayload.alternateEmail = data.alternateEmail;
+    }
+    if (data.phoneNumber !== undefined && data.phoneNumber !== "") {
+        updatePayload.phoneNumber = data.phoneNumber;
+    }
+    if (data.alternatePhoneNumber !== undefined && data.alternatePhoneNumber !== "") {
+        updatePayload.alternatePhoneNumber = data.alternatePhoneNumber;
+    }
+    if (data.taxId !== undefined && data.taxId !== "") {
+        updatePayload.taxId = data.taxId;
+    }
+    if (data.registrationNumber !== undefined && data.registrationNumber !== "") {
+        updatePayload.registrationNumber = data.registrationNumber;
+    }
+    if (data.foundedYear !== undefined ) {
+        updatePayload.foundedYear = data.foundedYear;
+    }
+    if (data.colorScheme !== undefined && data.colorScheme !== "") {
+        updatePayload.colorScheme = data.colorScheme;
+    }
+    if (data.streetAddress1 !== undefined && data.streetAddress1 !== "") {
+        updatePayload.streetAddress1 = data.streetAddress1;
+    }
+    if (data.streetAddress2 !== undefined && data.streetAddress2 !== "") {
+        updatePayload.streetAddress2 = data.streetAddress2;
+    }
+
+    if (data.isPublicProfile !== undefined) {
+        updatePayload.isPublicProfile = data.isPublicProfile;
+    }
+    if (data.allowContact !== undefined) {
+        updatePayload.allowContact = data.allowContact;
+    }
+    if (data.showRevenue !== undefined) {
+        updatePayload.showRevenue = data.showRevenue;
+    }
+    if (data.newsletterSubscription !== undefined) {
+        updatePayload.newsletterSubscription = data.newsletterSubscription;
+    }
+    if (data.socialMediaLinks !== undefined) {
+        updatePayload.socialMediaLinks = data.socialMediaLinks;
+    }
+    if (data.operationalHours !== undefined) {
+        updatePayload.operationalHours = data.operationalHours;
+    }
+
+    // Handle languages: set new relations via nested writes
+    if (data.languages !== undefined) {
+        updatePayload.languages = {
+            // Remove existing language links
+            deleteMany: {},
+            // Create new links for provided IDs
+            create: data.languages.map((language) => ({ language })),
+        };
+    }
+
+    // Abort if nothing to update
     if (Object.keys(updatePayload).length === 0) {
         return { error: "No changes detected. Please edit at least one field." };
     }
 
-    // 5) Perform the update (Prisma will only touch the keys in `updatePayload`)
+    // 5) Perform update within a transaction for safety
     try {
-        const updatedOrg = await prisma.organization.update({
-            where: { id: organisationId },
-            data: updatePayload,
+        const updatedOrg = await prisma.$transaction(async (tx) => {
+            return tx.organization.update({
+                where: { id: organisationId },
+                data: updatePayload,
+            });
         });
 
-        // Revalidate any cached pages (if you’re using ISR/Next.js cache)
-        //revalidatePath(`/organisations/${organisationId}`); // revalidate the details page
-
-        return { success: "Organisation updated successfully.", organisation: updatedOrg.name };
+        return { success: "Organisation updated successfully.", organisation: updatedOrg };
     } catch (err) {
         console.error("Error updating organisation:", err);
         return { error: "Failed to update organisation." };
     }
-}
+};

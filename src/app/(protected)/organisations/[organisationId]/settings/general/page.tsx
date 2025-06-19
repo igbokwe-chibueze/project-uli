@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import NotFound from "@/app/not-found";
 
-import { getAvailableCountries, getAvailableEmployeeCountRanges, getAvailableIndustries, getAvailableOrgTypes, getAvailableRevenueRanges } from "@/data/static-data";
+import { getAvailableCertifications, getAvailableColorSchemes, getAvailableCountries, getAvailableEmployeeCountRanges, getAvailableIndustries, getAvailableLanguages, getAvailableOrgTypes, getAvailableRevenueRanges, getAvailableSocialPlatforms, getAvailableSpecialties, getAvailableStates } from "@/data/static-data";
 
 import { currentID } from "@/features/auth/lib/authenticate";
 import UpdateOrganisationForm from "@/features/organisations/components/update-organisation-form"
@@ -39,12 +39,19 @@ const GeneralSettingsPage = async ({params,}: GeneralSettingsPageProps) => {
       );
   }
 
+  const countries = await getAvailableCountries();
+  const states = await getAvailableStates();
+
   // Fetch countryOptions (id + label) on the server
-  const countryOptions = await getAvailableCountries();
   const industryOptions = await getAvailableIndustries();
   const orgTypeOptions = await getAvailableOrgTypes();
   const employeeCountRangeOptions = await getAvailableEmployeeCountRanges();
   const revenueRangeOptions = await getAvailableRevenueRanges();
+  const languageOptions = await getAvailableLanguages();
+  const specialtyOptions = await getAvailableSpecialties();
+  const socialPlatformOptions = await getAvailableSocialPlatforms();
+  const certificationOptions = await getAvailableCertifications();
+  const colorSchemeOptions = await getAvailableColorSchemes();
 
 
   return (
@@ -52,18 +59,24 @@ const GeneralSettingsPage = async ({params,}: GeneralSettingsPageProps) => {
         <div className="flex flex-1 flex-col">
             <div className="@container/main flex flex-1 flex-col gap-2">
                 <div className="flex flex-col space-y-4 px-4 lg:px-6 py-4 md:py-6">
-                    <h1 className="text-3xl font-bold">GeneralSettingsPage</h1>
-                    <p className="text-muted-foreground">GeneralSettingsPage</p>
+                    <h1 className="text-3xl font-bold">Update Organization</h1>
+                    <p className="text-muted-foreground">Modify any of the fields below, then click “Save Changes.</p>
                 </div>
 
                 <div className="flex flex-col space-y-4 px-4 lg:px-6 py-4 md:py-6">
                     <UpdateOrganisationForm
                       initialData={organisation}
-                      countryOptions={countryOptions}
+                      countries={countries} 
+                      states={states}
                       industryOptions={industryOptions}
                       orgTypeOptions={orgTypeOptions}
                       employeeCountRangeOptions={employeeCountRangeOptions}
                       revenueRangeOptions={revenueRangeOptions}
+                      languageOptions={languageOptions}
+                      specialtyOptions={specialtyOptions}
+                      socialPlatformOptions={socialPlatformOptions}
+                      certificationOptions={certificationOptions}
+                      colorSchemeOptions={colorSchemeOptions}
                     />
                 </div>
             </div>

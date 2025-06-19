@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2Icon, GlobeIcon,  } from "lucide-react";
+import { Building2Icon, CheckCircleIcon, LoaderCircleIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { useRouter } from "next/navigation";
@@ -11,7 +11,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
-import { OptionProps } from "@/data/static-data";
+import { CountryOptionProps, StateOptionProps } from "@/data/static-data";
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
-import { SelectPopover } from "@/components/select-popover";
 import { FileUploadField } from "@/components/file-upload-field";
 
-import { CardWrapper } from "@/features/auth/components/card-wrapper"
 import { CreateOrganisationSchema } from "@/features/organisations/schemas";
 import { createOrganisationAction } from "@/features/organisations/actions/createOrganisationAction";
+import { CardWrapper } from "@/features/auth/components/card-wrapper"
+import { LocationSelector } from "@/components/location-selector";
 
 /**
  * Props for the CreateOrganisationForm component:
@@ -33,10 +33,11 @@ import { createOrganisationAction } from "@/features/organisations/actions/creat
  */
 interface CreateOrganisationFormProps {
     onCancel?: () => void;
-    countryOptions: OptionProps[];
+    countries: CountryOptionProps[];
+    states?:   StateOptionProps[];
 };
 
-const CreateOrganisationForm = ({onCancel, countryOptions}: CreateOrganisationFormProps) => {
+const CreateOrganisationForm = ({onCancel, countries, states = [],}: CreateOrganisationFormProps) => {
     const router = useRouter();
     const [isLoading, setIsLoading]     = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -50,7 +51,9 @@ const CreateOrganisationForm = ({onCancel, countryOptions}: CreateOrganisationFo
         reValidateMode: "onBlur",
         defaultValues: {
             organizationName: "",
-            country: "", // will store the country.id from countryOptions
+            country: "",
+            state: "",
+            phoneNumber: "",
             logo: undefined,
         },
     });
@@ -131,19 +134,27 @@ const CreateOrganisationForm = ({onCancel, countryOptions}: CreateOrganisationFo
                     <FormField
                         control={form.control}
                         name="organizationName"
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                             <FormItem>
                                 <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
                                     Organization Name
                                 </FormLabel>
                                 <FormControl>
-                                    <Input
-                                        {...field}
-                                        placeholder="Enter your organization name"
-                                        type="text"
-                                        autoComplete="organizationName"
-                                        disabled={isLoading}
-                                    />
+                                    <div className="relative">
+                                        <Building2Icon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                                        <Input
+                                            {...field}
+                                            placeholder="Enter your organization name"
+                                            type="text"
+                                            autoComplete="organizationName"
+                                            disabled={isLoading}
+                                            className="pl-10"
+                                        />
+                                        {/* show check icon when valid */}
+                                        {!fieldState.invalid && field.value && (
+                                            <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
+                                        )}
+                                    </div>
                                 </FormControl>
                                 <FormMessage className="text-left"/>
                             </FormItem>
@@ -163,16 +174,13 @@ const CreateOrganisationForm = ({onCancel, countryOptions}: CreateOrganisationFo
                         previewHeight={128}
                     />
 
-                    {/* Country */}
-                    <SelectPopover
+                    <LocationSelector
                         control={form.control}
-                        name="country"
-                        label="Country"
-                        placeholder="Select your country"
-                        icon={<GlobeIcon/>}
-                        options={countryOptions}
+                        nameCountry="country"
+                        nameState="state"
+                        countries={countries}
+                        states={states}
                     />
-
                 </div>
 
                 <FormError message={error} />
@@ -183,10 +191,13 @@ const CreateOrganisationForm = ({onCancel, countryOptions}: CreateOrganisationFo
                 
                 <div className="flex gap-3 pt-4">
                     {/* Submit Button */}
-                    <Button type="submit" className="flex-1 transition-all duration-200 hover:scale-[1.02]" disabled={isLoading}>
+                    <Button type="submit" 
+                        className="flex-1 transition-all duration-200 hover:scale-[1.02]" 
+                        disabled={!form.formState.isValid || isLoading}
+                    >
                         {isLoading ? (
                             <div className="flex items-center justify-center gap-2">
-                                <span className="size-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
+                                <LoaderCircleIcon className="size-4 mr-2 animate-spin" />
                                 <span>Registering Organization...</span>
                             </div>
                         ) : (

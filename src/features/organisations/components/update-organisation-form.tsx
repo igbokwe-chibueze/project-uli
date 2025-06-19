@@ -4,14 +4,24 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { GlobeIcon, LoaderCircleIcon, PencilLineIcon, RotateCcw, SaveIcon } from "lucide-react";
+import { Building2Icon, 
+    BuildingIcon, 
+    CalendarIcon, 
+    GlobeIcon, 
+    HandCoinsIcon, 
+    LetterTextIcon, 
+    LoaderCircleIcon, 
+    MailIcon, 
+    MapPinIcon, 
+    Paintbrush2Icon, 
+    PencilLineIcon, RotateCcw, SaveIcon, UsersIcon } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import { Organization } from "@prisma/client";
-import { OptionProps } from "@/data/static-data";
+import { CountryOptionProps, OptionProps, StateOptionProps } from "@/data/static-data";
 import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
 
 import { Input } from "@/components/ui/input";
@@ -25,25 +35,34 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
-import { UpdateOrganisationSchema } from "@/features/organisations/schemas/updateOrganisationSchema";
+import { UpdateOrganisationSchema } from "@/features/organisations/schemas";
 import { updateOrganisationAction } from "@/features/organisations/actions/updateOrganisationAction";
+import { Switch } from "@/components/ui/switch";
+import { LocationSelector } from "@/components/location-selector";
+import { PhoneNumberInput } from "@/components/phone-number-input";
 
 interface UpdateOrganisationFormProps {
     initialData: Organization; //Its ok for me to use prisma generated types here, because getOrganisationById runs server side and returns all fields, i didn't specify fields.
-    countryOptions: OptionProps[];
+    
+    countries: CountryOptionProps[];
+    states?:   StateOptionProps[];
     industryOptions: OptionProps[];
     orgTypeOptions: OptionProps[];
     employeeCountRangeOptions: OptionProps[];
     revenueRangeOptions: OptionProps[];
+    colorSchemeOptions: OptionProps[];
 };
 
 const UpdateOrganisationForm = ({
     initialData,
-    countryOptions,
+    
+    countries,
+    states,
     industryOptions,
     orgTypeOptions,
     employeeCountRangeOptions,
     revenueRangeOptions,
+    colorSchemeOptions
 }: UpdateOrganisationFormProps) => {
 
     const router = useRouter();
@@ -60,16 +79,35 @@ const UpdateOrganisationForm = ({
     // Build defaultValues from initialData. For any null/undefined, we pass "" to keep controlled.
     // Correctly map fields from the Prisma model to the form schema.
     // WRAP defaultValues in useMemo
-    const memoizedDefaultValues: z.infer<typeof UpdateOrganisationSchema> = useMemo(() => ({
-        organizationName: initialData.name, // Prisma 'name' -> form 'organizationName'
-        country: initialData.countryId ?? undefined, // Prisma 'countryId' -> form 'country'
-        logo: initialData.logo ?? undefined, // Ensure initialData.logo is correctly mapped
-        description: initialData.description ?? undefined,
-        industry: initialData.industryId ?? undefined, // Prisma 'industryId' -> form 'industry'
-        orgType: initialData.orgTypeId ?? undefined, // Prisma 'orgTypeId' -> form 'orgType'
-        employeeCountRange: initialData.employeeCountRangeId ?? undefined,
-        revenueRange: initialData.revenueRangeId ?? undefined,
-    }), [initialData]); // Dependency: initialData. Only recalculate if initialData changes.
+    const memoizedDefaultValues = useMemo(() => ({
+        organizationName:  initialData.name             ?? "",
+        country:           initialData.countryId       ?? "",
+        state:             initialData.stateId         ?? "",
+        logo:              initialData.logo            ?? "",
+        description:       initialData.description     ?? "",
+        industry:          initialData.industryId      ?? "",
+        orgType:           initialData.orgTypeId       ?? "",
+        employeeCountRange:initialData.employeeCountRangeId ?? "",
+        revenueRange:      initialData.revenueRangeId  ?? "",
+        // --- NEW FIELDS MAPPING ---
+        website:               initialData.website         ?? "",
+        primaryEmail:          initialData.primaryEmail    ?? "",
+        alternateEmail:        initialData.alternateEmail  ?? "",
+        phoneNumber:           initialData.phoneNumber     ?? "",
+        alternatePhoneNumber:  initialData.alternatePhoneNumber ?? "",
+        taxId:                 initialData.taxId           ?? "",
+        foundedYear:        initialData.foundedYear ?? undefined,
+        registrationNumber:initialData.registrationNumber ?? "",
+        colorScheme:       initialData.colorSchemeId     ?? "",
+        streetAddress1:        initialData.streetAddress1 ?? "",
+        streetAddress2:        initialData.streetAddress2 ?? "",
+
+        isPublicProfile:   initialData.isPublicProfile  ?? false,
+        allowContact:      initialData.allowContact     ?? false,
+        showRevenue:       initialData.showRevenue      ?? false,
+        newsletterSubscription: initialData.newsletterSubscription ?? false,
+
+    }), [initialData]);
 
     const form = useForm<z.infer<typeof UpdateOrganisationSchema>>({
         resolver: zodResolver(UpdateOrganisationSchema),
@@ -134,11 +172,6 @@ const UpdateOrganisationForm = ({
             return;
         }
 
-        // Add this logging************************************************************************
-        console.log("Form is dirty:", isDirty);
-        console.log("Dirty Fields detected by react-hook-form:", dirtyFields);
-        //*********************************************************************************** */
-
         // 2️⃣ Do *all* of the async work inside a single transition
         startTransition(() => {
             (async () => {
@@ -174,6 +207,7 @@ const UpdateOrganisationForm = ({
 
                     if (dirtyFields.organizationName) payload.organizationName = values.organizationName;
                     if (dirtyFields.country) payload.country = values.country;
+                    if (dirtyFields.state) payload.state = values.state;
 
                     // IMPORTANT: If logo is dirty, add it to payload.
                     // This covers new upload, keeping existing, or clearing (null).
@@ -194,6 +228,26 @@ const UpdateOrganisationForm = ({
                     if (dirtyFields.orgType) payload.orgType = values.orgType;
                     if (dirtyFields.employeeCountRange) payload.employeeCountRange = values.employeeCountRange;
                     if (dirtyFields.revenueRange) payload.revenueRange = values.revenueRange;
+                    if (dirtyFields.colorScheme) payload.colorScheme = values.colorScheme;
+
+                    // --- NEW FIELDS PAYLOAD ---
+                    if (dirtyFields.website) payload.website = values.website;
+                    if (dirtyFields.primaryEmail) payload.primaryEmail = values.primaryEmail;
+                    if (dirtyFields.alternateEmail) payload.alternateEmail = values.alternateEmail;
+                    if (dirtyFields.phoneNumber) payload.phoneNumber = values.phoneNumber;
+                    if (dirtyFields.alternatePhoneNumber) payload.alternatePhoneNumber = values.alternatePhoneNumber;
+                    if (dirtyFields.taxId) payload.taxId = values.taxId;
+                    if (dirtyFields.registrationNumber) payload.registrationNumber = values.registrationNumber;
+                    if (dirtyFields.foundedYear) payload.foundedYear = values.foundedYear;
+                    if (dirtyFields.colorScheme) payload.colorScheme = values.colorScheme;
+                    if (dirtyFields.streetAddress1) payload.streetAddress1 = values.streetAddress1;
+                    if (dirtyFields.streetAddress2) payload.streetAddress2 = values.streetAddress2;
+
+                    if  (dirtyFields.isPublicProfile) payload.isPublicProfile = values.isPublicProfile;
+                    if  (dirtyFields.allowContact) payload.allowContact = values.allowContact;
+                    if  (dirtyFields.showRevenue) payload.showRevenue = values.showRevenue;
+                    if  (dirtyFields.newsletterSubscription) payload.newsletterSubscription = values.newsletterSubscription;
+
 
                     if (Object.keys(payload).length === 0) {
                         setError("No changes detected. Please edit at least one field to save.");
@@ -287,17 +341,21 @@ const UpdateOrganisationForm = ({
                                 Organization Name
                             </FormLabel>
                             {dirtyFields.organizationName && (
-                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
                             )}
                         </div>
                         <FormControl>
-                        <Input
-                            {...field}
-                            placeholder="Enter organization name"
-                            type="text"
-                            autoComplete="organizationName"
-                            disabled={isLoading}
-                        />
+                            <div className="relative">
+                                <Building2Icon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                <Input
+                                    {...field}
+                                    placeholder="Enter organization name"
+                                    type="text"
+                                    autoComplete="organizationName"
+                                    className="pl-10"
+                                    disabled={isLoading}
+                                />
+                            </div>
                         </FormControl>
                         <FormMessage className="text-left" />
                     </FormItem>
@@ -315,26 +373,23 @@ const UpdateOrganisationForm = ({
                     maxSizeMB={3}
                     previewWidth={128}
                     previewHeight={128}
-                    // If you want to allow “remove logo,” you could add a little “Clear” button
-                    // that does: form.setValue("logo", "");
                 />
                 {/* Pencil icon for Logo, placed separately due to FileUploadField's structure */}
                 {dirtyFields.logo && (
                     <div className="flex justify-end -mt-4 mr-2"> {/* Adjust margin as needed */}
-                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
                     </div>
                 )}
 
                 {/* ── Country ────────────────────────────────────────────────────────── */}
-                <SelectPopover
+                <LocationSelector
                     control={form.control}
-                    name="country"
-                    label="Country"
-                    placeholder="Select country"
-                    icon={<GlobeIcon />}
-                    options={countryOptions}
-                    // Pass dirty state to SelectPopover to display icon
-                    isDirty={dirtyFields.country}
+                    nameCountry="country"
+                    nameState="state"
+                    countries={countries}
+                    isCountryDirty={dirtyFields.country}
+                    states={states}
+                    isStateDirty={dirtyFields.state}
                 />
 
                 {/* ── Description ────────────────────────────────────────────────────── */}
@@ -346,16 +401,80 @@ const UpdateOrganisationForm = ({
                         <div className="flex items-center gap-2">
                             <FormLabel>Description (optional)</FormLabel>
                             {dirtyFields.description && (
+                                <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                            )}
+                        </div>
+                        <FormControl>
+                            <div className="relative">
+                                <LetterTextIcon className="absolute left-3 top-5 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                <Textarea
+                                    {...field}
+                                    placeholder="Describe your organization in a few sentences"
+                                    rows={4}
+                                    className="pl-10"
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </FormControl>
+                        <FormMessage className="text-left" />
+                    </FormItem>
+                    )}
+                />
+
+                {/* ── Street Address 1 ──────────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="streetAddress1"
+                    render={({ field }) => (
+                    <FormItem>
+                        <div className="flex items-center gap-2">
+                            <FormLabel> Street Address 1 </FormLabel>
+                            {dirtyFields.organizationName && (
                                 <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
                             )}
                         </div>
                         <FormControl>
-                        <Textarea
-                            {...field}
-                            placeholder="Describe your organization in a few sentences"
-                            rows={4}
-                            disabled={isLoading}
-                        />
+                            <div className="relative">
+                                <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                <Input
+                                    {...field}
+                                    placeholder="e.g. 20 Marina Road"
+                                    type="text"
+                                    autoComplete="address"
+                                    className="pl-10"
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </FormControl>
+                        <FormMessage className="text-left" />
+                    </FormItem>
+                    )}
+                />
+
+                {/* ── Street Address 2 ──────────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="streetAddress2"
+                    render={({ field }) => (
+                    <FormItem>
+                        <div className="flex items-center gap-2">
+                            <FormLabel> Street Address 2 (optional) </FormLabel>
+                            {dirtyFields.organizationName && (
+                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                            )}
+                        </div>
+                        <FormControl>
+                            <div className="relative">
+                                <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                <Input
+                                    {...field}
+                                    placeholder="e.g. Lion Building, 12th FLoor"
+                                    type="text"
+                                    autoComplete="address"
+                                    className="pl-10"
+                                    disabled={isLoading}
+                                />
+                            </div>
                         </FormControl>
                         <FormMessage className="text-left" />
                     </FormItem>
@@ -369,6 +488,7 @@ const UpdateOrganisationForm = ({
                     label="Industry (optional)"
                     placeholder="Select industry"
                     options={industryOptions}
+                    icon={<BuildingIcon/>}
                     isDirty={dirtyFields.industry}
                 />
 
@@ -379,6 +499,7 @@ const UpdateOrganisationForm = ({
                     label="Organization Type (optional)"
                     placeholder="Select type"
                     options={orgTypeOptions}
+                    icon={<BuildingIcon/>}
                     isDirty={dirtyFields.orgType}
                 />
 
@@ -389,6 +510,7 @@ const UpdateOrganisationForm = ({
                     label="Employee Count Range (optional)"
                     placeholder="Select employee count"
                     options={employeeCountRangeOptions}
+                    icon={<UsersIcon/>}
                     isDirty={dirtyFields.employeeCountRange}
                 />
 
@@ -399,7 +521,320 @@ const UpdateOrganisationForm = ({
                     label="Revenue Range (optional)"
                     placeholder="Select revenue range"
                     options={revenueRangeOptions}
+                    icon={<HandCoinsIcon/>}
                     isDirty={dirtyFields.revenueRange}
+                />
+
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                    {/* ── NEW FIELDS START HERE ──────────────────────────────────────── */}
+                {/* ─────────────────────────────────────────────────────────────────── */}
+
+                {/* ── Website ──────────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="website"
+                    render={({ field }) => (
+                    <FormItem>
+                        <div className="flex items-center gap-2">
+                            <FormLabel> Website </FormLabel>
+                            {dirtyFields.website && (
+                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                            )}
+                        </div>
+                        <FormControl>
+                            <div className="relative">
+                                <GlobeIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                <Input
+                                    {...field}
+                                    placeholder="Enter website url"
+                                    type="url"
+                                    autoComplete="url"
+                                    className="pl-10"
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </FormControl>
+                        <FormMessage className="text-left" />
+                    </FormItem>
+                    )}
+                />
+
+                {/* ── Primary Email ───────────────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="primaryEmail"
+                    render={({ field }) => (
+                        <FormItem>
+                            <div className="flex items-center gap-2">
+                                <FormLabel>Primary Email</FormLabel>
+                                {dirtyFields.primaryEmail && (
+                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                )}
+                            </div>
+                            <FormControl>
+                                <div className="relative">
+                                    <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                    <Input
+                                        {...field}
+                                        type="email"
+                                        placeholder="Enter primary email"
+                                        autoComplete="email"
+                                        className="pl-10"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* ── Alternate Email ─────────────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="alternateEmail"
+                    render={({ field }) => (
+                        <FormItem>
+                            <div className="flex items-center gap-2">
+                                <FormLabel>Alternate Email</FormLabel>
+                                {dirtyFields.alternateEmail && (
+                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                )}
+                            </div>
+                            <FormControl>
+                                <div className="relative">
+                                    <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                    <Input
+                                        {...field}
+                                        type="email"
+                                        placeholder="Enter alternate email"
+                                        autoComplete="email"
+                                        className="pl-10"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* ── Phone Number ────────────────────────────────────────────────────── */}
+                <PhoneNumberInput
+                    control={form.control}
+                    name="phoneNumber"
+                    countryFieldName="country"
+                    countries={countries}  // your CountryOptionProps array
+                    label="Phone Number"
+                    isDirty={dirtyFields.phoneNumber}
+                    disabled={isLoading}
+                />
+
+                {/* ── Alternate Phone Number ─────────────────────────────────────────── */}
+                <PhoneNumberInput
+                    control={form.control}
+                    name="alternatePhoneNumber"
+                    countryFieldName="country"
+                    countries={countries}  // your CountryOptionProps array
+                    label="Alternate Phone Number"
+                    isDirty={dirtyFields.alternatePhoneNumber}
+                    disabled={isLoading}
+                />
+
+                {/* ── Tax ID ──────────────────────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="taxId"
+                    render={({ field }) => (
+                        <FormItem>
+                            <div className="flex items-center gap-2">
+                                <FormLabel>Tax ID</FormLabel>
+                                {dirtyFields.taxId && (
+                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                )}
+                            </div>
+                            <FormControl>
+                                <Input
+                                    {...field}
+                                    type="text"
+                                    placeholder="Enter tax identifier"
+                                    disabled={isLoading}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* ── Registration Number ────────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="registrationNumber"
+                    render={({ field }) => (
+                        <FormItem>
+                            <div className="flex items-center gap-2">
+                                <FormLabel>Registration Number</FormLabel>
+                                {dirtyFields.registrationNumber && (
+                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                )}
+                            </div>
+                            <FormControl>
+                                <Input
+                                {...field}
+                                type="text"
+                                placeholder="Enter registration number"
+                                disabled={isLoading}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* ── Founded Year ───────────────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="foundedYear"
+                    render={({ field }) => (
+                        <FormItem>
+                            <div className="flex items-center gap-2">
+                                <FormLabel>Founded Year</FormLabel>
+                                {dirtyFields.foundedYear && (
+                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                )}
+                            </div>
+                            <FormControl>
+                                <div className="relative">
+                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                    <Input
+                                        {...field}
+                                        type="number"
+                                        placeholder="e.g. 1995"
+                                        value={field.value ?? ""}
+                                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                        className="pl-10"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* ── Color Scheme ───────────────────────────────────────────────────── */}
+                <SelectPopover
+                    control={form.control}
+                    name="colorScheme"
+                    label="Color Scheme"
+                    placeholder="Select a color scheme"
+                    options={colorSchemeOptions}
+                    icon={<Paintbrush2Icon/>}
+                    isDirty={dirtyFields.colorScheme}
+                />
+
+                {/* ── Public Profile Toggle ──────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="isPublicProfile"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    disabled={isLoading}
+                                />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <div className="flex items-center gap-2">
+                                    <FormLabel>Public Profile</FormLabel>
+                                    {dirtyFields.isPublicProfile && (
+                                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                                    )}
+                                </div>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
+                />
+
+                {/* ── Allow Contact Toggle ───────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="allowContact"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    disabled={isLoading}
+                                />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <div className="flex items-center gap-2">
+                                    <FormLabel>Allow Contact</FormLabel>
+                                    {dirtyFields.allowContact && (
+                                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                    )}
+                                </div>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
+                />
+
+                {/* ── Show Revenue Toggle ────────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="showRevenue"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    disabled={isLoading}
+                                />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <div className="flex items-center gap-2">
+                                    <FormLabel>Show Revenue</FormLabel>
+                                    {dirtyFields.showRevenue && (
+                                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                    )}
+                                </div>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
+                />
+
+                {/* ── Newsletter Subscription Toggle ───────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="newsletterSubscription"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    disabled={isLoading}
+                                />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <div className="flex items-center gap-2">
+                                    <FormLabel>Subscribe to Newsletter</FormLabel>
+                                    {dirtyFields.newsletterSubscription && (
+                                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                    )}
+                                </div>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
                 />
 
                 {/* Note for modified fields */}

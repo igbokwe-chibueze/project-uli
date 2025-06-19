@@ -167,21 +167,72 @@ model PlatformInviteToken {
 
 // ──────────────────────────────────────────────────────────────────────────────────────────
 // Lookup Tables Region
-// (Admins can add/remove these at runtime via app‐UI; no schema changes needed)
+// (Admins can add/remove these at runtime via app‐UI)
 // ──────────────────────────────────────────────────────────────────────────────────────────
 
-/// Countries (e.g. "Nigeria", "France")
+/// Countries (e.g. "Nigeria", "France"), extended to store full reference data
 model Country {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  iso2      String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  id             String   @id @default(cuid()) // primary key as cuid
+  name           String   @unique // country name
+  iso2           String?  @unique @map("iso2") // ISO2 code
+  iso3           String?  @unique @map("iso3") // ISO3 code
+  numericCode    String?  @map("numeric_code") // numeric code as string
+  phoneCode      String?  @map("phone_code") // international dialing code
+  capital        String? // capital city
+  currency       String? // currency code
+  currencyName   String?  @map("currency_name") // full currency name
+  currencySymbol String?  @map("currency_symbol") // symbol
+  tld            String?  @map("tld") // top-level domain
+  nativeName     String?  @map("native") // native script name
+  region         String? // e.g. Asia, Europe
+  regionId       String?  @map("region_id") // numeric region id
+  subregion      String? // e.g. Southern Asia
+  subregionId    String?  @map("subregion_id") // numeric subregion id
+  nationality    String? // demonym
+  latitude       Decimal? @map("latitude") // geo lat
+  longitude      Decimal? @map("longitude") // geo long
+  emoji          String? // flag emoji
+  emojiU         String?  @map("emojiU") // unicode points
 
-  // Relations
+  // JSON columns for nested data
+  timezones    Json? // array of timezone objects
+  translations Json? // map of localized country names
+
+  // Relations to users, orgs, addresses
   organizations Organization[] // Orgs headquartered in this country
   users         User[] // All users in this country
   Address       Address[] // All addresses in this country
+
+  // One-to-many: country subdivisions
+  states State[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("countries")
+}
+
+/// Country States (e.g. provinces, districts)
+model State {
+  id        String   @id @default(cuid()) // primary key as cuid
+  name      String // subdivision name
+  stateCode String?  @map("state_code") // subdivision code
+  type      String? // type (if provided)
+  latitude  Decimal? @map("latitude") // geo lat
+  longitude Decimal? @map("longitude") // geo long
+
+  // Foreign key back to Country
+  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  countryId String  @map("country_id")
+
+  // all Orgs whose `stateId` points here
+  organizations Organization[] @relation("StateToOrgs")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([countryId], map: "idx_states_country")
+  @@map("states")
 }
 
 /// Organization Types (e.g. "Nonprofit", "Corporate", "Government")
@@ -227,6 +278,18 @@ model RevenueRange {
 
   organizations Organization[]
 }
+
+/// Industries (e.g. "Pharmaceutical", "Finance")
+model ColorScheme {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  organizations Organization[]
+}
+
+//--Many-to-many lookups--------------
 
 /// Languages (e.g. "English", "French", "Spanish")
 model Language {
@@ -477,12 +540,38 @@ model Organization {
   description String?
   logo        String?
 
+  website              String?
+  taxId                String?
+  foundedYear          Int?
+  registrationNumber   String?
+  primaryEmail         String?
+  alternateEmail       String?
+  phoneNumber          String?
+  alternatePhoneNumber String?
+
+  isPublicProfile        Boolean @default(true)
+  allowContact           Boolean @default(true)
+  showRevenue            Boolean @default(false)
+  newsletterSubscription Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Store social media links as JSON (platform-specific)
+  socialMediaLinks Json? // JSON array of { platform: string; url: string }
+
+  // Store operational hours as JSON
+  operationalHours Json? // JSON array of { day: string; from: string; to: string }
+
+  streetAddress1 String? // e.g. "20 Marina Road"
+  streetAddress2 String? // e.g. "Lion Building, 12th FLoor"  
 
   /// Foreign keys to lookup tables (countryId made optional)
   countryId String?
   country   Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+
+  stateId String? // new foreign‑key column
+  state   State?  @relation("StateToOrgs", fields: [stateId], references: [id], onDelete: SetNull)
 
   industryId String?
   industry   Industry? @relation(fields: [industryId], references: [id], onDelete: SetNull)
@@ -495,6 +584,9 @@ model Organization {
 
   revenueRangeId String?
   revenueRange   RevenueRange? @relation(fields: [revenueRangeId], references: [id], onDelete: SetNull)
+
+  colorSchemeId String?
+  colorScheme   ColorScheme? @relation(fields: [colorSchemeId], references: [id], onDelete: SetNull)
 
   // Org can have 0‒many Addresses
   addresses Address[]

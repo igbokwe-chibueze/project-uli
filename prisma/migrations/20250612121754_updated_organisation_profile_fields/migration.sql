@@ -1,0 +1,16 @@
+-- AlterTable
+ALTER TABLE "Organization" ADD COLUMN     "allowContact" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "alternateEmail" TEXT,
+ADD COLUMN     "alternatePhoneNumber" TEXT,
+ADD COLUMN     "colorScheme" TEXT NOT NULL DEFAULT 'theme-velvet',
+ADD COLUMN     "foundedYear" INTEGER,
+ADD COLUMN     "isPublicProfile" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "newsletterSubscription" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "operationalHours" JSONB,
+ADD COLUMN     "phoneNumber" TEXT,
+ADD COLUMN     "primaryEmail" TEXT,
+ADD COLUMN     "registrationNumber" TEXT,
+ADD COLUMN     "showRevenue" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "socialMediaLinks" JSONB,
+ADD COLUMN     "taxId" TEXT,
+ADD COLUMN     "website" TEXT;

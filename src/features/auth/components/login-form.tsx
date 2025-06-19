@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { EyeIcon, EyeOffIcon, MailIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon } from "lucide-react";
 
 import { LoginSchema } from "@/features/auth/schemas";
 import { loginAction } from "@/features/auth/actions/login-action";
@@ -153,9 +153,9 @@ export const LoginForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
-                      <div className="relative">
-                        <MailIcon className="absolute left-3 top-3 size-4 text-muted-foreground" />
-                        <FormControl>
+                      <FormControl>
+                        <div className="relative">
+                          <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                           <Input 
                             {...field}
                             placeholder="Enter your email"
@@ -164,9 +164,9 @@ export const LoginForm = () => {
                             className="pl-10"
                             disabled={isPending}
                           />
-                        </FormControl>
-                      </div>
-                      <FormMessage/>
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-left"/>
                     </FormItem>
                   )}
                 />
@@ -194,27 +194,27 @@ export const LoginForm = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => setShowPassword(prev => !prev)}
-                          className="absolute inset-y-0 right-0 flex items-center text-muted-foreground"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
                         >
                           {showPassword ? (
-                            <EyeOffIcon className="h-4 w-4" />
+                            <EyeOffIcon />
                           ) : (
-                            <EyeIcon className="h-4 w-4" />
+                            <EyeIcon />
                           )}
                         </Button>
                       </div>
+                      <FormMessage className="text-left"/>
 
                       <Button
                         variant="link"
                         size="sm"
                         asChild
-                        className="px-0 flex justify-start font-normal"
+                        className="px-0 flex justify-start font-normal w-fit"
                       >
                         <Link href="/initiate-password-reset">
                           Forgot Password?
                         </Link>
                       </Button>
-                      <FormMessage/>
                     </FormItem>
                   )}
                 />
@@ -232,7 +232,7 @@ export const LoginForm = () => {
           >
             {isPending ? (
               <div className="flex items-center justify-center gap-2">
-                <span className="size-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
+                <LoaderCircleIcon className="size-4 animate-spin" />
                 <span>{showTwoFactor ? "Confirming" : "Logging in"}</span>
               </div>
             ) : (

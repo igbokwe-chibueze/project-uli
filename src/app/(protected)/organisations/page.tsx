@@ -24,7 +24,7 @@ const OrgHomePage = async () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-sm w-full text-center space-y-4">
-        <h1 className="text-2xl font-semibold">Welcome!</h1>
+        <h1 className="text-2xl font-semibold">Welcome! {user}</h1>
         <p className="text-gray-600">
           You don’t belong to any organisation yet. Get started by creating or joining one.
         </p>

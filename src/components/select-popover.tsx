@@ -62,7 +62,7 @@ export const SelectPopover = <T extends FieldValues>({
         </FormLabel>
 
         {isDirty && (
-          <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+          <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
         )}
       </div>
       
@@ -78,14 +78,14 @@ export const SelectPopover = <T extends FieldValues>({
                 error && "border-red-500"
               )}
             >
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between gap-4">
                 <div className="size-4 text-muted-foreground">
                   {icon}
                 </div>
                 {/* Show the selected label, or placeholder/default text */}
                 {selectedLabel ?? placeholder ?? `Select ${label.toLowerCase()}`}
               </div>
-              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+              <ChevronsUpDown className="ml-2 size-4 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-full bg-red-500 z-50 p-0 pointer-events-auto">
