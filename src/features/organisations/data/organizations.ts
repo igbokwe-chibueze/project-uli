@@ -36,9 +36,21 @@ export const getOrganizationsForUser = async(userId: string) => {
  */
 export const getOrganisationById = async (id: string) => {
     try {
-        return await prisma.organization.findUnique({ where: { id } });
+        return await prisma.organization.findUnique({
+            where: { id },
+            include: {
+                // Include assigned languages via the join table
+                languages: {
+                    select: {
+                        language: {
+                            select: { id: true, name: true, countryCode: true, },
+                        },
+                    },
+                },
+            },
+        });
     } catch (err) {
-        console.error("Error fetching organisation", { id, err });
+        console.error("Error fetching organisation with languages", { id, err });
         return null;
     }
 };

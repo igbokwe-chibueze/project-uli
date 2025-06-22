@@ -186,11 +186,20 @@ async function main() {
   // 7) Seed Languages
   // ──────────────────────────────────────────────────────────────────────────────
   const languageData = [
-    { name: "English", code: "en" },
-    { name: "French",  code: "fr" },
-    { name: "Spanish", code: "es" },
-    { name: "Arabic",  code: "ar" },
-    { name: "Chinese", code: "zh" },
+    { name: "English", languageCode: "en", countryCode: "gb" },
+    { name: "Mandarin Chinese", languageCode: "zh", countryCode: "cn" },
+    { name: "Hindi", languageCode: "hi", countryCode: "in" },
+    { name: "Spanish", languageCode: "es", countryCode: "es" },
+    { name: "French", languageCode: "fr", countryCode: "fr" },
+    { name: "Arabic", languageCode: "ar", countryCode: "sa" },
+    { name: "Bengali", languageCode: "bn", countryCode: "bd" },
+    { name: "Russian", languageCode: "ru", countryCode: "ru" },
+    { name: "Portuguese", languageCode: "pt", countryCode: "pt" },
+    { name: "Urdu", languageCode: "ur", countryCode: "pk" },
+    { name: "Igbo", languageCode: "ig", countryCode: "ng" },
+    { name: "Yoruba", languageCode: "yo", countryCode: "ng" },
+    { name: "Hausa", languageCode: "ha", countryCode: "ng" },
+    { name: "Swahili", languageCode: "sw", countryCode: "ke" },
     // …add more here
   ];
   await prisma.language.createMany({

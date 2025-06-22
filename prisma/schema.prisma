@@ -1,8 +1,3 @@
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Prisma schema
-// Fully Functional Organization Management System
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,38 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Enums Region
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
-enum UserRole {
-  ADMIN
-  USER
-}
-
-enum OrgRole {
-  OWNER
-  MANAGER
-  AUDITOR
-  MEMBER
-}
-
-enum ModuleType {
-  HSEMS
-  QMS
-}
-
-enum IncidentSeverity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Auth & User Models Region (original + 2FA)
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
 model User {
   id                    String                 @id @default(cuid())
   name                  String?
@@ -52,36 +15,23 @@ model User {
   image                 String?
   password              String?
   passwordChangedAt     DateTime?
-  role                  UserRole               @default(USER)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
   isTwoFactorEnabled    Boolean                @default(false)
-  twoFactorConfirmation TwoFactorConfirmation?
+  role                  UserRole               @default(USER)
+  countryId             String?
+  platformInviteId      String?                @unique
   accounts              Account[]
+  addresses             Address[]
+  OrgInviteToken        OrgInviteToken[]
+  organizations         OrganizationMember[]
+  invitesSent           PlatformInviteToken?   @relation("PlatformInvitesByUser")
   sessions              Session[]
-
-  // Country association: optional so that onDelete: SetNull is valid
-  countryId String?
-  country   Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
-
-  // A user can have 0‒many Addresses
-  addresses Address[]
-
-  // Relations to lookups (user languages, certifications)
-  userLanguages      UserLanguage[]
-  userCertifications UserCertification[]
-
-  // Platform‐level invite this user possesses for sharing
-  platformInvite   PlatformInviteToken? @relation("PlatformInviteForUser", fields: [platformInviteId], references: [id])
-  platformInviteId String?              @unique
-
-  // *** NEW: Back‐relation for the “invitedBy” side of PlatformInviteToken ***
-  invitesSent PlatformInviteToken[] @relation("PlatformInvitesByUser")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Extended Relations
-  organizations  OrganizationMember[]
-  OrgInviteToken OrgInviteToken[]
+  twoFactorConfirmation TwoFactorConfirmation?
+  country               Country?               @relation(fields: [countryId], references: [id])
+  platformInvite        PlatformInviteToken?   @relation("PlatformInviteForUser", fields: [platformInviteId], references: [id])
+  userCertifications    UserCertification[]
+  userLanguages         UserLanguage[]
 }
 
 model Account {
@@ -90,15 +40,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -108,10 +57,9 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model VerificationTokenCustom {
@@ -143,93 +91,69 @@ model TwoFactorToken {
 
 model TwoFactorConfirmation {
   id     String @id @default(cuid())
-  userId String
+  userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId])
 }
 
 /// PlatformInviteToken: invites to join the app platform (not tied to any specific organization).
 model PlatformInviteToken {
-  id          String   @id @default(cuid())
-  token       String   @unique // secure random invite code (share this link)
-  createdAt   DateTime @default(now())
-  invitedById String // who generated this invite link
-  role        UserRole @default(USER) // role granted to new users signing up via this link
-
-  // Relations
-  invitedBy    User   @relation("PlatformInvitesByUser", fields: [invitedById], references: [id], onDelete: Cascade)
-  inviteeUsers User[] @relation("PlatformInviteForUser") // users who signed up using this link
-
-  // Ensure each invite is owned by exactly one user
-  @@unique([invitedById])
+  id           String   @id @default(cuid())
+  token        String   @unique
+  createdAt    DateTime @default(now())
+  invitedById  String   @unique
+  role         UserRole @default(USER)
+  invitedBy    User     @relation("PlatformInvitesByUser", fields: [invitedById], references: [id], onDelete: Cascade)
+  inviteeUsers User?    @relation("PlatformInviteForUser")
 }
-
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Lookup Tables Region
-// (Admins can add/remove these at runtime via app‐UI)
-// ──────────────────────────────────────────────────────────────────────────────────────────
 
 /// Countries (e.g. "Nigeria", "France"), extended to store full reference data
 model Country {
-  id             String   @id @default(cuid()) // primary key as cuid
-  name           String   @unique // country name
-  iso2           String?  @unique @map("iso2") // ISO2 code
-  iso3           String?  @unique @map("iso3") // ISO3 code
-  numericCode    String?  @map("numeric_code") // numeric code as string
-  phoneCode      String?  @map("phone_code") // international dialing code
-  capital        String? // capital city
-  currency       String? // currency code
-  currencyName   String?  @map("currency_name") // full currency name
-  currencySymbol String?  @map("currency_symbol") // symbol
-  tld            String?  @map("tld") // top-level domain
-  nativeName     String?  @map("native") // native script name
-  region         String? // e.g. Asia, Europe
-  regionId       String?  @map("region_id") // numeric region id
-  subregion      String? // e.g. Southern Asia
-  subregionId    String?  @map("subregion_id") // numeric subregion id
-  nationality    String? // demonym
-  latitude       Decimal? @map("latitude") // geo lat
-  longitude      Decimal? @map("longitude") // geo long
-  emoji          String? // flag emoji
-  emojiU         String?  @map("emojiU") // unicode points
-
-  // JSON columns for nested data
-  timezones    Json? // array of timezone objects
-  translations Json? // map of localized country names
-
-  // Relations to users, orgs, addresses
-  organizations Organization[] // Orgs headquartered in this country
-  users         User[] // All users in this country
-  Address       Address[] // All addresses in this country
-
-  // One-to-many: country subdivisions
-  states State[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String         @id @default(cuid())
+  name           String         @unique
+  iso2           String?        @unique @map("iso2")
+  iso3           String?        @unique @map("iso3")
+  numericCode    String?        @map("numeric_code")
+  phoneCode      String?        @map("phone_code")
+  capital        String?
+  currency       String?
+  currencyName   String?        @map("currency_name")
+  currencySymbol String?        @map("currency_symbol")
+  tld            String?        @map("tld")
+  nativeName     String?        @map("native")
+  region         String?
+  regionId       String?        @map("region_id")
+  subregion      String?
+  subregionId    String?        @map("subregion_id")
+  nationality    String?
+  latitude       Decimal?       @map("latitude")
+  longitude      Decimal?       @map("longitude")
+  emoji          String?
+  emojiU         String?        @map("emojiU")
+  timezones      Json?
+  translations   Json?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  Address        Address[]
+  organizations  Organization[]
+  users          User[]
+  states         State[]
 
   @@map("countries")
 }
 
 /// Country States (e.g. provinces, districts)
 model State {
-  id        String   @id @default(cuid()) // primary key as cuid
-  name      String // subdivision name
-  stateCode String?  @map("state_code") // subdivision code
-  type      String? // type (if provided)
-  latitude  Decimal? @map("latitude") // geo lat
-  longitude Decimal? @map("longitude") // geo long
-
-  // Foreign key back to Country
-  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  countryId String  @map("country_id")
-
-  // all Orgs whose `stateId` points here
+  id            String         @id @default(cuid())
+  name          String
+  stateCode     String?        @map("state_code")
+  type          String?
+  latitude      Decimal?       @map("latitude")
+  longitude     Decimal?       @map("longitude")
+  countryId     String         @map("country_id")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   organizations Organization[] @relation("StateToOrgs")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  country       Country        @relation(fields: [countryId], references: [id], onDelete: Cascade)
 
   @@index([countryId], map: "idx_states_country")
   @@map("states")
@@ -237,65 +161,60 @@ model State {
 
 /// Organization Types (e.g. "Nonprofit", "Corporate", "Government")
 model OrganizationType {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
+  id            String         @id @default(cuid())
+  name          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
   organizations Organization[]
 }
 
 /// Industries (e.g. "Pharmaceutical", "Finance")
 model Industry {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
+  id            String         @id @default(cuid())
+  name          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
   organizations Organization[]
 }
 
 /// Employee Count Ranges (e.g. "1-10", "11-50", "51-200")
 model EmployeeCountRange {
-  id        String   @id @default(cuid())
-  label     String   @unique // e.g. "1-10"
-  minCount  Int?
-  maxCount  Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
+  id            String         @id @default(cuid())
+  label         String         @unique
+  minCount      Int?
+  maxCount      Int?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
   organizations Organization[]
 }
 
 /// Revenue Ranges (e.g. "$0K-$100K", "$100K-$1M")
 model RevenueRange {
-  id         String   @id @default(cuid())
-  label      String   @unique // e.g. "$0K-$100K"
-  minRevenue Int?
-  maxRevenue Int?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
-
+  id            String         @id @default(cuid())
+  label         String         @unique
+  minRevenue    Int?
+  maxRevenue    Int?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
   organizations Organization[]
 }
 
 /// Industries (e.g. "Pharmaceutical", "Finance")
 model ColorScheme {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
+  id            String         @id @default(cuid())
+  name          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
   organizations Organization[]
 }
 
-//--Many-to-many lookups--------------
-
 /// Languages (e.g. "English", "French", "Spanish")
 model Language {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  code      String?  @unique
+  id           String  @id @default(cuid())
+  name         String  @unique
+  languageCode String? @unique /// ISO 639-1 language code, e.g. "en", "fr"
+  countryCode  String? /// Optional ISO 3166-1 alpha-2 code for flag icons (e.g. "gb" for English)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
@@ -308,54 +227,42 @@ model Language {
 
 /// Specialties (e.g. "Quality Assurance", "Regulatory Affairs")
 model Specialty {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
-  // Many‐to‐many: which orgs list this specialty
+  id                      String                  @id @default(cuid())
+  name                    String                  @unique
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @default(now())
   organizationSpecialties OrganizationSpecialty[]
 }
 
 /// Certifications (e.g. "ISO 9001", "ISO 45001", "GMP")
 model Certification {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  issuer    String? // e.g. "International Organization for Standardization"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
-  // Many‐to‐many: which users hold this cert
-  userCertifications UserCertification[]
-
-  // Many‐to‐many: which orgs hold this cert
+  id                         String                      @id @default(cuid())
+  name                       String                      @unique
+  issuer                     String?
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @default(now())
   organizationCertifications OrganizationCertification[]
+  userCertifications         UserCertification[]
 }
 
 /// Social Media Platforms (Admins can add “TikTok”, “YouTube”, etc.)
 model SocialPlatform {
-  id        String   @id @default(cuid())
-  name      String   @unique // e.g. "Twitter"
-  domain    String? // e.g. "twitter.com"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
+  id          String                   @id @default(cuid())
+  name        String                   @unique
+  domain      String?
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @default(now())
   socialLinks OrganizationSocialLink[]
 }
-
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Join Tables for Many‐to‐Many Lookups Region
-// ──────────────────────────────────────────────────────────────────────────────────────────
 
 /// User ⟷ Language (which languages a user speaks)
 model UserLanguage {
   userId     String
   languageId String
-  fluency    String? // e.g. "native", "intermediate"
+  fluency    String?
   createdAt  DateTime @default(now())
-
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, languageId])
 }
@@ -366,31 +273,28 @@ model UserCertification {
   certificationId String
   obtainedAt      DateTime?
   expiresAt       DateTime?
-
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  certification Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, certificationId])
 }
 
 /// Organization ⟷ Language (which languages an organization supports)
 model OrganizationLanguage {
-  orgId      String
-  languageId String
-  createdAt  DateTime @default(now())
-
-  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  languageId   String
+  createdAt    DateTime     @default(now())
   language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@id([orgId, languageId])
 }
 
 /// Organization ⟷ Specialty (which specialties an organization lists)
 model OrganizationSpecialty {
-  orgId       String
-  specialtyId String
-  createdAt   DateTime @default(now())
-
+  orgId        String
+  specialtyId  String
+  createdAt    DateTime     @default(now())
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   specialty    Specialty    @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
 
@@ -403,30 +307,21 @@ model OrganizationCertification {
   certificationId String
   obtainedAt      DateTime?
   expiresAt       DateTime?
-
-  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  certification Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  organization    Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@id([orgId, certificationId])
 }
 
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Branch & Contractor Models Region
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
 /// “Branches” are physical or logical locations under a single Organization.
 /// They share the same country as the parent org (validated in application code).
 model Branch {
-  id    String @id @default(cuid())
-  orgId String // parent Organization
-  name  String // e.g. “Lagos Office”
-
-  // **One-to-One** relationship: The Address side will define `fields`/`references`/`onDelete`.
-  address Address? @relation("BranchAddress")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id           String       @id @default(cuid())
+  orgId        String
+  name         String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  address      Address?     @relation("BranchAddress")
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([orgId])
@@ -435,317 +330,209 @@ model Branch {
 /// Join table: Organization ⟷ Organization (to list contractors)
 /// Example: Org A contracts Org B
 model OrganizationContractor {
-  id           String @id @default(cuid())
+  id           String       @id @default(cuid())
   orgId        String
-  contractorId String // points to another Organization
-
-  createdAt DateTime @default(now())
-
-  // “Outgoing” (this org → its contractors)
+  contractorId String
+  createdAt    DateTime     @default(now())
+  contractor   Organization @relation("ContractorToOrgs", fields: [contractorId], references: [id], onDelete: Cascade)
   organization Organization @relation("OrgToContractors", fields: [orgId], references: [id], onDelete: Cascade)
-
-  // “Incoming” (this org is hired as a contractor by another)
-  contractor Organization @relation("ContractorToOrgs", fields: [contractorId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, contractorId])
 }
 
-// ───────────────────────────────────────────────────────────────────────────
-// ADDRESS MODEL: allow linking to Branch as well as User/Org
-// ───────────────────────────────────────────────────────────────────────────
-
 model Address {
-  id         String  @id @default(cuid())
-  street     String
-  city       String
-  state      String?
-  postalCode String?
-  countryId  String
-  country    Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-
-  // Link to a User (optional)
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Link to an Organization (optional)
+  id             String        @id @default(cuid())
+  street         String
+  city           String
+  state          String?
+  postalCode     String?
+  countryId      String
+  userId         String?
   organizationId String?
+  branchId       String?       @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  branch         Branch?       @relation("BranchAddress", fields: [branchId], references: [id], onDelete: Cascade)
+  country        Country       @relation(fields: [countryId], references: [id], onDelete: Cascade)
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // Link to a Branch (optional)  
-  // THIS side defines the foreign key, unique constraint, and onDelete
-  branchId String? @unique
-  branch   Branch? @relation("BranchAddress", fields: [branchId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Social Link Model Region (per organization per platform)
-// ──────────────────────────────────────────────────────────────────────────────────────────
 
 /// One social‐link record per platform per organization
 model OrganizationSocialLink {
-  id         String @id @default(cuid())
-  orgId      String
-  platformId String
-  url        String // e.g. “https://twitter.com/acme”
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id           String         @id @default(cuid())
+  orgId        String
+  platformId   String
+  url          String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   organization Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
   platform     SocialPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, platformId])
 }
 
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Departments & Units Region
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
 /// Departments within an Organization
 model Department {
-  id        String   @id @default(cuid())
-  orgId     String
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id           String       @id @default(cuid())
+  orgId        String
+  name         String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   units        Unit[]
 }
 
 /// Units within a Department
 model Unit {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   departmentId String
   name         String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@unique([departmentId, name])
 }
 
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Organization & Roles Region
-// (extended with branches, contractors, departments, etc.)
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
 model Organization {
-  id          String  @id @default(cuid())
-  name        String  @unique
-  description String?
-  logo        String?
-
-  website              String?
-  taxId                String?
-  foundedYear          Int?
-  registrationNumber   String?
-  primaryEmail         String?
-  alternateEmail       String?
-  phoneNumber          String?
-  alternatePhoneNumber String?
-
-  isPublicProfile        Boolean @default(true)
-  allowContact           Boolean @default(true)
-  showRevenue            Boolean @default(false)
-  newsletterSubscription Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Store social media links as JSON (platform-specific)
-  socialMediaLinks Json? // JSON array of { platform: string; url: string }
-
-  // Store operational hours as JSON
-  operationalHours Json? // JSON array of { day: string; from: string; to: string }
-
-  streetAddress1 String? // e.g. "20 Marina Road"
-  streetAddress2 String? // e.g. "Lion Building, 12th FLoor"  
-
+  id                     String                      @id @default(cuid())
+  name                   String                      @unique
+  description            String?
+  logo                   String?
+  createdAt              DateTime                    @default(now())
+  updatedAt              DateTime                    @updatedAt
   /// Foreign keys to lookup tables (countryId made optional)
-  countryId String?
-  country   Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
-
-  stateId String? // new foreign‑key column
-  state   State?  @relation("StateToOrgs", fields: [stateId], references: [id], onDelete: SetNull)
-
-  industryId String?
-  industry   Industry? @relation(fields: [industryId], references: [id], onDelete: SetNull)
-
-  orgTypeId String?
-  orgType   OrganizationType? @relation(fields: [orgTypeId], references: [id], onDelete: SetNull)
-
-  employeeCountRangeId String?
-  employeeCountRange   EmployeeCountRange? @relation(fields: [employeeCountRangeId], references: [id], onDelete: SetNull)
-
-  revenueRangeId String?
-  revenueRange   RevenueRange? @relation(fields: [revenueRangeId], references: [id], onDelete: SetNull)
-
-  colorSchemeId String?
-  colorScheme   ColorScheme? @relation(fields: [colorSchemeId], references: [id], onDelete: SetNull)
-
-  // Org can have 0‒many Addresses
-  addresses Address[]
-
+  countryId              String?
+  employeeCountRangeId   String?
+  industryId             String?
+  orgTypeId              String?
   /// Self‐relation for “affiliations” (cross‐country sister companies)
-  parentOrgId  String?
-  parentOrg    Organization?  @relation("OrgAffiliations", fields: [parentOrgId], references: [id], onDelete: Cascade)
-  affiliations Organization[] @relation("OrgAffiliations")
-
-  /// Same‐country “branches”
-  branches Branch[]
-
-  /// Membership & roles within the organization
-  members OrganizationMember[]
-
-  /// Org‐specific invitation tokens
-  orgInvites OrgInviteToken[]
-
-  /// Installed modules (HSEMS/QMS)
-  modules OrganizationModule[]
-
-  /// HSEMS Incidents & QMS Audits
-  incidents Incident[]
-  audits    Audit[]
-
-  /// Many‐to‐many lookups
-  languages      OrganizationLanguage[]
-  specialties    OrganizationSpecialty[]
-  certifications OrganizationCertification[]
-
-  /// Contractors: other organizations this org hires/contracts with
-  contractors OrganizationContractor[] @relation("OrgToContractors")
-
-  /// (Optional) Organizations that have hired this org as a contractor
-  contractedBy OrganizationContractor[] @relation("ContractorToOrgs")
-
-  /// Social media links
-  socialLinks OrganizationSocialLink[]
-
-  /// Departments & Units
-  departments Department[]
+  parentOrgId            String?
+  revenueRangeId         String?
+  allowContact           Boolean                     @default(true)
+  alternateEmail         String?
+  alternatePhoneNumber   String?
+  foundedYear            Int?
+  isPublicProfile        Boolean                     @default(true)
+  newsletterSubscription Boolean                     @default(false)
+  operationalHours       Json?
+  phoneNumber            String?
+  primaryEmail           String?
+  registrationNumber     String?
+  showRevenue            Boolean                     @default(false)
+  socialMediaLinks       Json?
+  taxId                  String?
+  website                String?
+  stateId                String?
+  streetAddress1         String?
+  streetAddress2         String?
+  colorSchemeId          String?
+  addresses              Address[]
+  audits                 Audit[]
+  branches               Branch[]
+  departments            Department[]
+  incidents              Incident[]
+  orgInvites             OrgInviteToken[]
+  colorScheme            ColorScheme?                @relation(fields: [colorSchemeId], references: [id])
+  country                Country?                    @relation(fields: [countryId], references: [id])
+  employeeCountRange     EmployeeCountRange?         @relation(fields: [employeeCountRangeId], references: [id])
+  industry               Industry?                   @relation(fields: [industryId], references: [id])
+  orgType                OrganizationType?           @relation(fields: [orgTypeId], references: [id])
+  parentOrg              Organization?               @relation("OrgAffiliations", fields: [parentOrgId], references: [id], onDelete: Cascade)
+  affiliations           Organization[]              @relation("OrgAffiliations")
+  revenueRange           RevenueRange?               @relation(fields: [revenueRangeId], references: [id])
+  state                  State?                      @relation("StateToOrgs", fields: [stateId], references: [id])
+  certifications         OrganizationCertification[]
+  contractedBy           OrganizationContractor[]    @relation("ContractorToOrgs")
+  contractors            OrganizationContractor[]    @relation("OrgToContractors")
+  languages              OrganizationLanguage[]
+  members                OrganizationMember[]
+  modules                OrganizationModule[]
+  socialLinks            OrganizationSocialLink[]
+  specialties            OrganizationSpecialty[]
 }
-
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Organization Member Roles Region
-// ──────────────────────────────────────────────────────────────────────────────────────────
 
 /// Tracks which user belongs to which organization (and their OrgRole)
 model OrganizationMember {
-  id       String   @id @default(cuid())
-  orgId    String
-  userId   String
-  role     OrgRole  @default(MEMBER)
-  joinedAt DateTime @default(now())
-
-  // Relations
+  id           String       @id @default(cuid())
+  orgId        String
+  userId       String
+  role         OrgRole      @default(MEMBER)
+  joinedAt     DateTime     @default(now())
+  audits       Audit[]
+  assigneeOf   Incident[]   @relation("Assignee")
+  reporterOf   Incident[]   @relation("Reporter")
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Back-relations for EMS modules
-  reporterOf Incident[] @relation("Reporter")
-  assigneeOf Incident[] @relation("Assignee")
-  audits     Audit[]
 
   @@unique([orgId, userId])
 }
 
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Invitation Tokens Region (for org‐specific invites)
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
 model OrgInviteToken {
-  id        String    @id @default(cuid())
-  email     String? // optional email; null means “link‐only” invite
-  token     String    @unique // secure random invite code
-  expires   DateTime? // null means “never expires”
-  createdAt DateTime  @default(now())
-  orgId     String // which organization is issuing the invite
-  role      OrgRole   @default(MEMBER) // role assigned upon acceptance
-
-  // Track whether invite has been accepted
-  acceptedById String? // the User.id of whoever accepted
-  acceptedAt   DateTime? // timestamp of acceptance
-
-  // Relations
-  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id           String       @id @default(cuid())
+  email        String?
+  token        String       @unique
+  expires      DateTime?
+  createdAt    DateTime     @default(now())
+  orgId        String
+  role         OrgRole      @default(MEMBER)
+  acceptedById String?
+  acceptedAt   DateTime?
   acceptedBy   User?        @relation(fields: [acceptedById], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }
 
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// Modules Region
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
 model Module {
-  id          String     @id @default(cuid())
-  type        ModuleType @unique
-  name        String
-  description String?
-  createdAt   DateTime   @default(now())
-
-  // Back-relations
+  id                  String               @id @default(cuid())
+  type                ModuleType           @unique
+  name                String
+  description         String?
+  createdAt           DateTime             @default(now())
   organizationModules OrganizationModule[]
 }
 
 model OrganizationModule {
-  id          String   @id @default(cuid())
-  orgId       String
-  moduleId    String
-  installedAt DateTime @default(now())
-
-  // Relations
-  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id           String       @id @default(cuid())
+  orgId        String
+  moduleId     String
+  installedAt  DateTime     @default(now())
   module       Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, moduleId])
 }
 
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// HSEMS Incidents Region
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
 model Incident {
-  id           String           @id @default(cuid())
+  id           String              @id @default(cuid())
   orgId        String
   reporterId   String
   assigneeId   String?
   title        String
   description  String
-  severity     IncidentSeverity @default(LOW)
+  severity     IncidentSeverity    @default(LOW)
   location     String?
   dateOccurred DateTime
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-
-  // Relations
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  assignee     OrganizationMember? @relation("Assignee", fields: [assigneeId], references: [id])
   organization Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
   reporter     OrganizationMember  @relation("Reporter", fields: [reporterId], references: [id])
-  assignee     OrganizationMember? @relation("Assignee", fields: [assigneeId], references: [id])
 }
 
-// ──────────────────────────────────────────────────────────────────────────────────────────
-// QMS Audits & Nonconformities Region
-// ──────────────────────────────────────────────────────────────────────────────────────────
-
 model Audit {
-  id            String    @id @default(cuid())
-  orgId         String
-  auditorId     String
-  title         String
-  scope         String?
-  dateScheduled DateTime
-  dateCompleted DateTime?
-  findings      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
-  organization    Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id              String             @id @default(cuid())
+  orgId           String
+  auditorId       String
+  title           String
+  scope           String?
+  dateScheduled   DateTime
+  dateCompleted   DateTime?
+  findings        String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
   auditor         OrganizationMember @relation(fields: [auditorId], references: [id])
+  organization    Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
   nonConformities NonConformity[]
 }
 
@@ -759,7 +546,29 @@ model NonConformity {
   status           String   @default("OPEN")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  audit            Audit    @relation(fields: [auditId], references: [id], onDelete: Cascade)
+}
 
-  // Relations
-  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum OrgRole {
+  OWNER
+  MANAGER
+  AUDITOR
+  MEMBER
+}
+
+enum ModuleType {
+  HSEMS
+  QMS
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }

@@ -158,5 +158,4 @@ export const CreateOrganisationSchema = OrganisationSchema.pick({
   country: true,
   state: true,
   logo: true,
-  phoneNumber: true,
 });

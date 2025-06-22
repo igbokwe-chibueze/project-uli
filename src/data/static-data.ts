@@ -143,14 +143,14 @@ export const getAvailableRevenueRanges = async (): Promise<OptionProps[]> => {
 //
 export const getAvailableLanguages = async (): Promise<OptionProps[]> => {
     const languages = await prisma.language.findMany({
-        select: { id: true, name: true, code: true },
+        select: { id: true, name: true, countryCode: true },
         orderBy: { name: "asc" },
     });
 
     return languages.map((l) => ({
         value: l.id,
-        // If l.code is null/undefined, just show l.name without parentheses
-        label: l.code ? `${l.name} (${l.code})` : l.name,
+        label: l.name,
+        code: l.countryCode,
     }));
 };
 

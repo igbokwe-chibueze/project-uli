@@ -118,33 +118,51 @@ export const updateOrganisationAction = async (
         updatePayload.operationalHours = data.operationalHours;
     }
 
-    // Handle languages: set new relations via nested writes
-    if (data.languages !== undefined) {
-        updatePayload.languages = {
-            // Remove existing language links
-            deleteMany: {},
-            // Create new links for provided IDs
-            create: data.languages.map((language) => ({ language })),
-        };
-    }
+    const langIds = data.languages; // string[] | undefined
 
     // Abort if nothing to update
-    if (Object.keys(updatePayload).length === 0) {
+    if (Object.keys(updatePayload).length === 0 && !langIds) {
         return { error: "No changes detected. Please edit at least one field." };
     }
 
-    // 5) Perform update within a transaction for safety
+    // Perform update within a transaction for safety
     try {
-        const updatedOrg = await prisma.$transaction(async (tx) => {
-            return tx.organization.update({
-                where: { id: organisationId },
-                data: updatePayload,
-            });
+    const updatedOrg = await prisma.$transaction(async (tx) => {
+      // 1) Update scalar fields on the org
+      const orgUpdate = tx.organization.update({
+        where: { id: organisationId },
+        data: { ...updatePayload },
+      });
+
+      // 2) If languages were provided, replace the join‑table rows
+      let langUpdate;
+      if (langIds) {
+        // remove all old links
+        const deleteOld = tx.organizationLanguage.deleteMany({
+          where: { orgId: organisationId },
         });
 
-        return { success: "Organisation updated successfully.", organisation: updatedOrg };
-    } catch (err) {
-        console.error("Error updating organisation:", err);
-        return { error: "Failed to update organisation." };
-    }
+        // insert the new ones
+        const createNew = tx.organizationLanguage.createMany({
+          data: langIds.map((languageId) => ({
+            orgId: organisationId,
+            languageId,
+          })),
+        });
+
+        // await them in parallel
+        langUpdate = Promise.all([deleteOld, createNew]);
+      }
+
+      // wait for both
+      const [org] = await Promise.all([orgUpdate, langUpdate]);
+      return org;
+    });
+
+    return { success: "Organisation updated successfully.", organisation: updatedOrg };
+  } catch (err) {
+    console.error("Error updating organisation:", err);
+    return { error: "Failed to update organisation." };
+  }
+
 };

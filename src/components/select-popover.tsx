@@ -74,7 +74,7 @@ export const SelectPopover = <T extends FieldValues>({
               role="combobox"
               aria-expanded={open}
               className={cn(
-                "w-full justify-between",
+                "w-full h-11 justify-between",
                 error && "border-red-500"
               )}
             >

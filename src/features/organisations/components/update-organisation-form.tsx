@@ -33,16 +33,27 @@ import { FormSuccess } from "@/components/form-success";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 import { UpdateOrganisationSchema } from "@/features/organisations/schemas";
 import { updateOrganisationAction } from "@/features/organisations/actions/updateOrganisationAction";
 import { Switch } from "@/components/ui/switch";
 import { LocationSelector } from "@/components/location-selector";
 import { PhoneNumberInput } from "@/components/phone-number-input";
+import { MultiSelect } from "@/components/multi-select";
 
 interface UpdateOrganisationFormProps {
-    initialData: Organization; //Its ok for me to use prisma generated types here, because getOrganisationById runs server side and returns all fields, i didn't specify fields.
+    //Its ok for me to use prisma generated types here, 
+    // because getOrganisationById runs server side and returns all fields, i didn't specify fields.
+    initialData: Organization & {
+        languages: {
+            language: {
+                id: string;
+                name: string;
+                countryCode: string | null ;
+            };
+        }[];
+    };
     
     countries: CountryOptionProps[];
     states?:   StateOptionProps[];
@@ -51,6 +62,7 @@ interface UpdateOrganisationFormProps {
     employeeCountRangeOptions: OptionProps[];
     revenueRangeOptions: OptionProps[];
     colorSchemeOptions: OptionProps[];
+    languageOptions: OptionProps[];
 };
 
 const UpdateOrganisationForm = ({
@@ -62,7 +74,8 @@ const UpdateOrganisationForm = ({
     orgTypeOptions,
     employeeCountRangeOptions,
     revenueRangeOptions,
-    colorSchemeOptions
+    colorSchemeOptions,
+    languageOptions,
 }: UpdateOrganisationFormProps) => {
 
     const router = useRouter();
@@ -101,6 +114,7 @@ const UpdateOrganisationForm = ({
         colorScheme:       initialData.colorSchemeId     ?? "",
         streetAddress1:        initialData.streetAddress1 ?? "",
         streetAddress2:        initialData.streetAddress2 ?? "",
+        languages:         initialData.languages?.map((l) => l.language.id) ?? [],
 
         isPublicProfile:   initialData.isPublicProfile  ?? false,
         allowContact:      initialData.allowContact     ?? false,
@@ -242,6 +256,7 @@ const UpdateOrganisationForm = ({
                     if (dirtyFields.colorScheme) payload.colorScheme = values.colorScheme;
                     if (dirtyFields.streetAddress1) payload.streetAddress1 = values.streetAddress1;
                     if (dirtyFields.streetAddress2) payload.streetAddress2 = values.streetAddress2;
+                    if (dirtyFields.languages) payload.languages = values.languages;
 
                     if  (dirtyFields.isPublicProfile) payload.isPublicProfile = values.isPublicProfile;
                     if  (dirtyFields.allowContact) payload.allowContact = values.allowContact;
@@ -513,6 +528,34 @@ const UpdateOrganisationForm = ({
                     icon={<UsersIcon/>}
                     isDirty={dirtyFields.employeeCountRange}
                 />
+
+                {/* ── Langauges ───────────────────────────────────────────── */}
+                <FormField
+                    control={form.control}
+                    name="languages"
+                    render={({ field }) => (
+                        <FormItem>
+                            <div className="flex items-center gap-2">
+                                <FormLabel> Languages </FormLabel>
+                                {dirtyFields.languages && (
+                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                )}
+                            </div>
+                            <FormControl>
+                                <MultiSelect
+                                    options={languageOptions}
+                                    value={field.value ?? []}
+                                    onValueChange={field.onChange}
+                                    placeholder="Select options"
+                                    maxCount={3}
+                                />
+                            </FormControl>
+                            <FormDescription>Select the languages you support.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
 
                 {/* ── Revenue Range ──────────────────────────────────────────────────── */}
                 <SelectPopover
