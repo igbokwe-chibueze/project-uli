@@ -115,6 +115,10 @@ const UpdateOrganisationForm = ({
         streetAddress1:        initialData.streetAddress1 ?? "",
         streetAddress2:        initialData.streetAddress2 ?? "",
         languages:         initialData.languages?.map((l) => l.language.id) ?? [],
+        //handle social media links
+        // socialMediaLinks: initialData.socialMediaLinks ? 
+        //     (Array.isArray(initialData.socialMediaLinks) ? initialData.socialMediaLinks : JSON.parse(initialData.socialMediaLinks as string)) 
+        //     : [], // Handle JSON string from DB or null/undefined
 
         isPublicProfile:   initialData.isPublicProfile  ?? false,
         allowContact:      initialData.allowContact     ?? false,
@@ -243,6 +247,7 @@ const UpdateOrganisationForm = ({
                     if (dirtyFields.employeeCountRange) payload.employeeCountRange = values.employeeCountRange;
                     if (dirtyFields.revenueRange) payload.revenueRange = values.revenueRange;
                     if (dirtyFields.colorScheme) payload.colorScheme = values.colorScheme;
+                    //handle social media links
 
                     // --- NEW FIELDS PAYLOAD ---
                     if (dirtyFields.website) payload.website = values.website;

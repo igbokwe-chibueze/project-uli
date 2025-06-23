@@ -128,15 +128,23 @@ export const OrganisationSchema = z.object({
   showRevenue: z.boolean().optional(),
   newsletterSubscription: z.boolean().optional(),
 
-  // Complex JSON fields
-  socialMediaLinks: z
-    .array(
-      z.object({
-        platform: z.string().min(1, { message: "Platform name is required." }),
-        url: z.string().url({ message: "Social link must be a valid URL." }),
-      })
-    )
-    .optional(),
+  // socialMediaLinks: z
+  //   .array(
+  //     z.object({
+  //       id: z.string().optional(), // Used for client-side keying with react-hook-form
+  //       platformId: z.string().optional(), // For predefined platforms from SocialPlatform
+  //       customPlatformName: z.string()
+  //         .min(1, { message: "Custom platform name is required." })
+  //         .optional(), // For user-defined platforms
+  //       url: z.string().url({ message: "Must be a valid URL." }),
+  //     })
+  //     .refine(data => data.platformId || data.customPlatformName, {
+  //       message: "Either a platform must be selected or a custom platform name must be provided.",
+  //       path: ["platformId", "customPlatformName"], // Point to both fields for error
+  //     })
+  //   )
+  //   .optional(), // omit entirely if no change
+
 
   // operationalHours: Array of objects { day: string; from: string; to: string }
   operationalHours: z

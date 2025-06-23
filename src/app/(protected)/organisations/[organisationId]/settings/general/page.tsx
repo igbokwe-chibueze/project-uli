@@ -3,7 +3,15 @@
 import { redirect } from "next/navigation";
 import NotFound from "@/app/not-found";
 
-import { getAvailableCertifications, getAvailableColorSchemes, getAvailableCountries, getAvailableEmployeeCountRanges, getAvailableIndustries, getAvailableLanguages, getAvailableOrgTypes, getAvailableRevenueRanges, getAvailableSocialPlatforms, getAvailableSpecialties, getAvailableStates } from "@/data/static-data";
+import { 
+  getAvailableColorSchemes, 
+  getAvailableCountries, 
+  getAvailableEmployeeCountRanges, 
+  getAvailableIndustries, 
+  getAvailableLanguages, 
+  getAvailableOrgTypes, 
+  getAvailableRevenueRanges, 
+  getAvailableStates } from "@/data/static-data";
 
 import { currentID } from "@/features/auth/lib/authenticate";
 import UpdateOrganisationForm from "@/features/organisations/components/update-organisation-form"
@@ -48,10 +56,10 @@ const GeneralSettingsPage = async ({params,}: GeneralSettingsPageProps) => {
   const employeeCountRangeOptions = await getAvailableEmployeeCountRanges();
   const revenueRangeOptions = await getAvailableRevenueRanges();
   const languageOptions = await getAvailableLanguages();
-  const specialtyOptions = await getAvailableSpecialties();
-  const socialPlatformOptions = await getAvailableSocialPlatforms();
-  const certificationOptions = await getAvailableCertifications();
   const colorSchemeOptions = await getAvailableColorSchemes();
+  //const specialtyOptions = await getAvailableSpecialties();
+  //const socialPlatformOptions = await getAvailableSocialPlatforms();
+  //const certificationOptions = await getAvailableCertifications();
 
 
   return (
@@ -73,10 +81,10 @@ const GeneralSettingsPage = async ({params,}: GeneralSettingsPageProps) => {
                       employeeCountRangeOptions={employeeCountRangeOptions}
                       revenueRangeOptions={revenueRangeOptions}
                       languageOptions={languageOptions}
-                      specialtyOptions={specialtyOptions}
-                      socialPlatformOptions={socialPlatformOptions}
-                      certificationOptions={certificationOptions}
                       colorSchemeOptions={colorSchemeOptions}
+                      //socialPlatformOptions={socialPlatformOptions}
+                      //specialtyOptions={specialtyOptions}
+                      //certificationOptions={certificationOptions}
                     />
                 </div>
             </div>

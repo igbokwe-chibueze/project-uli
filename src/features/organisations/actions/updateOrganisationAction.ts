@@ -89,9 +89,6 @@ export const updateOrganisationAction = async (
     if (data.foundedYear !== undefined ) {
         updatePayload.foundedYear = data.foundedYear;
     }
-    if (data.colorScheme !== undefined && data.colorScheme !== "") {
-        updatePayload.colorScheme = data.colorScheme;
-    }
     if (data.streetAddress1 !== undefined && data.streetAddress1 !== "") {
         updatePayload.streetAddress1 = data.streetAddress1;
     }
@@ -111,12 +108,24 @@ export const updateOrganisationAction = async (
     if (data.newsletterSubscription !== undefined) {
         updatePayload.newsletterSubscription = data.newsletterSubscription;
     }
-    if (data.socialMediaLinks !== undefined) {
-        updatePayload.socialMediaLinks = data.socialMediaLinks;
+
+    // FIX: Correctly handle colorScheme update using 'connect'
+    if (data.colorScheme !== undefined) {
+        if (data.colorScheme === "") {
+            // If the color scheme is explicitly cleared (empty string), disconnect it
+            updatePayload.colorScheme = { disconnect: true };
+        } else {
+            // Otherwise, connect to an existing ColorScheme by its ID
+            updatePayload.colorScheme = {
+                connect: {
+                    id: data.colorScheme // This is the colorSchemeId you receive
+                }
+            };
+        }
     }
-    if (data.operationalHours !== undefined) {
-        updatePayload.operationalHours = data.operationalHours;
-    }
+
+    //handle social media links
+    
 
     const langIds = data.languages; // string[] | undefined
 

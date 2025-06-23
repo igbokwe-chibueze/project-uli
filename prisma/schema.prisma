@@ -1,5 +1,8 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  //This according to chatgpt means there’s no child process to kill, and you won’t see EPERM errors.
+  //remove later
+  engineType = "library"
 }
 
 datasource db {
@@ -32,6 +35,7 @@ model User {
   platformInvite        PlatformInviteToken?   @relation("PlatformInviteForUser", fields: [platformInviteId], references: [id])
   userCertifications    UserCertification[]
   userLanguages         UserLanguage[]
+  userSocialLinks       UserSocialLink[]
 }
 
 model Account {
@@ -247,12 +251,13 @@ model Certification {
 
 /// Social Media Platforms (Admins can add “TikTok”, “YouTube”, etc.)
 model SocialPlatform {
-  id          String                   @id @default(cuid())
-  name        String                   @unique
-  domain      String?
-  createdAt   DateTime                 @default(now())
-  updatedAt   DateTime                 @default(now())
-  socialLinks OrganizationSocialLink[]
+  id              String                   @id @default(cuid())
+  name            String                   @unique
+  domain          String?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @default(now())
+  orgSocialLinks  OrganizationSocialLink[]
+  userSocialLinks UserSocialLink[]
 }
 
 /// User ⟷ Language (which languages a user speaks)
@@ -372,6 +377,20 @@ model OrganizationSocialLink {
   @@unique([orgId, platformId])
 }
 
+/// One social‐link record per platform per user
+model UserSocialLink {
+  id         String         @id @default(cuid())
+  userId     String
+  platformId String
+  url        String
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform   SocialPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platformId])
+}
+
 /// Departments within an Organization
 model Department {
   id           String       @id @default(cuid())
@@ -449,7 +468,7 @@ model Organization {
   languages              OrganizationLanguage[]
   members                OrganizationMember[]
   modules                OrganizationModule[]
-  socialLinks            OrganizationSocialLink[]
+  orgSocialLinks         OrganizationSocialLink[]
   specialties            OrganizationSpecialty[]
 }
 

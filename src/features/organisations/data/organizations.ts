@@ -47,6 +47,13 @@ export const getOrganisationById = async (id: string) => {
                         },
                     },
                 },
+                // Include the colorScheme object here!
+                colorScheme: {
+                    select: {
+                        name: true, // Select only the name, or include other fields if needed
+                        id: true,
+                    },
+                },
             },
         });
     } catch (err) {

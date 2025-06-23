@@ -2,26 +2,48 @@
 
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
+import NotFound from "@/app/not-found"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/features/organisations/components/app-sidebar";
 import { CreateOrganisationModal } from '@/features/organisations/components/create-organisation-modal';
 import { OrganisationHeader } from '@/features/organisations/components/organisation-header';
+import { getOrganisationById } from '@/features/organisations/data/organizations';
 
-const OrgIdLayout = async ({children,}: {children: React.ReactNode;}) => {
+interface PageProps {
+  params: Promise<{ organisationId: string }>;
+  children: React.ReactNode;
+}
+
+const OrgIdLayout = async ({children, params}: PageProps) => {
+  // Get the OrganisationId from the URL
+  const orgId = (await params).organisationId;
+
+  // Fetch the organization details by its ID.
+  // If the organization does not exist, render a 404-like page.
+  const organisation = await getOrganisationById(orgId);
+  if (!organisation) {
+      return <NotFound message="Organisation not found." />;
+  }
+
+  // Now you can access the color scheme name
+  const colorSchemeName = organisation.colorScheme?.name || 'theme-velvet'; // Provide a fallback if no color scheme is set
+
   return (
-    <NuqsAdapter>
-      <CreateOrganisationModal/>
-      
-      <SidebarProvider>
-        <AppSidebar />
+    <div className={`${colorSchemeName}`}>
+      <NuqsAdapter>
+        <CreateOrganisationModal/>
+        
+        <SidebarProvider>
+          <AppSidebar />
 
-        <SidebarInset>
-          <OrganisationHeader/>
-          {children}
-        </SidebarInset>
+          <SidebarInset>
+            <OrganisationHeader/>
+            {children}
+          </SidebarInset>
 
-      </SidebarProvider>
-    </NuqsAdapter>
+        </SidebarProvider>
+      </NuqsAdapter>
+    </div>
   )
 }
 
