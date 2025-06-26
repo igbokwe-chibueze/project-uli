@@ -75,6 +75,7 @@ export const getAvailableStates = async (): Promise<StateOptionProps[]> => {
 export interface OptionProps {
   value: string; // The Prisma-generated ID for an Industry type
   label: string; // A human-readable string, e.g. "Manufacturing"
+  color?: string; // Optional color used for color-theme select
 }
 
 //
@@ -204,13 +205,14 @@ export const getAvailableCertifications = async (): Promise<OptionProps[]> => {
 //
 export const getAvailableColorSchemes = async (): Promise<OptionProps[]> => {
     const colorSchemes = await prisma.colorScheme.findMany({
-        select: { id: true, name: true },
+        select: { id: true, name: true, primaryOklch: true },
         orderBy: { name: "asc" },
     });
 
     return colorSchemes.map((c) => ({
         value: c.id,
         label: c.name,
+        color: c.primaryOklch
     }));
 };
 

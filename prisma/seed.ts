@@ -264,11 +264,14 @@ async function main() {
   // 11) Seed colorScheme
   // ──────────────────────────────────────────────────────────────────────────────
   const colorSchemeData = [
-    { name: "theme-velvet" },
-    { name: "theme-sky" },
-    { name: "theme-flame" },
-    { name: "theme-moss" },
-    { name: "theme-stone" },
+    { name: "theme-velvet (default)", primaryOklch: "oklch(0.606 0.25 292.717)" },
+    { name: "theme-sky", primaryOklch: "oklch(0.623 0.214 259.815)" },
+    { name: "theme-flame", primaryOklch: "oklch(0.637 0.237 25.331)" },
+    { name: "theme-moss", primaryOklch: "oklch(0.723 0.219 149.579)" },
+    { name: "theme-stone", primaryOklch: "oklch(0.216 0.006 56.043)" },
+    { name: "theme-caffeine", primaryOklch: "oklch(0.43 0.04 42.00)" },
+    { name: "theme-slack", primaryOklch: "oklch(0.37 0.14 323.40)" },
+    { name: "theme-claude", primaryOklch: "oklch(0.62 0.14 39.15)" },
     // …add more here
   ];
   await prisma.colorScheme.createMany({

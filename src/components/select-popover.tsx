@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 export interface OptionPair {
   value: string;
   label: string;
+  color?: string;
 }
 
 interface SelectPopoverProps<T extends FieldValues> {
@@ -48,6 +49,10 @@ export const SelectPopover = <T extends FieldValues>({
 
   // Helper: find the label for the currently selected value (ID)
   const selectedLabel = options.find((opt) => opt.value === field.value)?.label;
+
+  // find the selected option object (so we can read its color)
+  const selectedOption = options.find(opt => opt.value === field.value);
+  const selectedColor = selectedOption?.color;
 
   return (
     <FormItem>
@@ -82,8 +87,19 @@ export const SelectPopover = <T extends FieldValues>({
                 <div className="size-4 text-muted-foreground">
                   {icon}
                 </div>
-                {/* Show the selected label, or placeholder/default text */}
-                {selectedLabel ?? placeholder ?? `Select ${label.toLowerCase()}`}
+
+                <div className="flex items-center justify-between gap-2">
+                  {selectedColor && (
+                    <span 
+                      className={`w-6 h-4 rounded `}
+                      style={{ backgroundColor: selectedColor }}
+                    />
+                  )}
+
+                  {/* Show the selected label, or placeholder/default text */}
+                  {selectedLabel ?? placeholder ?? `Select ${label.toLowerCase()}`}
+                </div>
+
               </div>
               <ChevronsUpDown className="ml-2 size-4 opacity-50" />
             </Button>
@@ -111,6 +127,14 @@ export const SelectPopover = <T extends FieldValues>({
                           field.value === opt.value ? "opacity-100" : "opacity-0"
                         )}
                       />
+
+                      {opt.color && (
+                        <span 
+                          className={`w-6 h-4 rounded `}
+                          style={{ backgroundColor: opt.color }}
+                        />
+                      )}
+
                       {opt.label}
                     </CommandItem>
                   ))}

@@ -12,8 +12,8 @@ import { Building2Icon,
     LetterTextIcon, 
     LoaderCircleIcon, 
     MailIcon, 
-    MapPinIcon, 
-    Paintbrush2Icon, 
+    MapPinIcon,
+    PaletteIcon, 
     PencilLineIcon, RotateCcw, SaveIcon, UsersIcon } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -787,7 +787,7 @@ const UpdateOrganisationForm = ({
                     label="Color Scheme"
                     placeholder="Select a color scheme"
                     options={colorSchemeOptions}
-                    icon={<Paintbrush2Icon/>}
+                    icon={<PaletteIcon/>}
                     isDirty={dirtyFields.colorScheme}
                 />
 

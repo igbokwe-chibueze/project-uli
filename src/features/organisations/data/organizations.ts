@@ -91,6 +91,7 @@ export const getOrganisationById = async (id: string) => {
                     select: {
                         name: true, // Select only the name, or include other fields if needed
                         id: true,
+                        primaryOklch: true,
                     },
                 },
             },
