@@ -111,13 +111,23 @@ export const OrganisationSchema = z.object({
   // Legal and registration details
   taxId: z.string().optional(),
   registrationNumber: z.string().optional(),
-  
+
+  // - Accepts form input (usually a string) and converts it to a number
+  // - Ensures the number is a whole integer (no decimals)
+  // - Validates that it’s at least year 1800
+  // - Validates that it’s no later than the current year
   foundedYear: z
-    .union([
-      z.number(),
-      z.literal(undefined),
-    ])
-    .optional(),
+    .coerce.number() // coerce input to Number
+    .int()           // must be an integer
+    .gte(1800)       // ≥ 1800
+    .lte(new Date().getFullYear()), // ≤ current year
+  
+  // foundedYear: z
+  //   .union([
+  //     z.number(),
+  //     z.literal(undefined),
+  //   ])
+  //   .optional(),
 
   // Appearance settings
   colorScheme: z.string().optional(),

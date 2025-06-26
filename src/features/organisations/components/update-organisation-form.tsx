@@ -41,6 +41,8 @@ import { Switch } from "@/components/ui/switch";
 import { LocationSelector } from "@/components/location-selector";
 import { PhoneNumberInput } from "@/components/phone-number-input";
 import { MultiSelect } from "@/components/multi-select";
+import { Select, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import YearSelector from "@/components/year-selector";
 
 interface UpdateOrganisationFormProps {
     //Its ok for me to use prisma generated types here, 
@@ -751,20 +753,28 @@ const UpdateOrganisationForm = ({
                                     <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
                                 )}
                             </div>
-                            <FormControl>
-                                <div className="relative">
-                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                    <Input
-                                        {...field}
-                                        type="number"
-                                        placeholder="e.g. 1995"
-                                        value={field.value ?? ""}
-                                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                                        className="pl-10"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                            </FormControl>
+
+                            <div className="relative">
+                                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                
+                                <Select 
+                                    onValueChange={field.onChange} 
+                                    value={field.value?.toString() || ''} 
+                                    disabled={isLoading}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger className="pl-10 w-full">
+                                            <SelectValue placeholder="Select a year" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Years</SelectLabel>
+                                            <YearSelector />
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <FormMessage />
                         </FormItem>
                     )}
