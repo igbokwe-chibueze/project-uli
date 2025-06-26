@@ -5,7 +5,7 @@ import NextAuth from "next-auth";
 import { authConfig } from "@/auth.config";
 
 // Import constants for redirect URLs and route prefixes.
-import { DEFAULT_LOGIN_REDIRECT_URL, apiAuthPrefix, authRoutes, publicRoutes } from "@/routes";
+import { DEFAULT_LOGIN_REDIRECT_URL, apiAuthPrefix, authRoutes, marketingRoutes, publicRoutes } from "@/routes";
 
 
 // Initialize NextAuth with the provided configuration.
@@ -23,6 +23,8 @@ export default auth((req) => {
     const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
     // Check if the current route is a public route (accessible without authentication).
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+    // Check if the current route is a marketing route (not accessible to logged in users e.g landing, about pages).
+    const isMarketingRoute = marketingRoutes.includes(nextUrl.pathname)
     // Check if the current route is an authentication-specific route (e.g., login or register pages).
     const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
@@ -57,6 +59,11 @@ export default auth((req) => {
             nextUrl
         ));
     }
+
+    if (isLoggedIn && isMarketingRoute ) {
+        return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT_URL, nextUrl));
+    }
+
 
     // Otherwise, allow the request to proceed without any special response.
     return;

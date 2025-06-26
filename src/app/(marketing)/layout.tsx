@@ -1,8 +1,8 @@
-// src/app/(landing)/layout.tsx
+// src/app/(marketing)/layout.tsx
 
 import Navbar from "@/components/navigation/navbar"
 
-const LandingPageLayout = ({children}: {children: React.ReactNode}) => {
+const MarketingLayout = ({children}: {children: React.ReactNode}) => {
   return (
     <>
         <Navbar />
@@ -13,4 +13,4 @@ const LandingPageLayout = ({children}: {children: React.ReactNode}) => {
   )
 }
 
-export default LandingPageLayout
+export default MarketingLayout

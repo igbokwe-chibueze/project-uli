@@ -1,18 +1,30 @@
 // src/routes.ts
 
 /**
+ * An array of routes that are accessible to the public but not accessible to logged in users
+ * These routes will redirect logged in users to /organisations
+ * @type {string[]}
+ */
+export const marketingRoutes = [
+    "/", 
+    "/about", 
+    "/features",
+];
+
+/**
  * An array of routes that are accessible to the public
  * These routes do not require authentication
  * @type {string[]}
  */
 export const publicRoutes = [
-    "/",
-    "/email-verification"
+    "/email-verification",
+    "/pricing",
+    "/faq"
 ];
 
 /**
  * An array of routes that are used for authentication
- * These routes will redirect logged in users to /settings
+ * These routes will redirect logged in users to /organisations
  * @type {string[]}
  */
 export const authRoutes = [

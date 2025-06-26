@@ -1,4 +1,4 @@
-// src/app/(landing)/page.tsx
+// src/app/(marketing)/page.tsx
 
 import { FeaturesSection } from "@/components/landing-page-sections/features-section"
 import { HomeSection } from "@/components/landing-page-sections/home-section"
