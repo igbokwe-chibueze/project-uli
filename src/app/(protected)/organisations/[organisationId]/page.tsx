@@ -1,40 +1,34 @@
 // src/app/(protected)/organisations/[organisationId]/page.tsx
 
+import Link from "next/link";
 import { redirect } from "next/navigation"
+import { ArrowRightIcon, Building2Icon, CheckCircle2Icon, Settings2Icon } from "lucide-react";
 
 import NotFound from "@/app/not-found"
 import { currentID } from "@/features/auth/lib/authenticate"
-import { getOrganisationById, isUserOrganizationMember } from "@/features/organisations/data/organizations"
-import Link from "next/link";
-import { ArrowRightIcon, Building2Icon, CheckCircle2Icon, Settings2Icon } from "lucide-react";
+import { getOrganisationSummaryById, isUserOrganizationMember } from "@/features/organisations/data/organizations"
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-interface PageProps {
-  params: Promise<{ organisationId: string }>;
+interface OrganisationIdPageProps {
   searchParams: Promise<{ created?: string }>;
+  params: { organisationId: string };
 }
 
-const OrganisationIdPage = async ({params, searchParams}: PageProps) => {
+const OrganisationIdPage = async ({searchParams, params}: OrganisationIdPageProps) => {
     // Authenticate user by getting the session Id
     const user = await currentID();
 
     // Not logged in → send to login (access)
     if (!user) redirect('/access');
 
-    // Get the OrganisationId from the URL
-    const orgId = (await params).organisationId;
-
-    // Fetch the organization details by its ID.
-    // If the organization does not exist, render a 404-like page.
-    const organisation = await getOrganisationById(orgId);
-    if (!organisation) {
-        return <NotFound message="Organisation not found." />;
-    }
+    const organisation = await getOrganisationSummaryById(params.organisationId);
+    if (!organisation) return <NotFound message="Organisation not found." />;
 
     // Check if the authenticated user is a member of the organization.
     // If not a member, render a 404-like page with an access denied message.
-    const isMember = await isUserOrganizationMember(user, orgId);
+    const isMember = await isUserOrganizationMember(user, organisation?.id);
     if (!isMember) {
         return (
             <NotFound message="Access denied: you are not a member of this organisation." />
@@ -65,7 +59,7 @@ const OrganisationIdPage = async ({params, searchParams}: PageProps) => {
 
                                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                                     {/* Button to “Continue to Details” (removing ?created from the URL) */}
-                                    <Link href={`/organisations/${orgId}`} passHref >
+                                    <Link href={`/organisations/${organisation.id}`} passHref >
                                         <Button size="lg" className="flex items-center gap-2">
                                             <Building2Icon className="size-4" />
                                             Continue to {organisation.name}
@@ -74,7 +68,7 @@ const OrganisationIdPage = async ({params, searchParams}: PageProps) => {
                                     </Link>
 
                                     {/* Button to “Update Profile” (you might have a separate edit page) */}
-                                    <Link href={`/organisations/${orgId}/settings/general`} passHref>
+                                    <Link href={`/organisations/${organisation.id}/settings/general`} passHref>
                                         <Button variant="outline" size="lg" className="flex items-center gap-2">
                                             <Settings2Icon className="size-4" />
                                             Update Company Profile

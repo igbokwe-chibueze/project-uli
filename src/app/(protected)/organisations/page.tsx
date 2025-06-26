@@ -8,11 +8,12 @@ import { getOrganizationsForUser } from "@/features/organisations/data/organizat
 
 const OrgHomePage = async () => {
   // Authenticate user by getting the session Id
-  const user = await currentID();
+  const userId = await currentID();
 
-  if (!user) redirect("/access"); //If user is not authenticated redirect to signIn(/access)
+  if (!userId) redirect("/access"); //If user is not authenticated redirect to signIn(/access)
 
-  const memberships = await getOrganizationsForUser(user);
+  const memberships = await getOrganizationsForUser(userId);
+  console.log("Membership Count" + memberships.length)
 
   //Fetch all memberships for this user, including the Organization
   //If they belong to at least one org, redirect to the first org’s page
@@ -24,7 +25,7 @@ const OrgHomePage = async () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-sm w-full text-center space-y-4">
-        <h1 className="text-2xl font-semibold">Welcome! {user}</h1>
+        <h1 className="text-2xl font-semibold">Welcome! {userId}</h1>
         <p className="text-gray-600">
           You don’t belong to any organisation yet. Get started by creating or joining one.
         </p>

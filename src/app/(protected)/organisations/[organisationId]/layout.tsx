@@ -7,7 +7,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/features/organisations/components/app-sidebar";
 import { CreateOrganisationModal } from '@/features/organisations/components/create-organisation-modal';
 import { OrganisationHeader } from '@/features/organisations/components/organisation-header';
-import { getOrganisationById } from '@/features/organisations/data/organizations';
+import { getOrganisationSummaryById } from '@/features/organisations/data/organizations';
+import { OrganisationClientProvider } from '@/features/organisations/context/organisation-client-provider';
 
 interface PageProps {
   params: Promise<{ organisationId: string }>;
@@ -20,7 +21,7 @@ const OrgIdLayout = async ({children, params}: PageProps) => {
 
   // Fetch the organization details by its ID.
   // If the organization does not exist, render a 404-like page.
-  const organisation = await getOrganisationById(orgId);
+  const organisation = await getOrganisationSummaryById(orgId);
   if (!organisation) {
       return <NotFound message="Organisation not found." />;
   }
@@ -34,12 +35,14 @@ const OrgIdLayout = async ({children, params}: PageProps) => {
         <CreateOrganisationModal/>
         
         <SidebarProvider>
-          <AppSidebar />
-
-          <SidebarInset>
-            <OrganisationHeader/>
-            {children}
-          </SidebarInset>
+          <OrganisationClientProvider organisation={organisation}>
+            <AppSidebar />
+            
+            <SidebarInset>
+              <OrganisationHeader/>
+              {children}
+            </SidebarInset>
+          </OrganisationClientProvider>
 
         </SidebarProvider>
       </NuqsAdapter>

@@ -2,6 +2,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma/prisma";
+import { ColorScheme, Country, Organization } from "@prisma/client";
 
 /**
  * Fetch all organization memberships for a given user, including organization details.
@@ -30,6 +31,44 @@ export const getOrganizationsForUser = async(userId: string) => {
         return [];
     }
 }
+
+// Define a minimal type for the organization summary
+export type OrganisationSummaryType = Pick<Organization, 'id' | 'name'> & {
+    colorScheme: Pick<ColorScheme, 'name' | 'id'> | null;
+    country: Pick<Country, 'name' | 'id' | 'iso3'> | null; // Assuming country is a relation and you need its name
+};
+
+// Function to get a summary of an organization by ID
+//....because certain componnets like OrgIdLayout, OrganisationIdPage and OrganisationHeader dont need all the orginasation data.
+export const getOrganisationSummaryById = async (id: string): Promise<OrganisationSummaryType | null> => {
+    try {
+        const organisation = await prisma.organization.findUnique({
+            where: { id },
+            select: { // Use `select` to fetch only specific fields and relations
+                id: true,
+                name: true,
+                colorScheme: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                country: { // Assuming 'country' is a relation in your Organization model
+                    select: {
+                        id: true,
+                        name: true,
+                        iso3: true,
+                    },
+                },
+                // Add any other minimal fields needed by the layout or main page
+            },
+        });
+        return organisation as OrganisationSummaryType | null; // Cast for type safety
+    } catch (error) {
+        console.error("Error fetching organization summary:", error);
+        return null;
+    }
+};
 
 /**
  * Fetch a single organization by its ID.

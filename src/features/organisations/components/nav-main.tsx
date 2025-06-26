@@ -23,7 +23,7 @@ import {
     SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 
-import { UseGetOrganisationId } from "@/features/organisations/hooks/use-get-organisation-Id"
+import { useOrganisation } from "@/features/organisations/context/organisation-context"
 
 /**
  * Each top-level route now has a `url` which serves as the “base” for all its children.
@@ -63,7 +63,9 @@ const routes = [
 
 export const NavMain = () => {
     const pathname = usePathname();
-    const organisationId = UseGetOrganisationId();
+    //const organisationId = UseGetOrganisationId();
+    const organisation = useOrganisation();
+    const organisationId = organisation.id
   return (
     <SidebarGroup>
         <SidebarGroupLabel className="flex items-center justify-between text-xs uppercase">Organisation</SidebarGroupLabel>

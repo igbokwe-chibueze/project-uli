@@ -449,7 +449,7 @@ const UpdateOrganisationForm = ({
                     <FormItem>
                         <div className="flex items-center gap-2">
                             <FormLabel> Street Address 1 </FormLabel>
-                            {dirtyFields.organizationName && (
+                            {dirtyFields.streetAddress1 && (
                                 <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
                             )}
                         </div>
@@ -479,7 +479,7 @@ const UpdateOrganisationForm = ({
                     <FormItem>
                         <div className="flex items-center gap-2">
                             <FormLabel> Street Address 2 (optional) </FormLabel>
-                            {dirtyFields.organizationName && (
+                            {dirtyFields.streetAddress2 && (
                                 <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
                             )}
                         </div>
