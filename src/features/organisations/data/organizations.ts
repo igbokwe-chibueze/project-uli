@@ -33,7 +33,7 @@ export const getOrganizationsForUser = async(userId: string) => {
 }
 
 // Define a minimal type for the organization summary
-export type OrganisationSummaryType = Pick<Organization, 'id' | 'name'> & {
+export type OrganisationSummaryType = Pick<Organization, 'id' | 'name' | 'logo'> & {
     colorScheme: Pick<ColorScheme, 'name' | 'id'> | null;
     country: Pick<Country, 'name' | 'id' | 'iso3'> | null; // Assuming country is a relation and you need its name
 };
@@ -47,6 +47,7 @@ export const getOrganisationSummaryById = async (id: string): Promise<Organisati
             select: { // Use `select` to fetch only specific fields and relations
                 id: true,
                 name: true,
+                logo: true,
                 colorScheme: {
                     select: {
                         id: true,

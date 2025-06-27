@@ -95,7 +95,7 @@ export const OrganisationSwitcher = ({ organizations, loading, error }: Organisa
         transition-opacity duration-300
         ${isSidebarOpen ? "opacity-100 delay-100" : "opacity-0 pointer-events-none"}`}
       >
-        <p className="text-xs uppercase">Organisations</p>
+        <p className="text-xs">Organisations</p>
         <CirclePlusIcon
           onClick={open}
           className="size-5 cursor-pointer hover:opacity-75 transition"
@@ -112,9 +112,7 @@ export const OrganisationSwitcher = ({ organizations, loading, error }: Organisa
                 bg-sidebar-accent cursor-pointer hover:bg-sidebar-primary transition-colors duration-500 
                 hover:text-sidebar-primary-foreground"
               >
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg 
-                  bg-sidebar-primary text-sidebar-primary-foreground"
-                >
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                   <OrganisationAvatar
                     image={org.logo}
                     name={org.name}

@@ -11,13 +11,14 @@ import { ThemeToggle } from "@/components/theme-toggle"
 
 import { SearchForm } from "@/features/organisations/components/search-form"
 import { useOrganisation } from "@/features/organisations/context/organisation-context"
+import { OrganisationAvatar } from "@/features/organisations/components/organisation-avatar"
 
 
 export const OrganisationHeader = () => {
     const org = useOrganisation();
     
   return (
-    <header className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-14 flex h-14 shrink-0 items-center 
+    <header className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 flex h-16 shrink-0 items-center 
         gap-2 border-b transition-[width,height] ease-linear"
     >
         <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
@@ -25,18 +26,30 @@ export const OrganisationHeader = () => {
 
             <Separator
                 orientation="vertical"
-                className="mx-2 data-[orientation=vertical]:h-4"
+                className="mx-2 data-[orientation=vertical]:h-6"
             />
 
             <div className="flex justify-between items-center w-full">
                 {/* Organisation Data */}
-                {/* //* TODO : Add Organisation Logo ***** */}
-                <div className="flex items-center gap-2 text-sm leading-tight">
-                    <span className="truncate font-semibold">{org?.name}</span>
-                    {org?.country ? (
-                        <span className="truncate">[{org?.country.name}]</span>
-                    ) : (<span>(Update your country)</span>)}
+
+                <div className="flex items-center gap-2">
+                    <div className="flex aspect-square w-28 h-14 items-center justify-center rounded-lg">
+                        <OrganisationAvatar
+                            image={org.logo}
+                            name={org.name}
+                            className="size-28"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm leading-tight">
+                        <span className="truncate font-semibold">{org?.name}</span>
+
+                        {org?.country ? (
+                            <span className="truncate">[{org?.country.name}]</span>
+                        ) : (<span>(Update your country)</span>)}
+                    </div>
                 </div>
+
                 
                 <div className="flex items-center space-x-4">
                     <SearchForm className="w-full sm:ml-auto sm:w-auto" />

@@ -1,12 +1,13 @@
 // src/components/file-upload-field.tsx
 
-import { useRef, useState, DragEvent, MouseEvent, useEffect } from "react"; // Import useEffect
-import { useController, Control, FieldValues, Path } from "react-hook-form";
-import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Info, Upload, ImageIcon, X, Check } from "lucide-react";
+import { useRef, useState, DragEvent, MouseEvent, useEffect } from "react";
+import { useController, Control, FieldValues, Path } from "react-hook-form";
+
+import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 
 // Define the props for the FileUploadField component, generic on form values T
 interface FileUploadFieldProps<T extends FieldValues> {
@@ -133,8 +134,14 @@ export function FileUploadField<T extends FieldValues>({
                 {/* If previewUrl exists, show preview */}
                 {previewUrl ? (
                     <div>
-                        <div className="relative mx-auto" style={{ width: previewWidth, height: previewHeight }}>
-                            <Image src={previewUrl} alt="Preview" fill className="object-cover rounded" unoptimized />
+                        <div className="relative mx-auto bg-accent-foreground" style={{ width: previewWidth, height: previewHeight }}>
+                            <Image 
+                                src={previewUrl} 
+                                alt="Preview" 
+                                fill 
+                                className="object-scale-down rounded" 
+                                unoptimized 
+                            />
                             {/* Button to remove selected file or clear existing URL */}
                             <button
                                 type="button"

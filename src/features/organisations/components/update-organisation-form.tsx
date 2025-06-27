@@ -32,17 +32,18 @@ import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 import { UpdateOrganisationSchema } from "@/features/organisations/schemas";
 import { updateOrganisationAction } from "@/features/organisations/actions/updateOrganisationAction";
-import { Switch } from "@/components/ui/switch";
+
+import YearSelector from "@/components/year-selector";
+import { MultiSelect } from "@/components/multi-select";
 import { LocationSelector } from "@/components/location-selector";
 import { PhoneNumberInput } from "@/components/phone-number-input";
-import { MultiSelect } from "@/components/multi-select";
-import { Select, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import YearSelector from "@/components/year-selector";
 
 interface UpdateOrganisationFormProps {
     //Its ok for me to use prisma generated types here, 

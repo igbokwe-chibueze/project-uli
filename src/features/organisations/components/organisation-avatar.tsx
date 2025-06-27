@@ -37,7 +37,7 @@ export const OrganisationAvatar = ({
                     alt={name}
                     fill
                     unoptimized
-                    className="object-cover"
+                    className="object-contain"
                 />
             </div>
         )
@@ -50,7 +50,8 @@ export const OrganisationAvatar = ({
       <AvatarFallback className="flex items-center justify-center bg-sidebar-primary rounded-lg 
         text-lg text-sidebar-primary-foreground font-semibold uppercase"
       >
-        {name.charAt(0)}
+        {/* {name.charAt(0)} */}
+        {name.slice(0, 2)}
       </AvatarFallback>
     </Avatar>
   );
