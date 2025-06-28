@@ -51,7 +51,16 @@ export const OrganisationSchema = z.object({
   .nullable(),
 
   // Textual description
-  description: z.string().max(1000, { message: "Description cannot exceed 1000 characters." }).optional(),
+  description: z
+  .string()
+  .max(1000, { message: "Description cannot exceed 1000 characters." })
+  .optional()
+  .refine(
+    // Description can be empty, but if something is entered it must be more than 5 characters
+    (val) => val === undefined || val.length === 0 || val.length >= 5,
+    { message: "Description must be at least 5 characters if provided." }
+  ),
+
 
   // Organizational metrics
   employeeCountRange: z.string().optional(),
@@ -121,13 +130,6 @@ export const OrganisationSchema = z.object({
     .int()           // must be an integer
     .gte(1800)       // ≥ 1800
     .lte(new Date().getFullYear()), // ≤ current year
-  
-  // foundedYear: z
-  //   .union([
-  //     z.number(),
-  //     z.literal(undefined),
-  //   ])
-  //   .optional(),
 
   // Appearance settings
   colorScheme: z.string().optional(),

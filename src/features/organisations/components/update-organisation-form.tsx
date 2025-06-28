@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Building2Icon, 
     BuildingIcon, 
     CalendarIcon, 
+    EyeIcon, 
+    FileTextIcon, 
     GlobeIcon, 
     HandCoinsIcon, 
     LetterTextIcon, 
@@ -14,7 +16,7 @@ import { Building2Icon,
     MailIcon, 
     MapPinIcon,
     PaletteIcon, 
-    PencilLineIcon, RotateCcw, SaveIcon, UsersIcon } from "lucide-react";
+    PencilLineIcon, RotateCcw, SaveIcon, Users2Icon, UsersIcon } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -44,6 +46,8 @@ import YearSelector from "@/components/year-selector";
 import { MultiSelect } from "@/components/multi-select";
 import { LocationSelector } from "@/components/location-selector";
 import { PhoneNumberInput } from "@/components/phone-number-input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface UpdateOrganisationFormProps {
     //Its ok for me to use prisma generated types here, 
@@ -327,626 +331,762 @@ const UpdateOrganisationForm = ({
     };
 
   return (
-    <div className="mx-auto lg:w-[600px]">
-        <h2 className="text-2xl font-semibold mb-4">
-            Update Organization
-        </h2>
-        <p className="text-sm text-muted-foreground mb-6">
-            Modify any of the fields below, then click “Save Changes.”
-        </p>
-
+    <div className="lg:w-[900px] space-y-6">
         {/* Completion Percentage Display */}
-        <div className="space-y-4 mb-8">
-            <div className="space-y-2">
-                <span className="text-lg font-semibold">Profile Completion</span>
-                <div className="flex justify-between items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{completionPercentage}% complete</span>
-                    {isDirty && (
-                        <Badge variant="secondary" className="animate-pulse">
-                            {modifiedCount} unsaved change{modifiedCount === 1 ? '' : 's'}
-                        </Badge>
-                    )}
+        <Card>
+            <CardHeader>
+                <CardTitle>Update Organization</CardTitle>
+                <CardDescription>Modify any of the fields below, then click “Save Changes.”</CardDescription>
+            </CardHeader>
+
+            <CardContent>
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <span className="text-lg font-semibold">Profile Completion</span>
+                        <div className="flex justify-between items-center gap-2">
+                            <span className="text-sm text-muted-foreground">{completionPercentage}% complete</span>
+                            {isDirty && (
+                                <Badge variant="secondary" className="animate-pulse">
+                                    {modifiedCount} unsaved change{modifiedCount === 1 ? '' : 's'}
+                                </Badge>
+                            )}
+                        </div>
+                    </div>
+                    <Progress value={completionPercentage} className="h-2" />
                 </div>
-            </div>
-            <Progress value={completionPercentage} className="h-2" />
-        </div>
+            </CardContent>
+        </Card>
 
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* ── Organization Name ──────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="organizationName"
-                    render={({ field }) => (
-                    <FormItem>
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                    {/* ── Basic Information ──────────────────────────────────────── */}
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                <Card>
+                    <CardHeader>
                         <div className="flex items-center gap-2">
-                            <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
-                                Organization Name
-                            </FormLabel>
-                            {dirtyFields.organizationName && (
-                                <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
-                            )}
+                            <Building2Icon className="size-5" />
+                            <CardTitle>Basic Information</CardTitle>
                         </div>
-                        <FormControl>
-                            <div className="relative">
-                                <Building2Icon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                <Input
-                                    {...field}
-                                    placeholder="Enter organization name"
-                                    type="text"
-                                    autoComplete="organizationName"
-                                    className="pl-10"
-                                    disabled={isLoading}
+                        <CardDescription>Core organization details from your initial setup</CardDescription>
+                    </CardHeader>
+
+                    <CardContent>
+                        <div className="space-y-4">
+                            {/* ── Logo (existing URL or new File) ───────────────────────────────── */}
+                            <FileUploadField
+                                key={logoKey}
+                                control={form.control}
+                                name="logo"
+                                label="Organization Logo"
+                                accept="image/*"
+                                acceptLabel="Images (PNG, JPG, SVG, etc.)"
+                                maxSizeMB={3}
+                                previewWidth={128}
+                                previewHeight={128}
+                            />
+                            {/* Pencil icon for Logo, placed separately due to FileUploadField's structure */}
+                            {dirtyFields.logo && (
+                                <div className="flex justify-end -mt-4 mr-2"> {/* Adjust margin as needed */}
+                                    <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* ── Organization Name ──────────────────────────────────────────────── */}
+                                <FormField
+                                    control={form.control}
+                                    name="organizationName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <div className="flex items-center gap-2">
+                                                <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
+                                                    Organization Name
+                                                </FormLabel>
+                                                {dirtyFields.organizationName && (
+                                                    <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                                                )}
+                                            </div>
+                                            <FormControl>
+                                                <div className="relative">
+                                                    <Building2Icon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                                    <Input
+                                                        {...field}
+                                                        placeholder="Enter organization name"
+                                                        type="text"
+                                                        autoComplete="organizationName"
+                                                        className="pl-10"
+                                                        disabled={isLoading}
+                                                    />
+                                                </div>
+                                            </FormControl>
+                                            <div className="min-h-[1.25rem]">
+                                                <FormMessage className="text-left" />
+                                            </div>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* ── Website ──────────────────────────────────────────────── */}
+                                <FormField
+                                    control={form.control}
+                                    name="website"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel> Website </FormLabel>
+                                            {dirtyFields.website && (
+                                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                            )}
+                                        </div>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <GlobeIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                                <Input
+                                                    {...field}
+                                                    placeholder="Enter website url"
+                                                    type="url"
+                                                    autoComplete="url"
+                                                    className="pl-10"
+                                                    disabled={isLoading}
+                                                />
+                                            </div>
+                                        </FormControl>
+                                        <div className="min-h-[1.25rem]">
+                                            <FormMessage className="text-left" />
+                                        </div>
+                                    </FormItem>
+                                    )}
                                 />
                             </div>
-                        </FormControl>
-                        <FormMessage className="text-left" />
-                    </FormItem>
-                    )}
-                />
 
-                {/* ── Logo (existing URL or new File) ───────────────────────────────── */}
-                <FileUploadField
-                    key={logoKey}
-                    control={form.control}
-                    name="logo"
-                    label="Organization Logo"
-                    accept="image/*"
-                    acceptLabel="Images (PNG, JPG, SVG, etc.)"
-                    maxSizeMB={3}
-                    previewWidth={128}
-                    previewHeight={128}
-                />
-                {/* Pencil icon for Logo, placed separately due to FileUploadField's structure */}
-                {dirtyFields.logo && (
-                    <div className="flex justify-end -mt-4 mr-2"> {/* Adjust margin as needed */}
-                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
-                    </div>
-                )}
-
-                {/* ── Country ────────────────────────────────────────────────────────── */}
-                <LocationSelector
-                    control={form.control}
-                    nameCountry="country"
-                    nameState="state"
-                    countries={countries}
-                    isCountryDirty={dirtyFields.country}
-                    states={states}
-                    isStateDirty={dirtyFields.state}
-                />
-
-                {/* ── Description ────────────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                    <FormItem>
-                        <div className="flex items-center gap-2">
-                            <FormLabel>Description (optional)</FormLabel>
-                            {dirtyFields.description && (
-                                <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
-                            )}
-                        </div>
-                        <FormControl>
-                            <div className="relative">
-                                <LetterTextIcon className="absolute left-3 top-5 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                <Textarea
-                                    {...field}
-                                    placeholder="Describe your organization in a few sentences"
-                                    rows={4}
-                                    className="pl-10"
-                                    disabled={isLoading}
-                                />
-                            </div>
-                        </FormControl>
-                        <FormMessage className="text-left" />
-                    </FormItem>
-                    )}
-                />
-
-                {/* ── Street Address 1 ──────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="streetAddress1"
-                    render={({ field }) => (
-                    <FormItem>
-                        <div className="flex items-center gap-2">
-                            <FormLabel> Street Address 1 </FormLabel>
-                            {dirtyFields.streetAddress1 && (
-                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                            )}
-                        </div>
-                        <FormControl>
-                            <div className="relative">
-                                <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                <Input
-                                    {...field}
-                                    placeholder="e.g. 20 Marina Road"
-                                    type="text"
-                                    autoComplete="address"
-                                    className="pl-10"
-                                    disabled={isLoading}
-                                />
-                            </div>
-                        </FormControl>
-                        <FormMessage className="text-left" />
-                    </FormItem>
-                    )}
-                />
-
-                {/* ── Street Address 2 ──────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="streetAddress2"
-                    render={({ field }) => (
-                    <FormItem>
-                        <div className="flex items-center gap-2">
-                            <FormLabel> Street Address 2 (optional) </FormLabel>
-                            {dirtyFields.streetAddress2 && (
-                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                            )}
-                        </div>
-                        <FormControl>
-                            <div className="relative">
-                                <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                <Input
-                                    {...field}
-                                    placeholder="e.g. Lion Building, 12th FLoor"
-                                    type="text"
-                                    autoComplete="address"
-                                    className="pl-10"
-                                    disabled={isLoading}
-                                />
-                            </div>
-                        </FormControl>
-                        <FormMessage className="text-left" />
-                    </FormItem>
-                    )}
-                />
-
-                {/* ── Industry ───────────────────────────────────────────────────────── */}
-                <SelectPopover
-                    control={form.control}
-                    name="industry"
-                    label="Industry (optional)"
-                    placeholder="Select industry"
-                    options={industryOptions}
-                    icon={<BuildingIcon/>}
-                    isDirty={dirtyFields.industry}
-                />
-
-                {/* ── Organization Type ──────────────────────────────────────────────── */}
-                <SelectPopover
-                    control={form.control}
-                    name="orgType"
-                    label="Organization Type (optional)"
-                    placeholder="Select type"
-                    options={orgTypeOptions}
-                    icon={<BuildingIcon/>}
-                    isDirty={dirtyFields.orgType}
-                />
-
-                {/* ── Employee Count Range ───────────────────────────────────────────── */}
-                <SelectPopover
-                    control={form.control}
-                    name="employeeCountRange"
-                    label="Employee Count Range (optional)"
-                    placeholder="Select employee count"
-                    options={employeeCountRangeOptions}
-                    icon={<UsersIcon/>}
-                    isDirty={dirtyFields.employeeCountRange}
-                />
-
-                {/* ── Langauges ───────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="languages"
-                    render={({ field }) => (
-                        <FormItem>
-                            <div className="flex items-center gap-2">
-                                <FormLabel> Languages </FormLabel>
-                                {dirtyFields.languages && (
-                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                            {/* ── Description ────────────────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <div className="flex items-center gap-2">
+                                        <FormLabel>Description (optional)</FormLabel>
+                                        {dirtyFields.description && (
+                                            <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                                        )}
+                                    </div>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <LetterTextIcon className="absolute left-3 top-5 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                            <Textarea
+                                                {...field}
+                                                placeholder="Describe your organization in a few sentences"
+                                                rows={4}
+                                                className="pl-10"
+                                                disabled={isLoading}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage className="text-left" />
+                                </FormItem>
                                 )}
-                            </div>
-                            <FormControl>
-                                <MultiSelect
-                                    options={languageOptions}
-                                    value={field.value ?? []}
-                                    onValueChange={field.onChange}
-                                    placeholder="Select options"
-                                    maxCount={3}
-                                />
-                            </FormControl>
-                            <FormDescription>Select the languages you support.</FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
 
-
-                {/* ── Revenue Range ──────────────────────────────────────────────────── */}
-                <SelectPopover
-                    control={form.control}
-                    name="revenueRange"
-                    label="Revenue Range (optional)"
-                    placeholder="Select revenue range"
-                    options={revenueRangeOptions}
-                    icon={<HandCoinsIcon/>}
-                    isDirty={dirtyFields.revenueRange}
-                />
 
                 {/* ─────────────────────────────────────────────────────────────────── */}
-                    {/* ── NEW FIELDS START HERE ──────────────────────────────────────── */}
+                    {/* ── Business Details ──────────────────────────────────────── */}
                 {/* ─────────────────────────────────────────────────────────────────── */}
-
-                {/* ── Website ──────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="website"
-                    render={({ field }) => (
-                    <FormItem>
+                <Card>
+                    <CardHeader>
                         <div className="flex items-center gap-2">
-                            <FormLabel> Website </FormLabel>
-                            {dirtyFields.website && (
-                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                            )}
+                            <FileTextIcon className="size-5" />
+                            <CardTitle>Business Details</CardTitle>
                         </div>
-                        <FormControl>
-                            <div className="relative">
-                                <GlobeIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                <Input
-                                    {...field}
-                                    placeholder="Enter website url"
-                                    type="url"
-                                    autoComplete="url"
-                                    className="pl-10"
+                        <CardDescription>Organization type, industry, and business information</CardDescription>
+                    </CardHeader>
+
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* ── Organization Type ──────────────────────────────────────────────── */}
+                            <SelectPopover
+                                control={form.control}
+                                name="orgType"
+                                label="Organization Type (optional)"
+                                placeholder="Select type"
+                                options={orgTypeOptions}
+                                icon={<BuildingIcon/>}
+                                isDirty={dirtyFields.orgType}
+                            />
+
+                            {/* ── Industry ───────────────────────────────────────────────────────── */}
+                            <SelectPopover
+                                control={form.control}
+                                name="industry"
+                                label="Industry (optional)"
+                                placeholder="Select industry"
+                                options={industryOptions}
+                                icon={<BuildingIcon/>}
+                                isDirty={dirtyFields.industry}
+                            />
+
+                            {/* ── Founded Year ───────────────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="foundedYear"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel>Founded Year</FormLabel>
+                                            {dirtyFields.foundedYear && (
+                                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                            )}
+                                        </div>
+
+                                        <div className="relative">
+                                            <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                            
+                                            <Select 
+                                                onValueChange={field.onChange} 
+                                                value={field.value?.toString() || ''} 
+                                                disabled={isLoading}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger className="pl-10 w-full">
+                                                        <SelectValue placeholder="Select a year" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        <SelectLabel>Years</SelectLabel>
+                                                        <YearSelector />
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* ── Employee Count Range ───────────────────────────────────────────── */}
+                            <SelectPopover
+                                control={form.control}
+                                name="employeeCountRange"
+                                label="Employee Count Range (optional)"
+                                placeholder="Select employee count"
+                                options={employeeCountRangeOptions}
+                                icon={<UsersIcon/>}
+                                isDirty={dirtyFields.employeeCountRange}
+                            />
+
+                            {/* ── Revenue Range ──────────────────────────────────────────────────── */}
+                            <SelectPopover
+                                control={form.control}
+                                name="revenueRange"
+                                label="Revenue Range (optional)"
+                                placeholder="Select revenue range"
+                                options={revenueRangeOptions}
+                                icon={<HandCoinsIcon/>}
+                                isDirty={dirtyFields.revenueRange}
+                            />
+
+                            {/* ── Tax ID ──────────────────────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="taxId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel>Tax ID</FormLabel>
+                                            {dirtyFields.taxId && (
+                                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                            )}
+                                        </div>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                type="text"
+                                                placeholder="Enter tax identifier"
+                                                disabled={isLoading}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* ── Registration Number ────────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="registrationNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel>Registration Number</FormLabel>
+                                            {dirtyFields.registrationNumber && (
+                                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                            )}
+                                        </div>
+                                        <FormControl>
+                                            <Input
+                                            {...field}
+                                            type="text"
+                                            placeholder="Enter registration number"
+                                            disabled={isLoading}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* ── Color Scheme ───────────────────────────────────────────────────── */}
+                            <SelectPopover
+                                control={form.control}
+                                name="colorScheme"
+                                label="Bussiness Color"
+                                placeholder="Select a color scheme"
+                                options={colorSchemeOptions}
+                                icon={<PaletteIcon/>}
+                                isDirty={dirtyFields.colorScheme}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+
+
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                    {/* ── Contact Information ──────────────────────────────────────── */}
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center gap-2">
+                            <MailIcon className="size-5" />
+                            <CardTitle>Contact Information</CardTitle>
+                        </div>
+                        <CardDescription>Additional contact details and social media</CardDescription>
+                    </CardHeader>
+
+                    <CardContent>
+                        <div className="space-y-4">
+                            {/* ── Country ────────────────────────────────────────────────────────── */}
+                            <LocationSelector
+                                control={form.control}
+                                nameCountry="country"
+                                nameState="state"
+                                countries={countries}
+                                isCountryDirty={dirtyFields.country}
+                                states={states}
+                                isStateDirty={dirtyFields.state}
+                            />
+
+                            {/* ── Street Address 1 ──────────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="streetAddress1"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <div className="flex items-center gap-2">
+                                        <FormLabel> Street Address 1 </FormLabel>
+                                        {dirtyFields.streetAddress1 && (
+                                            <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                        )}
+                                    </div>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                            <Input
+                                                {...field}
+                                                placeholder="e.g. 20 Marina Road"
+                                                type="text"
+                                                autoComplete="address"
+                                                className="pl-10"
+                                                disabled={isLoading}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <div className="min-h-[1.25rem]">
+                                        <FormMessage className="text-left" />
+                                    </div>
+                                </FormItem>
+                                )}
+                            />
+
+                            {/* ── Street Address 2 ──────────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="streetAddress2"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <div className="flex items-center gap-2">
+                                        <FormLabel> Street Address 2 (optional) </FormLabel>
+                                        {dirtyFields.streetAddress2 && (
+                                            <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                        )}
+                                    </div>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                            <Input
+                                                {...field}
+                                                placeholder="e.g. Lion Building, 12th FLoor"
+                                                type="text"
+                                                autoComplete="address"
+                                                className="pl-10"
+                                                disabled={isLoading}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <div className="min-h-[1.25rem]">
+                                        <FormMessage className="text-left" />
+                                    </div>
+                                </FormItem>
+                                )}
+                            />
+
+                            <Separator />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* ── Primary Email ───────────────────────────────────────────────────── */}
+                                <FormField
+                                    control={form.control}
+                                    name="primaryEmail"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <div className="flex items-center gap-2">
+                                                <FormLabel>Primary Email</FormLabel>
+                                                {dirtyFields.primaryEmail && (
+                                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                                )}
+                                            </div>
+                                            <FormControl>
+                                                <div className="relative">
+                                                    <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                                    <Input
+                                                        {...field}
+                                                        type="email"
+                                                        placeholder="Enter primary email"
+                                                        autoComplete="email"
+                                                        className="pl-10"
+                                                        disabled={isLoading}
+                                                    />
+                                                </div>
+                                            </FormControl>
+                                            <div className="min-h-[1.25rem]">
+                                                <FormMessage className="text-left" />
+                                            </div>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* ── Alternate Email ─────────────────────────────────────────────────── */}
+                                <FormField
+                                    control={form.control}
+                                    name="alternateEmail"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <div className="flex items-center gap-2">
+                                                <FormLabel>Alternate Email</FormLabel>
+                                                {dirtyFields.alternateEmail && (
+                                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                                )}
+                                            </div>
+                                            <FormControl>
+                                                <div className="relative">
+                                                    <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                                    <Input
+                                                        {...field}
+                                                        type="email"
+                                                        placeholder="Enter alternate email"
+                                                        autoComplete="email"
+                                                        className="pl-10"
+                                                        disabled={isLoading}
+                                                    />
+                                                </div>
+                                            </FormControl>
+                                            <div className="min-h-[1.25rem]">
+                                                <FormMessage className="text-left" />
+                                            </div>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* ── Phone Number ────────────────────────────────────────────────────── */}
+                                <PhoneNumberInput
+                                    control={form.control}
+                                    name="phoneNumber"
+                                    countryFieldName="country"
+                                    countries={countries}  // your CountryOptionProps array
+                                    label="Phone Number"
+                                    isDirty={dirtyFields.phoneNumber}
+                                    disabled={isLoading}
+                                />
+
+                                {/* ── Alternate Phone Number ─────────────────────────────────────────── */}
+                                <PhoneNumberInput
+                                    control={form.control}
+                                    name="alternatePhoneNumber"
+                                    countryFieldName="country"
+                                    countries={countries}  // your CountryOptionProps array
+                                    label="Alternate Phone Number"
+                                    isDirty={dirtyFields.alternatePhoneNumber}
                                     disabled={isLoading}
                                 />
                             </div>
-                        </FormControl>
-                        <FormMessage className="text-left" />
-                    </FormItem>
-                    )}
-                />
 
-                {/* ── Primary Email ───────────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="primaryEmail"
-                    render={({ field }) => (
-                        <FormItem>
-                            <div className="flex items-center gap-2">
-                                <FormLabel>Primary Email</FormLabel>
-                                {dirtyFields.primaryEmail && (
-                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                            <Separator />
+                            {/* ************ TODO: Social Media Links********* */}
+                        </div>
+                    </CardContent>
+                </Card>
+
+
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                    {/* ── Operational Information ──────────────────────────────────────── */}
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center gap-2">
+                            <Users2Icon className="size-5" />
+                            <CardTitle>Operational Information</CardTitle>
+                        </div>
+                        <CardDescription>Services, languages, and operational details</CardDescription>
+                    </CardHeader>
+
+                    <CardContent>
+                        <div className="space-y-4">
+                            {/* ************ TODO: Specialties********* */}
+
+                            {/* ************ TODO: Operating Hours********* */}
+
+                            {/* ── Langauges ───────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="languages"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel> Languages </FormLabel>
+                                            {dirtyFields.languages && (
+                                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                            )}
+                                        </div>
+                                        <FormControl>
+                                            <MultiSelect
+                                                options={languageOptions}
+                                                value={field.value ?? []}
+                                                onValueChange={field.onChange}
+                                                placeholder="Select options"
+                                                maxCount={3}
+                                            />
+                                        </FormControl>
+                                        <FormDescription>Select the languages you support.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+
+
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                    {/* ── Privacy & Security Settings ──────────────────────────────────────── */}
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center gap-2">
+                            <EyeIcon className="size-5" />
+                            <CardTitle>Privacy & Security Settings</CardTitle>
+                        </div>
+                        <CardDescription>Control how your organization information is presented</CardDescription>
+                    </CardHeader>
+
+                    <CardContent>
+                        <div className="space-y-4">
+                            {/* ── Public Profile Toggle ──────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="isPublicProfile"
+                                render={({ field }) => (
+                                    <FormItem className="flex items-center justify-between">
+                                        <div className="space-y-1 leading-none">
+                                            <div className="space-y-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    <FormLabel>Public Profile</FormLabel>
+                                                    {dirtyFields.isPublicProfile && (
+                                                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">Make your organization profile visible to the public</p>
+                                            </div>
+                                            <FormMessage />
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                                disabled={isLoading}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* ── Allow Contact Toggle ───────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="allowContact"
+                                render={({ field }) => (
+                                    <FormItem className="flex items-center justify-between">
+                                        <div className="space-y-1 leading-none">
+                                            <div className="space-y-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    <FormLabel>Allow Contact</FormLabel>
+                                                    {dirtyFields.allowContact && (
+                                                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">Allow others to contact your organization</p>
+                                            </div>
+                                            <FormMessage />
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                                disabled={isLoading}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* ── Show Revenue Toggle ────────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="showRevenue"
+                                render={({ field }) => (
+                                    <FormItem className="flex items-center justify-between">
+                                        <div className="space-y-1 leading-none">
+                                            <div className="space-y-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    <FormLabel>Show Revenue</FormLabel>
+                                                    {dirtyFields.showRevenue && (
+                                                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">Display annual revenue information publicly</p>
+                                            </div>
+                                            <FormMessage />
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                                disabled={isLoading}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* ── Newsletter Subscription Toggle ───────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="newsletterSubscription"
+                                render={({ field }) => (
+                                    <FormItem className="flex items-center justify-between">
+                                        <div className="space-y-1 leading-none">
+                                            <div className="space-y-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    <FormLabel>Newsletter Subscription</FormLabel>
+                                                    {dirtyFields.newsletterSubscription && (
+                                                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">Receive updates and newsletters</p>
+                                            </div>
+                                            <FormMessage />
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                                disabled={isLoading}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+
+
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                    {/* ── Modified Fields & Buttons ──────────────────────────────────────── */}
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                <Card>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                {/* Note for modified fields */}
+                                {isDirty && (
+                                    <div className="flex justify-end items-center space-x-2 animate-in slide-in-from-bottom duration-200">
+                                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                        <span className="text-right text-sm text-muted-foreground">
+                                            {modifiedCount} {modifiedCount === 1 ? 'field' : 'fields'} modified
+                                        </span>
+                                    </div>
                                 )}
                             </div>
-                            <FormControl>
-                                <div className="relative">
-                                    <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                    <Input
-                                        {...field}
-                                        type="email"
-                                        placeholder="Enter primary email"
-                                        autoComplete="email"
-                                        className="pl-10"
+
+                            <FormError message={error} />
+                            <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
+                                <FormSuccess message={success} />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+
+                                {/* Reset Changes Button */}
+                                {isDirty && ( // Only show reset button if there are changes
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={handleReset}
                                         disabled={isLoading}
-                                    />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* ── Alternate Email ─────────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="alternateEmail"
-                    render={({ field }) => (
-                        <FormItem>
-                            <div className="flex items-center gap-2">
-                                <FormLabel>Alternate Email</FormLabel>
-                                {dirtyFields.alternateEmail && (
-                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                    >
+                                        <RotateCcw className="size-4 mr-2" />
+                                        Reset Changes
+                                    </Button>
                                 )}
-                            </div>
-                            <FormControl>
-                                <div className="relative">
-                                    <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                    <Input
-                                        {...field}
-                                        type="email"
-                                        placeholder="Enter alternate email"
-                                        autoComplete="email"
-                                        className="pl-10"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
 
-                {/* ── Phone Number ────────────────────────────────────────────────────── */}
-                <PhoneNumberInput
-                    control={form.control}
-                    name="phoneNumber"
-                    countryFieldName="country"
-                    countries={countries}  // your CountryOptionProps array
-                    label="Phone Number"
-                    isDirty={dirtyFields.phoneNumber}
-                    disabled={isLoading}
-                />
-
-                {/* ── Alternate Phone Number ─────────────────────────────────────────── */}
-                <PhoneNumberInput
-                    control={form.control}
-                    name="alternatePhoneNumber"
-                    countryFieldName="country"
-                    countries={countries}  // your CountryOptionProps array
-                    label="Alternate Phone Number"
-                    isDirty={dirtyFields.alternatePhoneNumber}
-                    disabled={isLoading}
-                />
-
-                {/* ── Tax ID ──────────────────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="taxId"
-                    render={({ field }) => (
-                        <FormItem>
-                            <div className="flex items-center gap-2">
-                                <FormLabel>Tax ID</FormLabel>
-                                {dirtyFields.taxId && (
-                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                                )}
-                            </div>
-                            <FormControl>
-                                <Input
-                                    {...field}
-                                    type="text"
-                                    placeholder="Enter tax identifier"
-                                    disabled={isLoading}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* ── Registration Number ────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="registrationNumber"
-                    render={({ field }) => (
-                        <FormItem>
-                            <div className="flex items-center gap-2">
-                                <FormLabel>Registration Number</FormLabel>
-                                {dirtyFields.registrationNumber && (
-                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                                )}
-                            </div>
-                            <FormControl>
-                                <Input
-                                {...field}
-                                type="text"
-                                placeholder="Enter registration number"
-                                disabled={isLoading}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* ── Founded Year ───────────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="foundedYear"
-                    render={({ field }) => (
-                        <FormItem>
-                            <div className="flex items-center gap-2">
-                                <FormLabel>Founded Year</FormLabel>
-                                {dirtyFields.foundedYear && (
-                                    <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                                )}
-                            </div>
-
-                            <div className="relative">
-                                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                
-                                <Select 
-                                    onValueChange={field.onChange} 
-                                    value={field.value?.toString() || ''} 
+                                {/* Save Changes */}
+                                <Button
+                                    type="submit"
+                                    className="flex-1 transition-all duration-200 hover:scale-[1.02]"
                                     disabled={isLoading}
                                 >
-                                    <FormControl>
-                                        <SelectTrigger className="pl-10 w-full">
-                                            <SelectValue placeholder="Select a year" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Years</SelectLabel>
-                                            <YearSelector />
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
+                                    <div className="flex items-center justify-center gap-2">
+                                        {isLoading ? (
+                                            <>
+                                                <LoaderCircleIcon className="size-4 mr-2 animate-spin" />
+                                                <span>Saving Changes…</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <SaveIcon className="size-4 mr-2" />
+                                                <span>Save Changes</span>
+                                            </>
+                                        )}
+                                    </div>
+                                </Button>
                             </div>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* ── Color Scheme ───────────────────────────────────────────────────── */}
-                <SelectPopover
-                    control={form.control}
-                    name="colorScheme"
-                    label="Color Scheme"
-                    placeholder="Select a color scheme"
-                    options={colorSchemeOptions}
-                    icon={<PaletteIcon/>}
-                    isDirty={dirtyFields.colorScheme}
-                />
-
-                {/* ── Public Profile Toggle ──────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="isPublicProfile"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                                <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    disabled={isLoading}
-                                />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                                <div className="flex items-center gap-2">
-                                    <FormLabel>Public Profile</FormLabel>
-                                    {dirtyFields.isPublicProfile && (
-                                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
-                                    )}
-                                </div>
-                                <FormMessage />
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                {/* ── Allow Contact Toggle ───────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="allowContact"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                                <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    disabled={isLoading}
-                                />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                                <div className="flex items-center gap-2">
-                                    <FormLabel>Allow Contact</FormLabel>
-                                    {dirtyFields.allowContact && (
-                                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                                    )}
-                                </div>
-                                <FormMessage />
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                {/* ── Show Revenue Toggle ────────────────────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="showRevenue"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                                <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    disabled={isLoading}
-                                />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                                <div className="flex items-center gap-2">
-                                    <FormLabel>Show Revenue</FormLabel>
-                                    {dirtyFields.showRevenue && (
-                                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                                    )}
-                                </div>
-                                <FormMessage />
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                {/* ── Newsletter Subscription Toggle ───────────────────────────────── */}
-                <FormField
-                    control={form.control}
-                    name="newsletterSubscription"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                            <FormControl>
-                                <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    disabled={isLoading}
-                                />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                                <div className="flex items-center gap-2">
-                                    <FormLabel>Subscribe to Newsletter</FormLabel>
-                                    {dirtyFields.newsletterSubscription && (
-                                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                                    )}
-                                </div>
-                                <FormMessage />
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                {/* Note for modified fields */}
-                {isDirty && (
-                    <div className="flex justify-end items-center space-x-2 animate-in slide-in-from-bottom duration-200">
-                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                        <span className="text-right text-sm text-muted-foreground">
-                            {modifiedCount} {modifiedCount === 1 ? 'field' : 'fields'} modified
-                        </span>
-                    </div>
-                )}
-
-                <FormError message={error} />
-                <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
-                    <FormSuccess message={success} />
-                </div>
-
-                <div className="flex gap-3 pt-4">
-
-                    {/* Reset Changes Button */}
-                    {isDirty && ( // Only show reset button if there are changes
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={handleReset}
-                            disabled={isLoading}
-                        >
-                            <RotateCcw className="size-4 mr-2" />
-                            Reset Changes
-                        </Button>
-                    )}
-
-                    {/* Save Changes */}
-                    <Button
-                        type="submit"
-                        className="flex-1 transition-all duration-200 hover:scale-[1.02]"
-                        disabled={isLoading}
-                    >
-                        <div className="flex items-center justify-center gap-2">
-                            {isLoading ? (
-                                <>
-                                    <LoaderCircleIcon className="size-4 mr-2 animate-spin" />
-                                    <span>Saving Changes…</span>
-                                </>
-                            ) : (
-                                <>
-                                    <SaveIcon className="size-4 mr-2" />
-                                    <span>Save Changes</span>
-                                </>
-                            )}
+                            
                         </div>
-                    </Button>
-                </div>
+                    </CardContent>
+                </Card>
             </form>
         </Form>
     </div>

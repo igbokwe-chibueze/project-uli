@@ -177,11 +177,13 @@ export function PhoneNumberInput<T extends FieldValues>({
                 />
             </div>
         </FormControl>
-        {(!numberValid || invalid) && (
-        <FormMessage className="text-destructive">
-          {invalid ? error?.message : 'Invalid phone number for selected country.'}
-        </FormMessage>
-      )}
+        <div className="min-h-[1.25rem]">
+            {(!numberValid || invalid) && (
+                <FormMessage className="text-destructive">
+                    {invalid ? error?.message : 'Invalid phone number for selected country.'}
+                </FormMessage>
+            )}
+        </div>
 
     </FormItem>
   )

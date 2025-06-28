@@ -67,7 +67,7 @@ export const LocationSelector = <T extends FieldValues>({
     const filteredStates = states.filter(s => s.countryId === countryField.value)
 
     return (
-        <div className={cn("flex flex-col gap-4", className)}>
+        <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-4", className)}>
             {/* ─── COUNTRY PICKER ──────────────────────────────────────────────── */}
             <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Country</label>
