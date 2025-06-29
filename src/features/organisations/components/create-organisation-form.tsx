@@ -53,7 +53,6 @@ const CreateOrganisationForm = ({onCancel, countries, states = [],}: CreateOrgan
             organizationName: "",
             country: "",
             state: "",
-            phoneNumber: "",
             logo: undefined,
         },
     });

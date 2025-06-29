@@ -104,7 +104,7 @@ export const SelectPopover = <T extends FieldValues>({
               <ChevronsUpDown className="ml-2 size-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full bg-red-500 z-50 p-0 pointer-events-auto">
+          <PopoverContent className="w-full z-50 p-0 pointer-events-auto">
             <Command>
               <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
               <CommandList>

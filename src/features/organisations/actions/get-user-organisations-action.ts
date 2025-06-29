@@ -1,8 +1,8 @@
 // src/features/organisations/actions/get-user-organisations-action.ts
 "use server";
 
-//This useful for getting organisatin data that would be used by client component, 
-// For server components organisation.ts is to be used.
+//This useful for getting organisatin data then pass it on to a hook that would used it in client component, 
+// For server components organisation.ts is to be used directly instead.
 import { currentID } from "@/features/auth/lib/authenticate";
 import { getOrganizationsForUser } from "../data/organizations";
 
@@ -19,18 +19,9 @@ export async function GetUserOrganisationsAction() {
     throw new Error("User not authenticated.");
   }
 
-  // Fetch all memberships for this user, include the nested Organization
+  // Fetch all memberships for this user, include the nested Organization, from the server DAL organizations.ts
   const memberships = await getOrganizationsForUser(userId);
   // Return only the Organization objects; you can pick whichever fields you need
-  // return memberships.map((m) => ({
-  //   id: m.organization.id,
-  //   name: m.organization.name,
-  //   logo: m.organization.logo,
-  //   country: m.organization.country,
-  //   // If you need more fields, add them here:
-  //   // description: m.organization.description,
-  //   // …
-  // }));
   return memberships.map((m) => {
     // Extract the nested country object from Prisma
     const countryObj = m.organization.country;

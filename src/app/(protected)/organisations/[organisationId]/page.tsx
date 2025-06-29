@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface OrganisationIdPageProps {
   searchParams: Promise<{ created?: string }>;
-  params: { organisationId: string };
+  params: Promise<{ organisationId: string }>;
 }
 
 const OrganisationIdPage = async ({searchParams, params}: OrganisationIdPageProps) => {
@@ -23,7 +23,10 @@ const OrganisationIdPage = async ({searchParams, params}: OrganisationIdPageProp
     // Not logged in → send to login (access)
     if (!user) redirect('/access');
 
-    const organisation = await getOrganisationSummaryById(params.organisationId);
+    const { organisationId } = await params;
+
+    // Fetch the organization details by its ID.
+    const organisation = await getOrganisationSummaryById(organisationId);
     if (!organisation) return <NotFound message="Organisation not found." />;
 
     // Check if the authenticated user is a member of the organization.
