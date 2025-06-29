@@ -35,9 +35,13 @@ interface CreateOrganisationFormProps {
     onCancel?: () => void;
     countries: CountryOptionProps[];
     states?:   StateOptionProps[];
+
+    // Is the create form being used in a modal (e.g CreateOrganisationModal)?
+    // This is false by default.
+    isModal?: boolean;
 };
 
-const CreateOrganisationForm = ({onCancel, countries, states = [],}: CreateOrganisationFormProps) => {
+const CreateOrganisationForm = ({onCancel, countries, states = [], isModal = false}: CreateOrganisationFormProps) => {
     const router = useRouter();
     const [isLoading, setIsLoading]     = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -179,6 +183,8 @@ const CreateOrganisationForm = ({onCancel, countries, states = [],}: CreateOrgan
                         nameState="state"
                         countries={countries}
                         states={states}
+                        //If form is not used in a modal, make portal true.
+                        portal={!isModal}
                     />
                 </div>
 

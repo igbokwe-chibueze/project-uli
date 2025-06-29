@@ -59,7 +59,7 @@ export const CreateOrganisationModal = () => {
               // You can add a description here also which would be visible.
           >
               {/* Render the actual form, passing the data and cancel callback */}
-              <CreateOrganisationForm onCancel={close} countries={countries} states={states} />
+              <CreateOrganisationForm onCancel={close} countries={countries} states={states} isModal={true}/>
           </ResponsiveModal>
       );
   }

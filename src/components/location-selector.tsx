@@ -39,6 +39,10 @@ interface LocationSelectorProps<T extends FieldValues> {
     states?: StateOptionProps[]
     isCountryDirty?: boolean;
     isStateDirty?: boolean;
+
+    // Check if portal is needed. If this component is render in a modal then portal should be true.
+    // True by default
+    portal?: boolean;
 }
 
 export const LocationSelector = <T extends FieldValues>({
@@ -51,6 +55,7 @@ export const LocationSelector = <T extends FieldValues>({
     states = [],
     isCountryDirty = false,
     isStateDirty = false,
+    portal = true,
 }: LocationSelectorProps<T>) => {
     // — bind to country field
     const { field: countryField } = useController({ control, name: nameCountry })
@@ -66,14 +71,27 @@ export const LocationSelector = <T extends FieldValues>({
     // filter down only the states that match the currently selected country
     const filteredStates = states.filter(s => s.countryId === countryField.value)
 
+    // check if the selected country has states
+    const hasStates = Boolean(nameState && filteredStates.length > 0);
+
     return (
         <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-4", className)}>
             {/* ─── COUNTRY PICKER ──────────────────────────────────────────────── */}
-            <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Country</label>
-                {isCountryDirty && (
-                    <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+            <div 
+                //className="flex flex-col gap-1"
+                className={cn(
+                    "flex flex-col gap-1",
+                    // if there’s no state control, let this div span both columns
+                    !hasStates && "md:col-span-2"
                 )}
+            >
+                <div className="flex items-center space-x-2 ">
+                    <label className="text-sm font-medium">Country</label>
+                    {isCountryDirty && (
+                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                    )}
+                </div>
+                
                 <Popover open={openCountry} onOpenChange={setOpenCountry}>
                     <PopoverTrigger asChild>
                         <Button
@@ -108,7 +126,7 @@ export const LocationSelector = <T extends FieldValues>({
                             <ChevronsUpDown className="size-4 opacity-50" />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0">
+                    <PopoverContent className="p-0" portal={portal}>
                         <Command>
                             <CommandInput placeholder="Search country…" />
                             <CommandList>
@@ -156,12 +174,15 @@ export const LocationSelector = <T extends FieldValues>({
             </div>
 
             {/* ─── STATE PICKER ───────────────────────────────────────────────── */}
-            {nameState && filteredStates.length > 0 && (
+            {hasStates && (
                 <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium">State / Province / Region</label>
-                    {isStateDirty && (
-                        <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
-                    )}
+                    <div className="flex items-center space-x-2">
+                        <label className="text-sm font-medium">State / Province / Region</label>
+                        {isStateDirty && (
+                            <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                        )}
+                    </div>
+
                     <Popover open={openState} onOpenChange={setOpenState}>
                         <PopoverTrigger asChild>
                             <Button
@@ -176,7 +197,7 @@ export const LocationSelector = <T extends FieldValues>({
                                 <ChevronsUpDown className="size-4 opacity-50" />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="p-0">
+                        <PopoverContent className="p-0" portal={portal}>
                             <Command>
                                 <CommandInput placeholder="Search state…" />
                                 <CommandList>

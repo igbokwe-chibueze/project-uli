@@ -17,38 +17,41 @@ function PopoverTrigger({
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
 }
 
+// Removed PopoverPrimitive.Portal and made it optional via boolean 
+// as it was preventing commandInput from working in a modal (CreateOrganisationModal)
 function PopoverContent({
   className,
   align = "center",
   sideOffset = 4,
-  //portal = true, // use if i want to go the route of marking PopoverPrimitive.Portal optional
+  portal = true, // this was not there originaly, it is now used to set PopoverPrimitive.Portal optionally.
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
-  return (
-    // Removed PopoverPrimitive.Portal as it as preventing commandInput from working in a modal (CreateOrganisationModal)
-    // A better option could have been making it optional
-      <PopoverPrimitive.Content
-        data-slot="popover-content"
-        align={align}
-        sideOffset={sideOffset}
-        className={cn(
-          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
-          className
-        )}
-        {...props}
-      />
+}: React.ComponentProps<typeof PopoverPrimitive.Content> & { portal?: boolean}) {
+  const popoverContent = (
+  // Removed PopoverPrimitive.Portal, it used to be here
+    <PopoverPrimitive.Content
+      data-slot="popover-content"
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
+        className
+      )}
+      {...props}
+    />
   )
 
-  // return (
-  //   portal ? (
-  //     <PopoverPrimitive.Portal>
-  //       {popoverContent}
-  //     </PPopoverPrimitive.Portal>
-  //   ): (
-  //     popoverContent
-  //   )
-  // )
-  // Usauge:
+  // PopoverPrimitive.Portal is now returned optional,
+  // when used in modals, it should be false
+  return (
+    portal ? (
+      <PopoverPrimitive.Portal>
+        {popoverContent}
+      </PopoverPrimitive.Portal>
+    ): (
+      popoverContent
+    )
+  )
+  // Usauge for use in modals:
   // <PopoverContent className="w-full p-0" portal={false}/>
 }
 
