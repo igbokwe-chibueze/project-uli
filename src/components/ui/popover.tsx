@@ -21,10 +21,12 @@ function PopoverContent({
   className,
   align = "center",
   sideOffset = 4,
+  //portal = true, // use if i want to go the route of marking PopoverPrimitive.Portal optional
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Content>) {
   return (
-    <PopoverPrimitive.Portal>
+    // Removed PopoverPrimitive.Portal as it as preventing commandInput from working in a modal (CreateOrganisationModal)
+    // A better option could have been making it optional
       <PopoverPrimitive.Content
         data-slot="popover-content"
         align={align}
@@ -35,8 +37,19 @@ function PopoverContent({
         )}
         {...props}
       />
-    </PopoverPrimitive.Portal>
   )
+
+  // return (
+  //   portal ? (
+  //     <PopoverPrimitive.Portal>
+  //       {popoverContent}
+  //     </PPopoverPrimitive.Portal>
+  //   ): (
+  //     popoverContent
+  //   )
+  // )
+  // Usauge:
+  // <PopoverContent className="w-full p-0" portal={false}/>
 }
 
 function PopoverAnchor({

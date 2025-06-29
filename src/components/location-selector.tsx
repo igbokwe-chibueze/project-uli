@@ -108,7 +108,7 @@ export const LocationSelector = <T extends FieldValues>({
                             <ChevronsUpDown className="size-4 opacity-50" />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0 pointer-events-auto">
+                    <PopoverContent className="p-0">
                         <Command>
                             <CommandInput placeholder="Search country…" />
                             <CommandList>
@@ -176,7 +176,7 @@ export const LocationSelector = <T extends FieldValues>({
                                 <ChevronsUpDown className="size-4 opacity-50" />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="p-0 pointer-events-auto">
+                        <PopoverContent className="p-0">
                             <Command>
                                 <CommandInput placeholder="Search state…" />
                                 <CommandList>
