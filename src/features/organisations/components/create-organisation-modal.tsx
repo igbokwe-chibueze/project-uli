@@ -2,8 +2,6 @@
 
 "use client"
 
-import { LoaderCircleIcon } from "lucide-react";
-
 import { useStaticData } from "@/hooks/use-static-data";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +9,7 @@ import { ResponsiveModal } from "@/components/responsive-modal"; // Reusable mod
 
 import CreateOrganisationForm from "@/features/organisations/components/create-organisation-form"; // The form to be rendered inside the modal.
 import { useCreateOrganisationModal } from "@/features/organisations/hooks/use-create-organisation-modal"; // Custom hook to manage modal open/close state.
+import { CreateOrganisationFormSkeleton } from "@/features/organisations/components/create-organisation-form-skeleton";
 
 
 export const CreateOrganisationModal = () => {
@@ -40,12 +39,9 @@ export const CreateOrganisationModal = () => {
   //    This provides immediate feedback to the user.
   if (loading && isOpen) {
       return (
-          <ResponsiveModal open={isOpen} onOpenChange={setIsOpen} title="Create a New Organisation">
-              <div className="flex items-center justify-center p-8">
-                  <LoaderCircleIcon className="size-8 animate-spin text-primary" />
-                  <span className="ml-2">Loading form data...</span>
-              </div>
-          </ResponsiveModal>
+        <ResponsiveModal open={isOpen} onOpenChange={setIsOpen} title="Create a New Organisation">
+          <CreateOrganisationFormSkeleton />
+        </ResponsiveModal>
       );
   }
 

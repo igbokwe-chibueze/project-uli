@@ -127,7 +127,7 @@ const CreateOrganisationForm = ({onCancel, countries, states = [], isModal = fal
         headerHeading="Create an Organization"
         headerLabel="Fill out the form below to register your organization."
         headerIcon={<Building2Icon className="size-6" />}
-        className="lg:w-[600px]"
+        className="lg:w-[620px]"
     >
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
