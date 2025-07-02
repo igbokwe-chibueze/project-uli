@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2Icon, CheckCircleIcon, LoaderCircleIcon } from "lucide-react";
+import { Building2Icon, CheckCircleIcon, InfoIcon, LoaderCircleIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { useRouter } from "next/navigation";
@@ -25,6 +25,8 @@ import { CreateOrganisationSchema } from "@/features/organisations/schemas";
 import { createOrganisationAction } from "@/features/organisations/actions/createOrganisationAction";
 import { CardWrapper } from "@/features/auth/components/card-wrapper"
 import { LocationSelector } from "@/components/location-selector";
+import { Callout } from "@/components/callout";
+import { ResponsiveModal } from "@/components/responsive-modal";
 
 /**
  * Props for the CreateOrganisationForm component:
@@ -48,6 +50,9 @@ const CreateOrganisationForm = ({onCancel, countries, states = [], isModal = fal
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
     const [logoKey, setLogoKey] = useState(0);
+
+    // State to control the guidelines modal
+    const [isGuideOpen, setIsGuideOpen] = useState(false);
 
     const form = useForm<z.infer<typeof CreateOrganisationSchema>>({
         resolver: zodResolver(CreateOrganisationSchema),
@@ -123,113 +128,160 @@ const CreateOrganisationForm = ({onCancel, countries, states = [], isModal = fal
 
 
   return (
-    <CardWrapper
-        headerHeading="Create an Organization"
-        headerLabel="Fill out the form below to register your organization."
-        headerIcon={<Building2Icon className="size-6" />}
-        className="lg:w-[620px]"
-    >
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-4">
+    <>
+        <ResponsiveModal 
+            open={isGuideOpen}
+            onOpenChange={setIsGuideOpen}
+            title="Registration Guidelines"
+        >
+            <CardWrapper
+                headerHeading="Registration Guidelines"
+                headerIcon={<InfoIcon className="size-6 text-blue-800"/>}
+                className="lg:w-[620px]"
+            >
+                <div className="space-y-3">
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <h4 className="font-medium text-amber-900 mb-2">Multi-Country Organizations</h4>
+                        <p className="text-amber-800 text-sm leading-relaxed">
+                            If your company is resident in different countries, create separate organizations for each
+                            country of residence. 
+                            (e.g., if you operate in Nigeria and Ghana, create one entry for Nigeria and another for Ghana, 
+                            using the same organisation name.)
+                        </p>
+                    </div>
 
-                    {/* Organization Name */}
-                    <FormField
-                        control={form.control}
-                        name="organizationName"
-                        render={({ field, fieldState }) => (
-                            <FormItem>
-                                <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
-                                    Organization Name
-                                </FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                        <Building2Icon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                                        <Input
-                                            {...field}
-                                            placeholder="Enter your organization name"
-                                            type="text"
-                                            autoComplete="organizationName"
-                                            disabled={isLoading}
-                                            className="pl-10"
-                                        />
-                                        {/* show check icon when valid */}
-                                        {!fieldState.invalid && field.value && (
-                                            <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
-                                        )}
-                                    </div>
-                                </FormControl>
-                                <FormMessage className="text-left"/>
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* Organization Logo */}
-                    <FileUploadField
-                        key={logoKey}
-                        control={form.control}
-                        name="logo"
-                        label="Organization Logo"
-                        accept="image/*"
-                        acceptLabel="Images/ PNG, JPG, SVG"
-                        maxSizeMB={3}
-                        previewWidth={128}
-                        previewHeight={128}
-                    />
-
-                    <LocationSelector
-                        control={form.control}
-                        nameCountry="country"
-                        nameState="state"
-                        countries={countries}
-                        states={states}
-                        //If form is not used in a modal, make portal true.
-                        portal={!isModal}
-                    />
+                    <div className="text-sm space-y-2">
+                        <p>
+                            <strong>Why separate registrations?</strong>
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 ml-2">
+                            <li>Ensures compliance with local regulations</li>
+                            <li>Enables country-specific features and services</li>
+                            <li>Provides better data organization and reporting</li>
+                        </ul>
+                    </div>
                 </div>
+            </CardWrapper>
+        </ResponsiveModal>
 
-                <FormError message={error} />
-                <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
-                    <FormSuccess message={success} />
+        <CardWrapper
+            headerHeading="Create an Organization"
+            headerLabel="Fill out the form below to register your organization."
+            headerIcon={<Building2Icon className="size-6" />}
+            className="lg:w-[620px]"
+        >
+            <Callout 
+                variant="info"
+                title="💡 Note !"
+            >
+                <div className="flex flex-col space-y-4">
+                    <p>If your organization operates in multiple countries, please see guide</p>
+                    <Button  onClick={() => setIsGuideOpen(true)}>View Guide</Button>
                 </div>
+            </Callout>
 
-                
-                <div className="flex gap-3 pt-4">
-                    {/* Submit Button */}
-                    <Button type="submit" 
-                        className="flex-1 transition-all duration-200 hover:scale-[1.02]" 
-                        disabled={!form.formState.isValid || isLoading}
-                    >
-                        {isLoading ? (
-                            <div className="flex items-center justify-center gap-2">
-                                <LoaderCircleIcon className="size-4 mr-2 animate-spin" />
-                                <span>Registering Organization...</span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-center gap-2">
-                                <Building2Icon className="w-4 h-4 mr-2" />
-                                <span>Register Organization</span>
-                            </div>
-                        )}
-                    </Button>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <div className="space-y-4">
+
+                        {/* Organization Name */}
+                        <FormField
+                            control={form.control}
+                            name="organizationName"
+                            render={({ field, fieldState }) => (
+                                <FormItem>
+                                    <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
+                                        Organization Name
+                                    </FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Building2Icon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                                            <Input
+                                                {...field}
+                                                placeholder="Enter your organization name"
+                                                type="text"
+                                                autoComplete="organizationName"
+                                                disabled={isLoading}
+                                                className="pl-10"
+                                            />
+                                            {/* show check icon when valid */}
+                                            {!fieldState.invalid && field.value && (
+                                                <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
+                                            )}
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage className="text-left"/>
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Organization Logo */}
+                        <FileUploadField
+                            key={logoKey}
+                            control={form.control}
+                            name="logo"
+                            label="Organization Logo"
+                            accept="image/*"
+                            acceptLabel="Images/ PNG, JPG, SVG"
+                            maxSizeMB={3}
+                            previewWidth={128}
+                            previewHeight={128}
+                        />
+
+                        <LocationSelector
+                            control={form.control}
+                            nameCountry="country"
+                            nameState="state"
+                            countries={countries}
+                            states={states}
+                            //If form is not used in a modal, make portal true.
+                            portal={!isModal}
+                        />
+                    </div>
+
+                    <FormError message={error} />
+                    <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
+                        <FormSuccess message={success} />
+                    </div>
+
                     
-                    {/* Cancel Button */}
-                    {onCancel ? (
-                        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-                            Cancel Create
+                    <div className="flex gap-3 pt-4">
+                        {/* Submit Button */}
+                        <Button type="submit" 
+                            className="flex-1 transition-all duration-200 hover:scale-[1.02]" 
+                            disabled={!form.formState.isValid || isLoading}
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center justify-center gap-2">
+                                    <LoaderCircleIcon className="size-4 mr-2 animate-spin" />
+                                    <span>Registering Organization...</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center gap-2">
+                                    <Building2Icon className="w-4 h-4 mr-2" />
+                                    <span>Register Organization</span>
+                                </div>
+                            )}
                         </Button>
-                    ) : (
+                        
+                        {/* Cancel Button */}
+                        {onCancel ? (
+                            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                                Cancel Create
+                            </Button>
+                        ) : (
 
-                        <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={isLoading}>
-                            Cancel
-                        </Button>
-                    )}
-                </div>
+                            <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={isLoading}>
+                                Cancel
+                            </Button>
+                        )}
+                    </div>
 
-            </form>
+                </form>
 
-        </Form>
-    </CardWrapper>
+            </Form>
+        </CardWrapper>
+    </>
   )
 }
 

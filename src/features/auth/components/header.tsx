@@ -2,7 +2,7 @@
 
 interface HeaderProps {
     heading: string;
-    label: string;
+    label?: string;
     icon?: React.ReactNode;
 };
 
