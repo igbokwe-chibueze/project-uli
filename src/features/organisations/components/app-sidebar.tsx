@@ -16,8 +16,6 @@ import { useUserOrganizations } from "@/features/organisations/hooks/use-user-or
 import { NavMain } from "@/features/organisations/components/nav-main"
 import { NavUser } from "@/features/organisations/components/nav-user"
 
-//import { sidebarData as data } from "@/lib/sidebar-data"
-
 export const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
   const { organizations, loading, error } = useUserOrganizations();
   return (

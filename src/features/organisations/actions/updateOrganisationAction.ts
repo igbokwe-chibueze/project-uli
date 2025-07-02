@@ -7,6 +7,7 @@ import { UpdateOrganisationSchema } from "@/features/organisations/schemas";
 import { currentID } from "@/features/auth/lib/authenticate";
 import { isUserOrganizationMember } from "@/features/organisations/data/organizations";
 import { prisma } from "@/lib/prisma/prisma";
+import { revalidatePath } from "next/cache";
 
 export const updateOrganisationAction = async (
     organisationId: string,
@@ -167,6 +168,8 @@ export const updateOrganisationAction = async (
       const [org] = await Promise.all([orgUpdate, langUpdate]);
       return org;
     });
+
+    revalidatePath(`/organisations/${organisationId}`);
 
     return { success: "Organisation updated successfully.", organisation: updatedOrg };
   } catch (err) {

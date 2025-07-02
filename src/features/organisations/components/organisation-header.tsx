@@ -33,11 +33,11 @@ export const OrganisationHeader = () => {
                 {/* Organisation Data */}
 
                 <div className="flex items-center gap-2">
-                    <div className="flex aspect-square w-28 h-14 items-center justify-center rounded-lg">
+                    <div className="flex aspect-square w-20 h-14 items-center justify-center rounded-lg">
                         <OrganisationAvatar
                             image={org.logo}
                             name={org.name}
-                            className="size-28"
+                            className="size-20"
                         />
                     </div>
 

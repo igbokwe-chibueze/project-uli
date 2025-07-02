@@ -1066,7 +1066,7 @@ const UpdateOrganisationForm = ({
                                 <Button
                                     type="submit"
                                     className="flex-1 transition-all duration-200 hover:scale-[1.02]"
-                                    disabled={isLoading}
+                                    disabled={!isDirty || isLoading}
                                 >
                                     <div className="flex items-center justify-center gap-2">
                                         {isLoading ? (
