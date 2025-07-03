@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Building2Icon, 
+import { AlertTriangleIcon, Building2Icon, 
     BuildingIcon, 
     CalendarIcon, 
     EyeIcon, 
@@ -16,38 +16,42 @@ import { Building2Icon,
     MailIcon, 
     MapPinIcon,
     PaletteIcon, 
-    PencilLineIcon, RotateCcw, SaveIcon, Users2Icon, UsersIcon } from "lucide-react";
+    PencilLineIcon, RotateCcw, SaveIcon, Trash2Icon, Users2Icon, UsersIcon } from "lucide-react";
 
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
 
 import { Organization } from "@prisma/client";
-import { CountryOptionProps, OptionProps, StateOptionProps } from "@/data/static-data";
 import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
 
+import { useConfirm } from "@/hooks/use-confirm";
+import { CountryOptionProps, OptionProps, StateOptionProps } from "@/data/static-data";
+
 import { Input } from "@/components/ui/input";
-import { FileUploadField } from "@/components/file-upload-field";
-import { SelectPopover } from "@/components/select-popover";
-import { Textarea } from "@/components/ui/textarea";
-import { FormError } from "@/components/form-error";
-import { FormSuccess } from "@/components/form-success";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { FormError } from "@/components/form-error";
 import { Progress } from "@/components/ui/progress";
+import { FormSuccess } from "@/components/form-success";
+import { SelectPopover } from "@/components/select-popover";
+import { FileUploadField } from "@/components/file-upload-field";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 import { UpdateOrganisationSchema } from "@/features/organisations/schemas";
 import { updateOrganisationAction } from "@/features/organisations/actions/updateOrganisationAction";
+import { deleteOrganisationAction } from "@/features/organisations/actions/deleteOrganisationAction";
 
+import { Label } from "@/components/ui/label";
 import YearSelector from "@/components/year-selector";
+import { Separator } from "@/components/ui/separator";
 import { MultiSelect } from "@/components/multi-select";
 import { LocationSelector } from "@/components/location-selector";
 import { PhoneNumberInput } from "@/components/phone-number-input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
 interface UpdateOrganisationFormProps {
     //Its ok for me to use prisma generated types here, 
@@ -328,6 +332,57 @@ const UpdateOrganisationForm = ({
         setError(""); // Clear any error messages
         setSuccess(""); // Clear any success messages
         toast.info("Form Reset", { description: "All changes have been reverted." });
+    };
+
+
+    // For delete success/error message
+    const [deleteError, setDeleteError] = useState<string | undefined>("");
+    const [deleteSuccess, setDeleteSuccess] = useState<string | undefined>("");
+
+    // State for confirming organization name before deletion
+    const [confirmOrgName, setConfirmOrgName] = useState("");
+
+    const [DeleteDialog, confirmDelete] = useConfirm(
+        "Delete Organisation",
+        "Are you absolutely sure you want to delete this organisation? This action cannot be undone.",
+        "destructive"
+    )
+
+    const handleDelete = async () => {
+        if (confirmOrgName !== initialData.name) {
+            setDeleteError("Please type the organization name correctly to confirm deletion.");
+            return;
+        }
+
+        const ok = await confirmDelete();
+
+        if (!ok) return;
+
+        // A simple JS confirm. For better UX, consider a Shadcn Dialog component.
+        // if (!window.confirm("Are you absolutely sure you want to delete this organisation? This action cannot be undone.")) {
+        // return; // User cancelled
+        // }
+
+        startTransition(async () => {
+            setDeleteError("");
+            setDeleteSuccess(""); // Clear previous messages
+
+            const result = await deleteOrganisationAction(organisationId);
+            if (result?.error) {
+                setDeleteError(result.error);
+                toast.error("Delete Failed", { description: result.error });
+            } else {
+                // Redirection is handled by the server action itself,
+                // so if there's no error, the user will be redirected.
+                setDeleteSuccess("Organisation deleted successfully. Redirecting...");
+                toast.success("Organisation deleted successfully.", {
+                    description: `"${initialData.name}" has been deleted.`,
+                });
+
+                // Redirect to home, doing a hard refresh that clears any cache.
+                window.location.href = "/organisations";
+            }
+        });
     };
 
   return (
@@ -1086,6 +1141,64 @@ const UpdateOrganisationForm = ({
                             
                         </div>
                     </CardContent>
+                </Card>
+
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                {/* ── Delete Organisation Zone ─────────────────────────────────────── */}
+                {/* ─────────────────────────────────────────────────────────────────── */}
+                <DeleteDialog/>
+
+                <Card className="border-destructive-foreground"> {/* Use a red border for emphasis */}
+                    <CardHeader>
+                        <div className="flex items-center gap-2 text-destructive"> {/* Apply red text to header */}
+                            <AlertTriangleIcon className="size-5" /> {/* Warning icon */}
+                            <CardTitle>Delete Organisation</CardTitle>
+                        </div>
+                        <CardDescription>
+                            Permanently delete this organization and all its associated data. This action is irreversible.
+                        </CardDescription>
+                    </CardHeader>
+
+                    <CardContent>
+                        <div className="space-y-4">
+                            <FormError message={deleteError} />
+                            <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
+                                <FormSuccess message={deleteSuccess} />
+                            </div>
+
+                            {/* Add a text input to confirm the organization name for extra safety */}
+                            <div className="space-y-2">
+                                <Label htmlFor="confirm-delete">To confirm, type &quot;{initialData.name}&quot;</Label>
+                                <Input
+                                    id="confirm-delete"
+                                    value={confirmOrgName}
+                                    onChange={(e) => setConfirmOrgName(e.target.value)}
+                                    disabled={isPending}
+                                />
+                            </div>
+                        </div>
+                    </CardContent>
+
+                    <CardFooter className="flex justify-end">
+                        <Button
+                            variant="destructive"
+                            type="button"
+                            onClick={handleDelete}
+                            disabled={isPending || !confirmOrgName} // Disable button while any action is pending
+                        >
+                            {isPending ? (
+                            <>
+                                <LoaderCircleIcon className="size-4 mr-2 animate-spin" />
+                                <span>Deleting...</span>
+                            </>
+                            ) : (
+                            <>
+                                <Trash2Icon className="size-4 mr-2" />
+                                <span>Delete Organisation</span>
+                            </>
+                            )}
+                        </Button>
+                    </CardFooter>
                 </Card>
             </form>
         </Form>
