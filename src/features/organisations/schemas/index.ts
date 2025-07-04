@@ -139,6 +139,7 @@ export const OrganisationSchema = z.object({
   allowContact: z.boolean().optional(),
   showRevenue: z.boolean().optional(),
   newsletterSubscription: z.boolean().optional(),
+  isActive: z.boolean().optional(),
 
   // socialMediaLinks: z
   //   .array(

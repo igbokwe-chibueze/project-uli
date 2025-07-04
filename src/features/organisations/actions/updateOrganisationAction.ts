@@ -109,6 +109,10 @@ export const updateOrganisationAction = async (
     if (data.newsletterSubscription !== undefined) {
         updatePayload.newsletterSubscription = data.newsletterSubscription;
     }
+    if (data.isActive !== undefined) {
+        updatePayload.isActive = data.isActive;
+    }
+
 
     // FIX: Correctly handle colorScheme update using 'connect'
     if (data.colorScheme !== undefined) {

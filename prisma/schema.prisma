@@ -441,6 +441,7 @@ model Organization {
   primaryEmail           String?
   registrationNumber     String?
   showRevenue            Boolean                     @default(false)
+  isActive               Boolean                     @default(true)
   socialMediaLinks       Json?
   taxId                  String?
   website                String?
