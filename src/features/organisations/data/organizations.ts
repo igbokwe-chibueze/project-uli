@@ -122,3 +122,93 @@ export const isUserOrganizationMember = async (userId: string, organizationId: s
         return false;
     }
 };
+
+
+/**
+ * fuzzyMatch: Calculates a similarity score between two strings.
+ * Used for suggesting similar organization names.
+ * @param query The search query string.
+ * @param target The string to compare against (e.g., an organization name).
+ * @returns A score from 0 to 100, indicating similarity.
+ */
+export function fuzzyMatch(query: string, target: string): number {
+  if (!query || !target) return 0;
+
+  const queryLower = query.toLowerCase();
+  const targetLower = target.toLowerCase();
+
+  // Exact match gets the highest score
+  if (queryLower === targetLower) return 100;
+
+  // Starts with match
+  if (targetLower.startsWith(queryLower)) return 90;
+
+  // Contains match (less precise than startsWith)
+  if (targetLower.includes(queryLower)) return 70;
+
+  // Basic character-by-character similarity for a weaker match
+  let matches = 0;
+  let queryIndex = 0;
+  for (let i = 0; i < targetLower.length && queryIndex < queryLower.length; i++) {
+    if (targetLower[i] === queryLower[queryIndex]) {
+      matches++;
+      queryIndex++;
+    }
+  }
+
+  // Scale down the character match score to ensure it's lower than contains/startsWith
+  const similarity = (matches / queryLower.length) * 50;
+  return similarity;
+}
+
+// Define a type for the simplified similar organization data, as requested.
+// It will only include 'id', 'name', and the 'name' of its 'industry'.
+export type SimilarOrganizationResult = {
+  id: string;
+  name: string;
+  industry?: {
+    name: string;
+  } | null;
+};
+
+/**
+ * findSimilarOrganizationNames: Fetches organizations and applies fuzzy matching
+ * to find names similar to the given query. Returns only name and industry.
+ * @param name The organization name to search for.
+ * @param threshold The minimum fuzzy match score (out of 100) to include a result.
+ * @returns An array of `SimilarOrganizationResult` objects.
+ */
+export async function findSimilarOrganizationNames(name: string, threshold = 80): Promise<SimilarOrganizationResult[]> {
+  if (!name.trim()) return [];
+
+  try {
+    // Fetch all organization names and their industries for comparison.
+    // We explicitly select only what's needed to keep the data transfer minimal.
+    const allOrganizations = await prisma.organization.findMany({
+      select: {
+        id: true,
+        name: true,
+        industry: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    const results = allOrganizations
+      .map((org) => ({
+        ...org,
+        score: fuzzyMatch(name, org.name), // Calculate fuzzy score
+      }))
+      .filter((org) => org.score >= threshold) // Filter based on threshold
+      .sort((a, b) => b.score - a.score) // Sort by score, highest first
+      //.map(({ score, ...org }) => org); // Remove the score property before returning
+
+    return results;
+  } catch (error) {
+    console.error("Error finding similar organization names:", error);
+    // Return an empty array on error to gracefully handle failures in the UI.
+    return [];
+  }
+}
