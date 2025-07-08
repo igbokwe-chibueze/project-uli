@@ -3,7 +3,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,13 +17,19 @@ import { SimilarOrganizationResult } from "@/features/organisations/data/organiz
 import { useRouter } from "next/navigation"
 
 // Debounce utility function (can be a shared utility or defined here)
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout)
-    timeout = setTimeout(() => func(...args), wait)
-  }
+function debounce<Args extends unknown[], R>(
+  func: (...args: Args) => R,
+  wait: number,
+): (...args: Args) => void {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return (...args: Args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func(...args);
+    }, wait);
+  };
 }
+
 
 interface OrganizationNameAutocompleteProps {
   label?: string
@@ -64,7 +70,7 @@ export function OrganizationNameAutocomplete({
   required = false,
   name = "organizationName",
   redirectOnSelect = false,
-  redirectPath,
+  //redirectPath,
   allowNewEntries = true,
   minSearchLength = 3, // Increased for better performance, adjust as needed
   maxSuggestions = 5,
@@ -91,43 +97,57 @@ export function OrganizationNameAutocomplete({
   const router = useRouter()
 
   // Debounced search function to limit API calls while typing
-  const debouncedSearch = useCallback(
-    debounce(async (query: string) => {
-      // If query is too short, clear suggestions and create option
-      if (query.length < minSearchLength) {
-        setSuggestions([])
-        setShowCreateOption(false)
-        setIsLoading(false); // Ensure loading is off if no search is performed
-        return
-      }
+  // Memoize the debounced search function so we only recreate it
+// when any of its “tuning knobs” change.
+const debouncedSearch = useMemo(() => {
+  // Create a debounced version of our async search callback:
+  // - <[string], void> tells TypeScript that `func` takes one string arg and returns void.
+  return debounce<[string], void>(async (query) => {
+    // --- Early exit if the query is too short ---
+    // If the user hasn’t typed enough characters yet, clear out any
+    // existing suggestions and hide the “create new” option.
+    if (query.length < minSearchLength) {
+      setSuggestions([])
+      setShowCreateOption(false)
+      setIsLoading(false)
+      return
+    }
 
-      setIsLoading(true)
-      try {
-        // Call the server action to get fuzzy search results
-        const results = await searchOrganisationNamesAction(query);
+    // --- Begin loading state ---
+    // Show a spinner or similar so the user knows we’re fetching.
+    setIsLoading(true)
+    try {
+      // Call our server action to perform a fuzzy search
+      const results = await searchOrganisationNamesAction(query)
 
-        // Filter results to respect maxSuggestions
-        const limitedResults = results.slice(0, maxSuggestions);
-        setSuggestions(limitedResults);
+      // Respect the maximum suggestions limit
+      const limitedResults = results.slice(0, maxSuggestions)
+      setSuggestions(limitedResults)
 
-        // Determine if "Create New" option should be shown
-        // It should be shown if new entries are allowed AND
-        // the typed input doesn't exactly match any suggestion (case-insensitive)
-        const exactMatchFound = limitedResults.some(
-          (org) => org.name.toLowerCase() === query.toLowerCase()
-        );
-        setShowCreateOption(allowNewEntries && !exactMatchFound);
+      // Determine whether to show the “Create new” option:
+      // only if new entries are allowed AND the exact string isn’t already in our list.
+      const exactMatchFound = limitedResults.some(
+        (org) => org.name.toLowerCase() === query.toLowerCase()
+      )
+      setShowCreateOption(allowNewEntries && !exactMatchFound)
 
-      } catch (error) {
-        console.error("Error fetching organization suggestions:", error)
-        setSuggestions([])
-        setShowCreateOption(false)
-      } finally {
-        setIsLoading(false)
-      }
-    }, 300), // 300ms debounce time
-    [minSearchLength, maxSuggestions, allowNewEntries],
-  )
+    } catch (error) {
+      // If anything goes wrong, log it and clear suggestions so the UI
+      // doesn’t stay stuck in a half-loaded state.
+      console.error("Error fetching organization suggestions:", error)
+      setSuggestions([])
+      setShowCreateOption(false)
+    } finally {
+      // --- End loading state ---
+      // Always hide the spinner, whether we succeeded or failed.
+      setIsLoading(false)
+    }
+  // 300ms debounce: waits until the user stops typing for this duration
+  }, 300)
+  // Re-run this entire creation logic whenever these props/state knobs change
+}, [minSearchLength, maxSuggestions, allowNewEntries])
+
+
 
   // Handle input changes from the user
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

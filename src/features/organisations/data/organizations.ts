@@ -203,7 +203,8 @@ export async function findSimilarOrganizationNames(name: string, threshold = 80)
       }))
       .filter((org) => org.score >= threshold) // Filter based on threshold
       .sort((a, b) => b.score - a.score) // Sort by score, highest first
-      //.map(({ score, ...org }) => org); // Remove the score property before returning
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .map(({ score, ...org }) => org); // Remove the score property before returning
 
     return results;
   } catch (error) {

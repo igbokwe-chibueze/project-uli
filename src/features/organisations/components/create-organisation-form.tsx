@@ -82,7 +82,7 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
   const handleOrganizationNameChange = (
     value: string,
     similarOrgs: SimilarOrganizationResult[] = [],
-    isSelection: boolean = false
+    isSelection: boolean = false // was a suggested org name clicked.
   ) => {
     // Always clear any previous duplicate warning when the user types or makes a new selection
     setSimilarOrganizationsWarning([]);
@@ -140,7 +140,7 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
           // — Show toast + form feedback
           if (res.error) {
             setError(res.error);
-            toast.error("Creation Failed", { description: res.error });
+            toast.error("Creation Failed", { description: "The Organisation could not be created" });
           } else {
             setSuccess(res.success!);
             toast.success("Organization Created", {
@@ -151,9 +151,11 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
             router.push(`/organisations/${res.organizationId}?created=true`);
           }
         } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : "Something went wrong";
-          setError(msg);
-          toast.error("Error", { description: msg });
+            // optionally log the real error for debugging
+            console.error(err);
+            const msg = "Something went wrong";
+            setError(msg);
+            toast.error("Error", { description: msg });
         } finally {
           // 3️⃣ Always turn off spinner when done
           setIsLoading(false);
