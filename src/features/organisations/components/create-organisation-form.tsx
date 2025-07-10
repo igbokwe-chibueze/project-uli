@@ -3,35 +3,35 @@
 "use client"
 
 import { z } from "zod";
+import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2Icon, InfoIcon, LoaderCircleIcon } from "lucide-react";
-import { toast } from "sonner";
 
+import Link from "next/link";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
 
 import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
 import { CountryOptionProps, StateOptionProps } from "@/data/static-data";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Badge } from "@/components/ui/badge";
 
+import { Callout } from "@/components/callout";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
-import { FileUploadField } from "@/components/file-upload-field";
-
-import { CreateOrganisationSchema } from "@/features/organisations/schemas";
-import { createOrganisationAction } from "@/features/organisations/actions/createOrganisationAction";
-import { CardWrapper } from "@/features/auth/components/card-wrapper"
-import { LocationSelector } from "@/components/location-selector";
-import { Callout } from "@/components/callout";
 import { ResponsiveModal } from "@/components/responsive-modal";
-
+import { FileUploadField } from "@/components/file-upload-field";
+import { LocationSelector } from "@/components/location-selector";
 import { OrganizationNameAutocomplete } from "@/components/organization-name-autocomplete";
+
+import { CardWrapper } from "@/features/auth/components/card-wrapper"
+import { CreateOrganisationSchema } from "@/features/organisations/schemas";
 import { SimilarOrganizationResult } from "@/features/organisations/data/organizations";
-import Link from "next/link";
+import { createOrganisationAction } from "@/features/organisations/actions/createOrganisationAction";
+
 
 /**
  * Props for the CreateOrganisationForm component:
@@ -221,7 +221,6 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-
               {/* Organization Name Autocomplete Field */}
               <FormField
                 control={form.control}
@@ -251,52 +250,53 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
 
                     {/* Duplicate Warning Display with Visit Buttons */}
                     {similarOrganizationsWarning.length > 0 && (
-                        <Callout variant="warning" title="Possible Duplicates Found!">
+                      <Callout variant="warning" title="Possible Duplicates Found!">
                         <p className="text-sm">An organization with a similar name might already exist:</p>
                         <div className="flex flex-wrap w-full gap-2 mt-2">
-                            {similarOrganizationsWarning.map((org) => (
-                                <Link  
-                                    key={org.id}
-                                    href={`/organisations/${org.id}`}
-                                    className="flex flex-col w-full gap-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center justify-center gap-4">
-                                      <Building2Icon className="size-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                                      <span className="font-medium text-sm truncate">{org.name}</span>
-                                    </div>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="xs"
-                                        onClick={() => router.push(`/organisations/${org.id}`)}
-                                        className="flex-shrink-0"
-                                    >
-                                        Visit
-                                    </Button>
-                                  </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex gap-1 mt-1">
-                                            {org.country && (
-                                                <Badge variant="secondary" className="text-xs">
-                                                {org.country.name}
-                                                </Badge>
-                                            )}
-                                            {org.industry && (
-                                                <Badge variant="outline" className="text-xs">
-                                                {org.industry.name}
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </div>
+                          {similarOrganizationsWarning.map((org) => (
+                            <Link  
+                              key={org.id}
+                              href={`/organisations/${org.id}`}
+                              className="flex flex-col w-full gap-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-center gap-4">
+                                  <Building2Icon className="size-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                                  <span className="font-medium text-sm truncate">{org.name}</span>
+                                </div>
 
-                                </Link>
-                            ))}
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="xs"
+                                  onClick={() => router.push(`/organisations/${org.id}`)}
+                                  className="flex-shrink-0"
+                                >
+                                  Visit
+                                </Button>
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <div className="flex gap-1 mt-1">
+                                  {org.country && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {org.country.name}
+                                    </Badge>
+                                  )}
+                                  {org.industry && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {org.industry.name}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
                         </div>
                         <p className="text-xs mt-2 text-muted-foreground">
-                            Please review and ensure you are not creating a duplicate.
+                          Please review and ensure you are not creating a duplicate.
                         </p>
-                        </Callout>
+                      </Callout>
                     )}
                   </FormItem>
                 )}

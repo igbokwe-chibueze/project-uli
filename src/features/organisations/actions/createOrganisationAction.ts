@@ -3,8 +3,9 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma/prisma";
-import { CreateOrganisationSchema } from "@/features/organisations/schemas";
+
 import { currentUser } from "@/features/auth/lib/authenticate";
+import { CreateOrganisationSchema } from "@/features/organisations/schemas";
 
 export const createOrganisationAction = async (values: z.infer<typeof CreateOrganisationSchema>) => {
     const validatedFields = CreateOrganisationSchema.safeParse(values);
