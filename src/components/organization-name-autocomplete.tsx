@@ -339,11 +339,18 @@ const debouncedSearch = useMemo(() => {
                   <Building2 className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{org.name}</div>
-                    {org.industry?.name && ( // Display industry if available
-                      <Badge variant="secondary" className="text-xs mt-1">
-                        {org.industry.name}
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {org.country?.name && ( // Display country if available
+                        <Badge variant="secondary" className="text-xs mt-1">
+                          {org.country.name}
+                        </Badge>
+                      )}
+                      {org.industry?.name && ( // Display industry if available
+                        <Badge variant="outline" className="text-xs mt-1">
+                          {org.industry.name}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

@@ -169,6 +169,9 @@ export type SimilarOrganizationResult = {
   industry?: {
     name: string;
   } | null;
+  country?: {
+    name: string;
+  } | null;
 };
 
 /**
@@ -192,6 +195,11 @@ export async function findSimilarOrganizationNames(name: string, threshold = 80)
           select: {
             name: true,
           },
+        },
+        country: {
+            select: {
+                name: true,
+            },
         },
       },
     });

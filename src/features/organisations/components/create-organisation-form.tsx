@@ -253,36 +253,38 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
                     {similarOrganizationsWarning.length > 0 && (
                         <Callout variant="warning" title="Possible Duplicates Found!">
                         <p className="text-sm">An organization with a similar name might already exist:</p>
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap w-full gap-2 mt-2">
                             {similarOrganizationsWarning.map((org) => (
                                 <Link  
                                     key={org.id}
                                     href={`/organisations/${org.id}`}
-                                    className="flex items-start gap-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                                    className="flex flex-col w-full gap-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
                                 >
-                                    <Building2Icon className="size-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-center gap-4">
+                                      <Building2Icon className="size-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                                      <span className="font-medium text-sm truncate">{org.name}</span>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="xs"
+                                        onClick={() => router.push(`/organisations/${org.id}`)}
+                                        className="flex-shrink-0"
+                                    >
+                                        Visit
+                                    </Button>
+                                  </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-medium text-sm truncate">{org.name}</span>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="xs"
-                                                onClick={() => router.push(`/organisations/${org.id}`)}
-                                                className="flex-shrink-0"
-                                            >
-                                                Visit
-                                            </Button>
-                                        </div>
                                         <div className="flex gap-1 mt-1">
-                                            {org.industry && (
+                                            {org.country && (
                                                 <Badge variant="secondary" className="text-xs">
-                                                {org.industry.name}
+                                                {org.country.name}
                                                 </Badge>
                                             )}
                                             {org.industry && (
                                                 <Badge variant="outline" className="text-xs">
-                                                {org.name}
+                                                {org.industry.name}
                                                 </Badge>
                                             )}
                                         </div>
