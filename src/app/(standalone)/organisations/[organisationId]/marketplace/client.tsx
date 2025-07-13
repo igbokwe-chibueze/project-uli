@@ -11,6 +11,9 @@ import {
   uninstallModule,
 } from "@/features/organisations/actions/module";
 import { getIcon } from "@/lib/get-icon";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowLeftIcon } from "lucide-react";
 
 interface MarketplaceModule {
   id: string;
@@ -93,51 +96,64 @@ export default function MarketplaceClient({ id: organisationId }: OrgProps) {
   if (error) return <div className="text-red-600">Error: {error}</div>;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
-      {modules.map((mod) => {
-        const Icon = getIcon(mod.icon);
-        return (
-          <div
-            key={mod.id}
-            className="bg-white rounded-lg shadow p-6 border"
-          >
-            {/* Icon + Title */}
-            <div className="flex items-center mb-4">
-              <Icon className="h-8 w-8 text-indigo-500 mr-3" />
-              <h2 className="text-2xl font-bold">{mod.name}</h2>
-            </div>
+    <>
+      <Button
+          size={"sm"}
+          variant={"secondary"}
+          asChild
+      >
+          <Link href={`/organisations/${organisationId}`}>
+              <ArrowLeftIcon className="size-4 mr-2"/>
+              Back
+          </Link>
+      </Button>
 
-            {/* Description */}
-            <p className="text-gray-600 mb-4">
-              {mod.description ?? "No description."}
-            </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
+        {modules.map((mod) => {
+          const Icon = getIcon(mod.icon);
+          return (
+            <div
+              key={mod.id}
+              className="bg-white rounded-lg shadow p-6 border"
+            >
+              {/* Icon + Title */}
+              <div className="flex items-center mb-4">
+                <Icon className="h-8 w-8 text-indigo-500 mr-3" />
+                <h2 className="text-2xl font-bold">{mod.name}</h2>
+              </div>
 
-            {/* Price & Action */}
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">
-                {mod.isFree ? "Free" : `$${mod.price?.toFixed(2)}`}
-              </span>
-              <button
-                onClick={() => handleToggle(mod.id, mod.isInstalled)}
-                disabled={mod.isLoading}
-                className={`px-4 py-2 rounded text-white transition ${
-                  mod.isInstalled
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-green-600 hover:bg-green-700"
-                } ${mod.isLoading ? "opacity-70" : ""}`}
-              >
-                {mod.isLoading
-                  ? mod.isInstalled
-                    ? "Uninstalling…"
-                    : "Installing…"
-                  : mod.isInstalled
-                  ? "Uninstall"
-                  : "Install"}
-              </button>
+              {/* Description */}
+              <p className="text-gray-600 mb-4">
+                {mod.description ?? "No description."}
+              </p>
+
+              {/* Price & Action */}
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">
+                  {mod.isFree ? "Free" : `$${mod.price?.toFixed(2)}`}
+                </span>
+                <button
+                  onClick={() => handleToggle(mod.id, mod.isInstalled)}
+                  disabled={mod.isLoading}
+                  className={`px-4 py-2 rounded text-white transition ${
+                    mod.isInstalled
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "bg-green-600 hover:bg-green-700"
+                  } ${mod.isLoading ? "opacity-70" : ""}`}
+                >
+                  {mod.isLoading
+                    ? mod.isInstalled
+                      ? "Uninstalling…"
+                      : "Installing…"
+                    : mod.isInstalled
+                    ? "Uninstall"
+                    : "Install"}
+                </button>
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
