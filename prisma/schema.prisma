@@ -504,19 +504,29 @@ model OrgInviteToken {
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }
 
+// This defines what modules are AVAILABLE in your ecosystem.
 model Module {
   id                  String               @id @default(cuid())
-  type                ModuleType           @unique
-  name                String
-  description         String?
+  type                ModuleType           @unique // e.g., "HRMS", "HSEMS", "QMS" - Used for routing and dynamic imports
+  name                String // e.g., "Human Resources Management System" - User-friendly name
+  description         String? // Detailed description for the marketplace
+  icon                String? // SVG path or icon name (e.g., 'FaUsers' for FontAwesome, or "UsersIcon")
+  version             String               @default("1.0.0") // For future upgrades and compatibility
+  isActive            Boolean              @default(true) // Can be disabled globally by platform admin
+  isFree              Boolean              @default(true) // For marketplace display
+  price               Decimal? // For marketplace display
   createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
   organizationModules OrganizationModule[]
 }
 
+// --- Organization-Module Relationship (Tracks 'Installed' Modules per Org) ---
+// This represents an organization's specific installation of a module.
 model OrganizationModule {
   id           String       @id @default(cuid())
   orgId        String
   moduleId     String
+  isEnabled    Boolean      @default(true) // Allows an org to temporarily disable an installed module
   installedAt  DateTime     @default(now())
   module       Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -583,8 +593,11 @@ enum OrgRole {
 }
 
 enum ModuleType {
+  HRMS
   HSEMS
   QMS
+  CRM
+  PMS
 }
 
 enum IncidentSeverity {

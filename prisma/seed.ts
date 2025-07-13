@@ -1,6 +1,6 @@
 // prisma/seed.ts
 
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient, Prisma, ModuleType } from "@prisma/client";
 import fs from "fs/promises";
 import path from "path";
 
@@ -279,6 +279,103 @@ async function main() {
     skipDuplicates: true,
   });
   console.log(`✅ Seeded ${colorSchemeData.length} color scheme.`);
+
+   // ──────────────────────────────────────────────────────────────────────────────
+  // 10) Seed Modules
+  // ──────────────────────────────────────────────────────────────────────────────
+  const moduleData: Prisma.ModuleCreateManyInput[] = [
+    {
+      type: ModuleType.HRMS,
+      name: "Human Resources Management System",
+      description: "Module for managing employee data, payroll, recruitment, and other HR functions.",
+      version: "1.0.0",
+      isFree: true,
+      isActive: true,
+      price: new Prisma.Decimal(0),
+      icon: "UsersIcon",    // matches lucide-react export
+    },
+    {
+      type: ModuleType.HSEMS,
+      name: "Health, Safety, and Environment Management System",
+      description: "Comprehensive module for managing HSE processes and compliance within an organization.",
+      version: "1.0.0",
+      isFree: true,
+      isActive: true,
+      price: new Prisma.Decimal(0),
+      icon: "FireExtinguisherIcon", 
+    },
+    {
+      type: ModuleType.QMS,
+      name: "Quality Management System",
+      description: "Tools and features for maintaining and improving product and service quality.",
+      version: "1.0.0",
+      isFree: true,
+      isActive: true,
+      price: new Prisma.Decimal(0),
+      icon: "CheckSquareIcon",
+    },
+    {
+      type: ModuleType.CRM,
+      name: "Customer Relationship Management",
+      description: "Manages customer interactions and data throughout the customer lifecycle.",
+      version: "1.0.0",
+      isFree: false,
+      isActive: true,
+      price: new Prisma.Decimal(129.99),
+      icon: "MessageSquareIcon",
+    },
+    {
+      type: ModuleType.PMS,
+      name: "Project Management System",
+      description: "Organizes and tracks project tasks, resources, and deadlines.",
+      version: "1.0.0",
+      isFree: true,
+      isActive: true,
+      price: new Prisma.Decimal(0),
+      icon: "ClipboardListIcon",
+    },
+  ];
+
+  await prisma.module.createMany({
+    data: moduleData,
+    skipDuplicates: true,
+  });
+  console.log(`✅ Seeded ${moduleData.length} modules.`);
+
+  // ──────────────────────────────────────────────────────────────────────────────
+  // 11) Auto-install HRMS for all existing Organizations
+  // ──────────────────────────────────────────────────────────────────────────────
+  // 1) Lookup the HRMS module’s ID
+  const hrms = await prisma.module.findUnique({
+    where: { type: ModuleType.HRMS },
+    select: { id: true },
+  });
+  if (!hrms) {
+    throw new Error("HRMS module not found – did you seed it?");
+  }
+
+  // 2) Grab all organizations
+  const orgs = await prisma.organization.findMany({ select: { id: true } });
+
+  // 3) Build the join‐table rows
+  const pivotRows: Prisma.OrganizationModuleCreateManyInput[] = orgs.map((o) => ({
+    orgId: o.id,
+    moduleId: hrms.id,
+    // isEnabled defaults to true, installedAt defaults to now()
+    // but you can override if you like:
+    // isEnabled: true,
+    // installedAt: new Date(),
+  }));
+
+  // 4) Bulk‐insert, skipping any you’ve already added
+  await prisma.organizationModule.createMany({
+    data: pivotRows,
+    skipDuplicates: true,
+  });
+  console.log(
+    `✅ Assigned HRMS to ${pivotRows.length} existing organizations as an enabled module.`
+  );
+
 }
 
 // Run main and handle errors
