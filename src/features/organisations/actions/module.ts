@@ -1,30 +1,32 @@
 // src/features/organisations/actions/module.ts
 
-
 'use server';
 
-import { Prisma } from '@prisma/client';
+import { revalidatePath } from 'next/cache'; // To refresh data after mutations
 import { prisma } from '@/lib/prisma/prisma';
+import { ModuleType, Prisma } from '@prisma/client';
+
 import { serializeModule } from '@/lib/serializers';
 // import { getOrganizationId, hasPermission } from '@/lib/auth';
-import { revalidatePath } from 'next/cache'; // To refresh data after mutations
 
 /**
  * Server Action to get all available modules for the marketplace.
  * This can be used for the "App Store" page.
  */
-export const getAvailableModules = async () => {
+
+export const getAvailableModules = async (organisationId: string) => {
+    if (!organisationId) {
+        return { success: false, error: 'Organization not found.' };
+    }
+
     try {
         const modules = await prisma.module.findMany({
             where: {
-                isActive: true, // Only show globally active modules
-            },
-            orderBy: {
-                name:  'asc'
+                isActive: true, // Only fetch active modules
             },
         });
-        // Map out Decimal instances → numbers
-        const data = modules.map(serializeModule);
+
+        const data = modules.map((m) => serializeModule(m));
         return { success: true, data };
     } catch (error) {
         console.error('Error fetching available modules:', error);
@@ -32,11 +34,12 @@ export const getAvailableModules = async () => {
     }
 }
 
+
 /**
  * Server Action to get modules installed/enabled by the current organization.
  * This is crucial for displaying the organization's dashboard navigation.
  */
-export const getOrganizationEnabledModules = async (organisationId: string,) => {
+export const getOrganizationInstalledModules = async (organisationId: string,) => {
     if (!organisationId) {
         return { success: false, error: 'Organization not found.' };
     }
@@ -52,7 +55,7 @@ export const getOrganizationEnabledModules = async (organisationId: string,) => 
             },
             orderBy: {
                 module: {
-                name: 'asc',
+                    name: 'asc',
                 },
             },
         });
@@ -162,6 +165,22 @@ export const uninstallModule = async (moduleId: string, organisationId: string) 
     //   }
 
     try {
+
+        // First, retrieve the module to check its type
+        const moduleToUninstall = await prisma.module.findUnique({
+            where: { id: moduleId },
+            select: { type: true, name: true }, // Select type and name
+        });
+
+        if (!moduleToUninstall) {
+            return { success: false, error: 'Module not found.' };
+        }
+
+        // Prevent uninstallation if it's the HRMS module
+        if (moduleToUninstall.type === ModuleType.HRMS) {
+            return { success: false, error: `${moduleToUninstall.name} is a core module and cannot be uninstalled.` };
+        }
+
         const result = await prisma.organizationModule.update({
             where: {
                 orgId_moduleId: {

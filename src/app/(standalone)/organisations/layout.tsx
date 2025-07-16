@@ -17,7 +17,7 @@ const StandaloneLayout = ({ children }: StandaloneLayoutProps) => {
                 </Link>
             </nav>
 
-            <div className="flex flex-col justify-between items-center py-4">
+            <div className="max-w-screen-xl mx-auto px-4 py-8">
                 {children}
             </div>
         </div>
