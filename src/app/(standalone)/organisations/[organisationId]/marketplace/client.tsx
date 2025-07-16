@@ -8,7 +8,7 @@ import { installModule, uninstallModule, getAvailableModules, getOrganizationIns
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { SearchIcon, RefreshCwIcon } from "lucide-react";
+import { SearchIcon, RefreshCwIcon, ChevronLeftIcon } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -175,6 +175,12 @@ export default function MarketplaceClient({ id: organisationId }: OrgProps) {
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <Button variant="ghost" onClick={() => router.back()} aria-label="Go back">
+        <ChevronLeftIcon className="size-5" />
+        Back
+      </Button>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
