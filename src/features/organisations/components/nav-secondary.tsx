@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link";
-import { HelpCircleIcon, SearchIcon, SettingsIcon } from "lucide-react"
+import { HelpCircleIcon, SearchIcon, StoreIcon } from "lucide-react"
 
 import {
   SidebarGroup,
@@ -18,7 +18,7 @@ const items = [
   {
     title: "Marketplace",
     url: "/marketplace",
-    icon: SettingsIcon,
+    icon: StoreIcon,
   },
   {
     title: "Get Help",

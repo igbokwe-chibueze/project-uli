@@ -2,7 +2,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma/prisma";
-import { ColorScheme, Country, Organization } from "@prisma/client";
+import { ColorScheme, Country, Module, Organization } from "@prisma/client";
 
 /**
  * Fetch all organization memberships for a given user, including organization details.
@@ -36,10 +36,20 @@ export const getOrganizationsForUser = async(userId: string) => {
 export type OrganisationSummaryType = Pick<Organization, 'id' | 'name' | 'logo'> & {
     colorScheme: Pick<ColorScheme, 'name' | 'id'> | null;
     country: Pick<Country, 'name' | 'id' | 'iso3'> | null; // Assuming country is a relation and you need its name
+    modules?: Array<{
+        id: string; // ID of the OrganizationModule join table record
+        isEnabled: boolean;
+        module: Pick<Module, 'id' | 'type' | 'name' | 'icon'>; // Relevant module fields
+    }>;
 };
 
-// Function to get a summary of an organization by ID
-//....because certain componnets like OrgIdLayout, OrganisationIdPage and OrganisationHeader dont need all the orginasation data.
+/**
+ * Function to get a summary of an organization by ID.
+ * It now fetches essential organization details including installed modules.
+ * ...because certain componnets like OrgIdLayout, OrganisationIdPage and OrganisationHeader dont need all the orginasation data.
+ * @param id The ID of the organization to fetch.
+ * @returns A Promise that resolves to `OrganisationSummaryType` or `null` if not found or an error occurs.
+ */
 export const getOrganisationSummaryById = async (id: string): Promise<OrganisationSummaryType | null> => {
     try {
         const organisation = await prisma.organization.findUnique({
@@ -59,6 +69,22 @@ export const getOrganisationSummaryById = async (id: string): Promise<Organisati
                         id: true,
                         name: true,
                         iso3: true,
+                    },
+                },
+                // Use 'modules' as the relation name here, matching your schema
+                modules: { // ⭐ Changed from `organizationModules` to `modules`
+                    where: { isEnabled: true }, // Filter for active/enabled installed modules
+                    select: { // Define what fields to select from the join table (OrganizationModule)
+                        id: true, // ID of the OrganizationModule join table record
+                        isEnabled: true,
+                        module: { // Select the actual related Module's fields
+                            select: {
+                                id: true,
+                                type: true,
+                                name: true,
+                                icon: true,
+                            },
+                        },
                     },
                 },
                 // Add any other minimal fields needed by the layout or main page
