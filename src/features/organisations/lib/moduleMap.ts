@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 const moduleMap: Record<string, React.ComponentType<any>> = {
-  HRMS: dynamic(() => import('@/features/organisations/modules/HRMS'), { ssr: false }),
+  HRMS: dynamic(() => import('@/features/organisations/modules/hrms-module'), { ssr: false }),
   QMS: dynamic(() => import('@/features/organisations/modules/QMS'), { ssr: false }),
   HSEMS: dynamic(() => import('@/features/organisations/modules/HSEMS'), { ssr: false }),
 };

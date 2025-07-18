@@ -24,9 +24,10 @@ interface ModuleCardProps {
   onInstall: (moduleId: string) => Promise<void>;
   onUninstall: (moduleId: string) => Promise<void>;
   isLoading: boolean;
+  orgId: string;
 }
 
-export function ModuleCard({ module, isInstalled, onInstall, onUninstall, isLoading: parentIsLoading }: ModuleCardProps) {
+export function ModuleCard({ module, isInstalled, onInstall, onUninstall, isLoading: parentIsLoading, orgId }: ModuleCardProps) {
   const Icon = getIcon(module.icon);
   const [localIsLoading, setLocalIsLoading] = useState(false);
 
@@ -110,7 +111,7 @@ export function ModuleCard({ module, isInstalled, onInstall, onUninstall, isLoad
         {isInstalled ? (
           <div className="flex w-full gap-2">
             <Button asChild variant="default" className="flex-1">
-              <Link href={`/modules/${module.type.toLowerCase()}`} className="gap-2">
+              <Link href={`/organisations/${orgId}/modules/${module.type.toLowerCase()}`} className="gap-2">
                 <ExternalLink className="size-4" />
                 Open
               </Link>

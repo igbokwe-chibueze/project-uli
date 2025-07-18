@@ -246,6 +246,7 @@ export default function MarketplaceClient({ id: organisationId }: OrgProps) {
               onInstall={handleInstall}
               onUninstall={handleUninstall}
               isLoading={module.isLoading} // This refers to the individual module's action loading state
+              orgId={organisationId}
             />
           ))
         )}
