@@ -1,27 +1,33 @@
 // src/app/(standalone)/organisations/layout.tsx
 
-import Image from "next/image";
-import Link from "next/link";
+import { Metadata } from "next";
 
+import { StandaloneNavbar } from "@/components/navigation/standalone-navbar";
+import { SessionProviderWrapper } from "@/features/auth/components/session-provider-wrapper";
+import { DynamicThemeProvider } from "@/components/dynamic-theme-provider";
+
+export const metadata: Metadata = {
+  title: "App Marketplace",
+  description: "Discover and manage your modules easily",
+};
 interface StandaloneLayoutProps {
     children: React.ReactNode;
 };
 
 const StandaloneLayout = ({ children }: StandaloneLayoutProps) => {
   return (
-    <main className="min-h-screen">
-        <div className="mx-auto max-w-screen-2xl p-4">
-            <nav className="flex justify-between items-center h-[73px]">
-                <Link href={"/"}>
-                    <Image src={"/logo.svg"} alt="Logo" height={56} width={152}/>
-                </Link>
-            </nav>
-
-            <div className="max-w-screen-xl mx-auto px-4 py-4">
-                {children}
+    <SessionProviderWrapper>
+      <StandaloneNavbar />
+      <DynamicThemeProvider>
+        <div className="pt-12">
+          <main className="min-h-screen">
+            <div className="max-w-screen-2xl mx-auto p-4 lg:p-8">
+              {children}
             </div>
+          </main>
         </div>
-    </main>
+      </DynamicThemeProvider>
+    </SessionProviderWrapper>
   )
 }
 
