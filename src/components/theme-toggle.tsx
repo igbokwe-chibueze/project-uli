@@ -14,7 +14,7 @@ import {
 export const ThemeToggle = () => {
     const { setTheme } = useTheme()
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">
                 <SunIcon className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
@@ -23,7 +23,11 @@ export const ThemeToggle = () => {
             </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] rounded-lg"
+            align="end"
+            sideOffset={4}
+        >
             <DropdownMenuItem onClick={() => setTheme("light")}>
                 Light
             </DropdownMenuItem>
@@ -34,6 +38,7 @@ export const ThemeToggle = () => {
                 System
             </DropdownMenuItem>
         </DropdownMenuContent>
+
     </DropdownMenu>
   )
 }
