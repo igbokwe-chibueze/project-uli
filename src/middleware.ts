@@ -42,13 +42,13 @@ export default auth((req) => {
         return; // No redirect if not logged in; allow the auth route to be processed.
     }
 
-    // For all other protected routes (non-public), if the user is not logged in,
-    // redirect them to the login page.
-    if (!isLoggedIn && !isPublicRoute) {
+    //  For all other protected routes (non-public), if the user is not logged in,
+    //  ...redirect them to the login page.
+    if (!isLoggedIn && !isPublicRoute && !isMarketingRoute) {
         // Construct the callback URL from the current pathname and search parameters.
         let callbackUrl = nextUrl.pathname;
         if (nextUrl.search) {
-        callbackUrl += nextUrl.search;
+            callbackUrl += nextUrl.search;
         }
         // Encode the callback URL to safely include it as a query parameter.
         const encodedCallbackUrl = encodeURIComponent(callbackUrl);
