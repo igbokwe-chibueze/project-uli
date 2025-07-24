@@ -15,6 +15,11 @@ export const currentID = async () => {
     return session?.user?.id;
 };
 
+export const currentName = async () => {
+  const session = await auth();
+  return session?.user?.name;
+};
+
 export const currentRole = async () => {
     const session = await auth();
 

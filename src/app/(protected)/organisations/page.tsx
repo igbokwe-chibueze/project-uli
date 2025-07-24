@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { currentID } from "@/features/auth/lib/authenticate";
+import { currentID, currentName } from "@/features/auth/lib/authenticate";
 import { getOrganizationsForUser } from "@/features/organisations/data/organizations";
+import { UserDropdown } from "@/features/auth/components/user-dropdown";
 
 const OrgHomePage = async () => {
   // Authenticate user by getting the session Id
   const userId = await currentID();
 
   if (!userId) redirect("/access"); //If user is not authenticated redirect to signIn(/access)
+
+  //Authenticate user by getting the session name
+  const userName = await currentName();
 
   const memberships = await getOrganizationsForUser(userId);
   console.log("Membership Count" + memberships.length)
@@ -25,8 +29,12 @@ const OrgHomePage = async () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-sm w-full text-center space-y-4">
-        <h1 className="text-2xl font-semibold">Welcome! {userId}</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-semibold">Welcome! {userName}</h1>
+        <p className="text-muted-foreground">({userId})</p>
+
+        <UserDropdown/>
+        
+        <p className="text-muted-foreground">
           You don’t belong to any organisation yet. Get started by creating or joining one.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">

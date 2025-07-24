@@ -13,6 +13,13 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // This should be set to your production URL (or localhost during development).
 const domain = process.env.NEXT_PUBLIC_APP_URL;
 
+export type DevMailResult = { 
+    token: string; 
+    confirmLink?: string 
+    resetLink?: string 
+    loginLink?: string 
+};
+
 
 /**
  * Sends a verification email to a user.
@@ -28,6 +35,13 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     // Note: The URL will change based on your environment (production vs. development).
     const confirmLink = `${domain}/email-verification?token=${token}`;
 
+    // In dev: skip Resend and return the payload outright
+    if (process.env.NODE_ENV === "development") {
+        console.log(`[DEV] would send to ${email}: ${confirmLink}`);
+        return { success: true, token, confirmLink };
+    }
+
+    // In production: actually send
     // Generate email HTML using the reusable template function.
     const htmlContent = createEmailTemplate({
         title: "Email Verification",
@@ -63,6 +77,12 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
     // Construct the URL for password reset.
     const resetLink = `${domain}/complete-password-reset?token=${token}`;
 
+    // In dev: skip Resend and return the payload outright
+    if (process.env.NODE_ENV === "development") {
+        console.log(`[DEV] would send to ${email}: ${resetLink}`);
+        return { success: true, token, resetLink };
+    }
+
     // Generate email HTML using the reusable template function.
     const htmlContent = createEmailTemplate({
         title: "Password Reset Request",
@@ -94,6 +114,12 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
 export const sendPasswordChangeConfirmationEmail = async (email: string) => {
     const loginLink = `${process.env.NEXT_PUBLIC_APP_URL}/access`;
 
+    // In dev: skip Resend and return the payload outright
+    if (process.env.NODE_ENV === "development") {
+        console.log(`[DEV] would send to ${email}: ${loginLink}`);
+        return { success: true, loginLink };
+    }
+
     const htmlContent = createEmailTemplate({
         title: "Password Successfully Changed",
         message: "Your password has been successfully changed. You can now log in with your new password.",
@@ -121,6 +147,12 @@ export const sendPasswordChangeConfirmationEmail = async (email: string) => {
  * @param token - The two-factor authentication token to be sent.
  */
 export const sendTwoFactorTokenEmail = async (email: string, token: string) => {
+
+    // In dev: skip Resend and return the payload outright
+    if (process.env.NODE_ENV === "development") {
+        console.log(`[DEV] would send to ${email}: ${token}`);
+        return { success: true, token };
+    }
 
     const htmlContent = createEmailTemplate({
         title: "Two-Factor Authentication Code",
