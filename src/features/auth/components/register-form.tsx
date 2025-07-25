@@ -91,7 +91,7 @@ export const RegisterForm = () => {
           className="lg:w-[620px]"
         >
           <div className="flex items-center gap-x-2">
-            <Input disabled value={devLink!}/>
+            <Input disabled value={devLink! ?? ""}/>
             <Button
               onClick={handleCopy}
               variant={"secondary"}
@@ -108,11 +108,14 @@ export const RegisterForm = () => {
               Close
             </Button>
 
-            <Button asChild>
-              <Link href={devLink!} target="_blank" rel="noopener noreferrer">
-                Continue
-              </Link>
-            </Button>
+            {devLink && (
+              <Button asChild>
+                <Link href={devLink} target="_blank" rel="noopener noreferrer">
+                  Continue
+                </Link>
+              </Button>
+            )}
+            
           </div>
         </CardWrapper>
       </ResponsiveModal>

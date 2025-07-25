@@ -2,9 +2,11 @@
 "use client"
 
 import { cn } from "@/lib/utils";
+
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { Header } from "@/features/auth/components/header";
+
 import Socials from "@/features/auth/components/socials";
+import { Header } from "@/features/auth/components/header";
 import { BackButton } from "@/features/auth/components/back-button";
 
 
@@ -40,7 +42,7 @@ export const CardWrapper = ({
                                 after:flex after:items-center after:border-t after:border-border"
                             >
                                 <span className="relative z-10 bg-background px-2 text-muted-foreground">
-                                    Or continue with
+                                    OR
                                 </span>
                             </div>
                         </div>

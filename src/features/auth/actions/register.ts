@@ -46,7 +46,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     const mailResult = await sendVerificationEmail(userEmail, token);
 
     // If dev, send back the link so the client can show a modal
-    if ("confirmLink" in (mailResult as DevMailResult)) {
+    if (mailResult && "confirmLink" in mailResult) {
         const { confirmLink } = mailResult as DevMailResult;
         return { success: "Dev mode - copy this link to verify:", confirmLink };
     }

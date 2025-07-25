@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma/prisma";
 import { LoginSchema } from "@/features/auth/schemas";
 import { getUserByEmail } from "@/features/auth/data/user";
 import { generateTwoFactorToken, generateVerificationToken } from "@/features/auth/lib/tokens";
-import { sendTwoFactorTokenEmail, sendVerificationEmail } from "@/features/auth/lib/mail";
+import { DevMailResult, sendTwoFactorTokenEmail, sendVerificationEmail } from "@/features/auth/lib/mail";
 import { getTwoFactorTokenByEmail } from "@/features/auth/data/two-factor-token";
 import { getTwoFactorConfirmationByUserId } from "@/features/auth/data/two-factor-confirmation";
 
@@ -52,10 +52,20 @@ export const loginAction = async (values: z.infer<typeof LoginSchema>, callbackU
     // If the user's email hasn't been verified, send a verification email.
     if (!existingUser.emailVerified) {
         // Generate a new verification token for the user's email.
-        const verificationToken = await generateVerificationToken(existingUser.email);
+        //I used this before i was doing the dev or prod environment check
+        //const verificationToken = await generateVerificationToken(existingUser.email);
+        const { email: userEmail, token } = await generateVerificationToken(existingUser.email);
 
         // Send the verification email with the token.
-        await sendVerificationEmail(verificationToken.email, verificationToken.token);
+        //I used this before i was doing the dev or prod environment check
+        //await sendVerificationEmail(verificationToken.email, verificationToken.token);
+        const mailResult = await sendVerificationEmail(userEmail, token);
+
+        // If dev, send back the link so the client can show a modal
+        if (mailResult && "confirmLink" in mailResult) {
+            const { confirmLink } = mailResult as DevMailResult;
+            return { success: "Dev mode - copy this link to verify:", confirmLink };
+        }
 
         // Return a success message indicating that a verification email was sent.
         return { success: "Verification email sent!" };
@@ -113,10 +123,21 @@ export const loginAction = async (values: z.infer<typeof LoginSchema>, callbackU
             
         } else {
             // If no two-factor code is provided, generate and send a new two-factor token.
-            const twoFactorToken = await generateTwoFactorToken(existingUser.email);
+            //const twoFactorToken = await generateTwoFactorToken(existingUser.email);
+            const { email: userEmail, token } = await generateTwoFactorToken(existingUser.email);
 
             // Send the two-factor authentication email with the generated token.
-            await sendTwoFactorTokenEmail(twoFactorToken.email, twoFactorToken.token);
+            //await sendTwoFactorTokenEmail(twoFactorToken.email, twoFactorToken.token);
+            const mailResult = await sendTwoFactorTokenEmail(userEmail, token);
+
+            // If dev, send back the link so the client can show a modal
+            if (mailResult && "twoFactorCode" in mailResult) {
+                return {
+                    twoFactor: true,
+                    twoFactorCode: mailResult.twoFactorCode,
+                };
+            }
+
 
             // Return an object indicating that two-factor authentication is required.
             return { twoFactor: true };

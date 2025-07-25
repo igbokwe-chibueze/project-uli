@@ -13,11 +13,15 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // This should be set to your production URL (or localhost during development).
 const domain = process.env.NEXT_PUBLIC_APP_URL;
 
+// Just using this to skip sending email when i am testing.
+const isDev = true;
+
 export type DevMailResult = { 
     token: string; 
     confirmLink?: string 
     resetLink?: string 
     loginLink?: string 
+    twoFactorCode?: string 
 };
 
 
@@ -36,7 +40,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     const confirmLink = `${domain}/email-verification?token=${token}`;
 
     // In dev: skip Resend and return the payload outright
-    if (process.env.NODE_ENV === "development") {
+    if (isDev) {
         console.log(`[DEV] would send to ${email}: ${confirmLink}`);
         return { success: true, token, confirmLink };
     }
@@ -78,7 +82,7 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
     const resetLink = `${domain}/complete-password-reset?token=${token}`;
 
     // In dev: skip Resend and return the payload outright
-    if (process.env.NODE_ENV === "development") {
+    if (isDev) {
         console.log(`[DEV] would send to ${email}: ${resetLink}`);
         return { success: true, token, resetLink };
     }
@@ -115,7 +119,7 @@ export const sendPasswordChangeConfirmationEmail = async (email: string) => {
     const loginLink = `${process.env.NEXT_PUBLIC_APP_URL}/access`;
 
     // In dev: skip Resend and return the payload outright
-    if (process.env.NODE_ENV === "development") {
+    if (isDev) {
         console.log(`[DEV] would send to ${email}: ${loginLink}`);
         return { success: true, loginLink };
     }
@@ -149,9 +153,9 @@ export const sendPasswordChangeConfirmationEmail = async (email: string) => {
 export const sendTwoFactorTokenEmail = async (email: string, token: string) => {
 
     // In dev: skip Resend and return the payload outright
-    if (process.env.NODE_ENV === "development") {
+    if (isDev) {
         console.log(`[DEV] would send to ${email}: ${token}`);
-        return { success: true, token };
+        return { success: true, twoFactorCode: token };
     }
 
     const htmlContent = createEmailTemplate({

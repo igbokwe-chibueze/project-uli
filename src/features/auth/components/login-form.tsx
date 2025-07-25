@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon } from "lucide-react";
 
 import { LoginSchema } from "@/features/auth/schemas";
 import { loginAction } from "@/features/auth/actions/login-action";
@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { CountdownTimer } from "./countdown-timer";
+import { ResponsiveModal } from "@/components/responsive-modal";
 
 export const LoginForm = () => {
   const searchParams = useSearchParams();
@@ -35,6 +36,11 @@ export const LoginForm = () => {
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
+
+  //Using this to display tokens in dev mode.
+  const [devLink, setDevLink] = useState<string | null>(null);
+  // Track copy feedback
+  const [copied, setCopied] = useState(false);
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -68,6 +74,11 @@ export const LoginForm = () => {
             setError(res.error);
           }
 
+          if ("confirmLink" in res!) {
+            setDevLink(res.confirmLink!);
+            return;
+          }
+
           if (res?.success) {
             form.reset();
             setSuccess(res.success);
@@ -75,6 +86,9 @@ export const LoginForm = () => {
 
           // If the response indicates that two-factor is required:
           if (res?.twoFactor) {
+            if ("twoFactorCode" in res!) {
+              setDevLink(res.twoFactorCode!);
+            }
             // Enable two-factor authentication view.
             setShowTwoFactor(true);
           }
@@ -96,152 +110,205 @@ export const LoginForm = () => {
     form.reset(); // reset the fields
     setError("Code has expired!");
   };
+
+  // Handle copy action
+  const handleCopy = () => {
+    if (!devLink) return;
+    navigator.clipboard.writeText(devLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <CardWrapper 
-      headerHeading="Login"
-      headerLabel="Welcome Back"
-      backButtonLabel="Don't have an account?"
-      backButtonHref="/registration"
-      // Only show socials when not in 2FA mode
-      showSocial={!showTwoFactor}
-    >
-      <Form {...form}>
-        <form 
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6"
+    <>
+      {/* Dev-only modal using ResponsiveModal */}
+      <ResponsiveModal
+        open={!!devLink}
+        onOpenChange={(open) => !open && setDevLink(null)}
+        title="Dev Verification Link"
+      >
+        <CardWrapper
+          headerHeading="Email Verification"
+          className="lg:w-[620px]"
         >
-          {/* Form Fields */}
-          <div className="space-y-4">
-            {showTwoFactor && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Two Factor Code</FormLabel>
-                      <FormControl>
-                        <InputOTP maxLength={6} {...field}>
-                          <InputOTPGroup>
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
-                          </InputOTPGroup>
-                        </InputOTP>
-                      </FormControl>
-                      <FormDescription>
-                        Please enter the code sent to your you.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {/* Render the countdown timer with an initial value of 300 seconds (5 minutes) */}
-                <CountdownTimer initialTime={300} onExpire={handleExpire} />
-              </>
-            )}
-
-            {!showTwoFactor && (
-              <>
-                {/* Email */}
-                <FormField 
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                          <Input 
-                            {...field}
-                            placeholder="Enter your email"
-                            type="email"
-                            autoComplete="email"
-                            className="pl-10"
-                            disabled={isPending}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-left"/>
-                    </FormItem>
-                  )}
-                />
-
-                {/* Password */}
-                <FormField 
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <div className="relative">
-                        <FormControl>
-                          <Input 
-                            {...field}
-                            placeholder="******"
-                            type={showPassword ? "text" : "password"}
-                            autoComplete="current-password"
-                            disabled={isPending}
-                          />
-                        </FormControl>
-
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setShowPassword(prev => !prev)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
-                        >
-                          {showPassword ? (
-                            <EyeOffIcon />
-                          ) : (
-                            <EyeIcon />
-                          )}
-                        </Button>
-                      </div>
-                      <FormMessage className="text-left"/>
-
-                      <Button
-                        variant="link"
-                        size="sm"
-                        asChild
-                        className="px-0 flex justify-start font-normal w-fit"
-                      >
-                        <Link href="/initiate-password-reset">
-                          Forgot Password?
-                        </Link>
-                      </Button>
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
+          <div className="flex items-center gap-x-2">
+            <Input disabled value={devLink ?? ""}/>
+            <Button
+              onClick={handleCopy}
+              variant={"secondary"}
+              className="size-12"
+              type="button"
+              disabled={isPending}
+            >
+              {copied ? <CheckIcon className="size-5 text-green-500" /> : <CopyIcon className="size-5" />}
+            </Button>
           </div>
 
-          <FormError message={error || urlError}/>
-          <FormSuccess message={success}/>
+          {!showTwoFactor && (
+            <div className="pt-4 w-full flex flex-col gap-y-2 lg:flex-row gap-x-2 items-center justify-end">
+              <Button variant="outline" onClick={() => setDevLink(null)}>
+                Close
+              </Button>
 
-          <Button
-            type="submit"
-            className="w-full buttons"
-            disabled={isPending}
+              {devLink && (
+                <Button asChild>
+                  <Link href={devLink} target="_blank" rel="noopener noreferrer">
+                    Continue
+                  </Link>
+                </Button>
+              )}
+            </div>
+          )}
+
+        </CardWrapper>
+      </ResponsiveModal>
+
+      <CardWrapper 
+        headerHeading="Login"
+        headerLabel="Welcome Back"
+        backButtonLabel="Don't have an account?"
+        backButtonHref="/registration"
+        // Only show socials when not in 2FA mode
+        showSocial={!showTwoFactor}
+      >
+        <Form {...form}>
+          <form 
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6"
           >
-            {isPending ? (
-              <div className="flex items-center justify-center gap-2">
-                <LoaderCircleIcon className="size-4 animate-spin" />
-                <span>{showTwoFactor ? "Confirming" : "Logging in"}</span>
-              </div>
-            ) : (
-              showTwoFactor ? "Confirm" : "Login"
-            )}
-          </Button>
-        </form>
-      </Form>
+            {/* Form Fields */}
+            <div className="space-y-4">
+              {showTwoFactor && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="code"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col items-center">
+                        <FormLabel>Two Factor Code</FormLabel>
+                        <FormControl>
+                          <InputOTP maxLength={6} {...field}>
+                            <InputOTPGroup className='gap-2 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border'>
+                              <InputOTPSlot index={0} />
+                              <InputOTPSlot index={1} />
+                              <InputOTPSlot index={2} />
+                              <InputOTPSlot index={3} />
+                              <InputOTPSlot index={4} />
+                              <InputOTPSlot index={5} />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </FormControl>
+                        <FormDescription>
+                          Please enter the code sent to your you.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* Render the countdown timer with an initial value of 300 seconds (5 minutes) */}
+                  <CountdownTimer initialTime={300} onExpire={handleExpire} />
+                </>
+              )}
 
-    </CardWrapper>
+              {!showTwoFactor && (
+                <>
+                  {/* Email */}
+                  <FormField 
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                            <Input 
+                              {...field}
+                              placeholder="Enter your email"
+                              type="email"
+                              autoComplete="email"
+                              className="pl-10"
+                              disabled={isPending}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-left"/>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Password */}
+                  <FormField 
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input 
+                              {...field}
+                              placeholder="******"
+                              type={showPassword ? "text" : "password"}
+                              autoComplete="current-password"
+                              disabled={isPending}
+                            />
+                          </FormControl>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setShowPassword(prev => !prev)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+                          >
+                            {showPassword ? (
+                              <EyeOffIcon />
+                            ) : (
+                              <EyeIcon />
+                            )}
+                          </Button>
+                        </div>
+                        <FormMessage className="text-left"/>
+
+                        <Button
+                          variant="link"
+                          size="sm"
+                          asChild
+                          className="px-0 flex justify-start font-normal w-fit"
+                        >
+                          <Link href="/initiate-password-reset">
+                            Forgot Password?
+                          </Link>
+                        </Button>
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+            </div>
+
+            <FormError message={error || urlError}/>
+            <FormSuccess message={success}/>
+
+            <Button
+              type="submit"
+              className="w-full buttons"
+              disabled={isPending}
+            >
+              {isPending ? (
+                <div className="flex items-center justify-center gap-2">
+                  <LoaderCircleIcon className="size-4 animate-spin" />
+                  <span>{showTwoFactor ? "Confirming" : "Logging in"}</span>
+                </div>
+              ) : (
+                showTwoFactor ? "Confirm" : "Login"
+              )}
+            </Button>
+          </form>
+        </Form>
+
+      </CardWrapper>
+    </>
   )
 }

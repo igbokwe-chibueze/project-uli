@@ -4,7 +4,7 @@
 import * as z from "zod";
 import { getUserByEmail } from "@/features/auth/data/user";
 import { generatePasswordResetToken } from "@/features/auth/lib/tokens";
-import { sendPasswordResetEmail } from "@/features/auth/lib/mail";
+import { DevMailResult, sendPasswordResetEmail } from "@/features/auth/lib/mail";
 import { InitiatePasswordResetSchema } from "@/features/auth/schemas";
 
 export const InitiatePasswordResetAction = async (values: z.infer<typeof InitiatePasswordResetSchema>) => {
@@ -26,11 +26,19 @@ export const InitiatePasswordResetAction = async (values: z.infer<typeof Initiat
         // return { error: "Email not found!" };
     }
 
-    const passwordResetToken = await generatePasswordResetToken(email);
-    await sendPasswordResetEmail(
-        passwordResetToken.email,
-        passwordResetToken.token
-    );
+    //I used this before i was doing the dev or prod environment check
+    //const passwordResetToken = await generatePasswordResetToken(email);
+    const { email: userEmail, token } = await generatePasswordResetToken(email);
+
+    //I used this before i was doing the dev or prod environment check
+    //await sendPasswordResetEmail(passwordResetToken.email, passwordResetToken.token);
+    const mailResult = await sendPasswordResetEmail(userEmail, token);
+    
+    // If dev, send back the link so the client can show a modal
+    if (mailResult && "resetLink" in mailResult) {
+        const { resetLink } = mailResult as DevMailResult;
+        return { success: "Dev mode - copy this link to reset your password:", resetLink };
+    }
 
     return { success: "Reset email sent! Check your email" };
 }

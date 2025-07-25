@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut } from "next-auth/react";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from "lucide-react";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -97,12 +97,12 @@ export const CompletePasswordResetForm = () => {
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => setShowPassword((prev) => !prev)}
-                                        className="absolute inset-y-0 right-0 flex items-center text-muted-foreground"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
                                     >
                                         {showPassword ? (
-                                            <EyeOffIcon className="size-4" />
+                                            <EyeOffIcon/>
                                         ) : (
-                                            <EyeIcon className="size-4" />
+                                            <EyeIcon/>
                                         )}
                                     </Button>
                                 </div>
@@ -133,12 +133,12 @@ export const CompletePasswordResetForm = () => {
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => setShowPassword((prev) => !prev)}
-                                        className="absolute inset-y-0 right-0 flex items-center text-muted-foreground"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
                                     >
                                         {showPassword ? (
-                                            <EyeOffIcon className="size-4" />
+                                            <EyeOffIcon/>
                                         ) : (
-                                            <EyeIcon className="size-4" />
+                                            <EyeIcon/>
                                         )}
                                     </Button>
                                 </div>
@@ -154,7 +154,8 @@ export const CompletePasswordResetForm = () => {
                 <Button type="submit" className="w-full buttons" disabled={isPending}>
                     {isPending ? (
                         <div className="flex items-center justify-center gap-2">
-                            <span className="h-4 w-4 border-2 border-t-transparent border-solid rounded-full animate-spin" />
+                            <LoaderCircleIcon className="size-4 animate-spin" />
+                            <span>Updating</span>
                         </div>
                     ) : (
                         "Update Password"
