@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { ArrowRightIcon, Building2Icon, CheckCircle2Icon, Settings2Icon } from "lucide-react";
 
 import NotFound from "@/app/not-found"
+import { notFound } from "next/navigation"
 import { currentID } from "@/features/auth/lib/authenticate"
 import { getOrganisationSummaryById, isUserOrganizationMember } from "@/features/organisations/data/organizations"
 
@@ -33,9 +34,10 @@ const OrganisationIdPage = async ({searchParams, params}: OrganisationIdPageProp
     // If not a member, render a 404-like page with an access denied message.
     const isMember = await isUserOrganizationMember(user, organisation?.id);
     if (!isMember) {
-        return (
-            <NotFound message="Access denied: you are not a member of this organisation." />
-        );
+        // return (
+        //     <NotFound message="Access denied: you are not a member of this organisation." />
+        // );
+        return notFound()
     }
 
     const createdFlag = (await searchParams).created === "true";

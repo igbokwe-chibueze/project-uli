@@ -12,10 +12,12 @@ datasource db {
 
 model User {
   id                    String                 @id @default(cuid())
-  name                  String?
+  firstName             String?
+  lastName              String?
   email                 String                 @unique
   emailVerified         DateTime?
   image                 String?
+  bio                   String?
   password              String?
   passwordChangedAt     DateTime?
   createdAt             DateTime               @default(now())
@@ -401,6 +403,9 @@ model Department {
   updatedAt    DateTime     @updatedAt
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   units        Unit[]
+
+  // Relation to OrganizationMember
+  members OrganizationMember[]
 }
 
 /// Units within a Department
@@ -411,6 +416,9 @@ model Unit {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  // Relation to OrganizationMember
+  members OrganizationMember[]
 
   @@unique([departmentId, name])
 }
@@ -476,18 +484,31 @@ model Organization {
 
 /// Tracks which user belongs to which organization (and their OrgRole)
 model OrganizationMember {
-  id           String       @id @default(cuid())
-  orgId        String
-  userId       String
-  role         OrgRole      @default(MEMBER)
-  joinedAt     DateTime     @default(now())
+  id                  String    @id @default(cuid())
+  orgId               String
+  userId              String
+  orgEmail            String?   @unique // Organization-specific email
+  role                OrgRole   @default(MEMBER)
+  joinedAt            DateTime  @default(now())
+  orgBio              String? // New: Bio specific to this organization
+  staffNumber         String?
+  orgProfilePicture   String? // New: Profile picture specific to this organization
+  internalPhoneNumber String? // New: Internal phone number
+  internalExtension   String? // New: Internal extension
+  startDate           DateTime? // New: Start date in this organization
+  departmentId        String? // New: Relation to Department
+  unitId              String? // New: Relation to Unit
+
   audits       Audit[]
   assigneeOf   Incident[]   @relation("Assignee")
   reporterOf   Incident[]   @relation("Reporter")
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department   Department?  @relation(fields: [departmentId], references: [id])
+  unit         Unit?        @relation(fields: [unitId], references: [id])
 
   @@unique([orgId, userId])
+  @@unique([orgId, orgEmail])
 }
 
 model OrgInviteToken {

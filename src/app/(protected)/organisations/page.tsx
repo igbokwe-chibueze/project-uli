@@ -34,7 +34,7 @@ const OrgHomePage = async () => {
 
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-sm w-full text-center space-y-4">
-          <h1 className="text-2xl font-semibold">Welcome! {userName}</h1>
+          <h1 className="text-2xl font-semibold capitalize">Welcome! {userName}</h1>
           <p className="text-muted-foreground">({userId})</p>
           
           <p className="text-muted-foreground">

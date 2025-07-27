@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma/prisma";
 
-import { currentUser } from "@/features/auth/lib/authenticate";
+import { currentID } from "@/features/auth/lib/authenticate";
 import { CreateOrganisationSchema } from "@/features/organisations/schemas";
 
 export const createOrganisationAction = async (values: z.infer<typeof CreateOrganisationSchema>) => {
@@ -18,8 +18,8 @@ export const createOrganisationAction = async (values: z.infer<typeof CreateOrga
     const { organizationName, country, state, logo } = validatedFields.data;
 
     //Ensure user is authenticated
-    const user = await currentUser();
-    if (!user?.id) {
+    const userId = await currentID();
+    if (!userId) {
         return { error: "You must be logged in to create an organization." };
     }
 
@@ -39,7 +39,7 @@ export const createOrganisationAction = async (values: z.infer<typeof CreateOrga
             logo: logoUrl,
             members: {
                 create: {
-                    userId: user.id,
+                    userId: userId,
                     role:   "OWNER",
                 },
             },
