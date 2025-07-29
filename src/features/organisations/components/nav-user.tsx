@@ -7,7 +7,9 @@ import {
   ChevronsUpDown,
   CreditCard,
   LogOut,
+  SettingsIcon,
   Sparkles,
+  UserIcon,
 } from "lucide-react"
 
 import {
@@ -33,6 +35,7 @@ import {
 import { LogoutButton } from "@/features/auth/components/logout-button"
 import { UseCurrentUser } from "@/features/auth/hooks/use-current-user"
 import { useCurrentName } from "@/features/auth/hooks/use-current-name"
+import Link from "next/link"
 
 /**
  * NavUser Component
@@ -63,6 +66,8 @@ export const NavUser = () => {
   // Define the list of menu items for the dropdown.
   // Each item has an icon and a label.
   const menuItems = [
+    { icon: UserIcon, label: "Profile", url: "/profile", },
+    { icon: SettingsIcon, label: "Settings", url: "/details", },
     { icon: BadgeCheck, label: "Account" },
     { icon: CreditCard, label: "Billing" },
     { icon: Bell, label: "Notifications" },
@@ -129,11 +134,13 @@ export const NavUser = () => {
                     <DropdownMenuSeparator />
 
                     <DropdownMenuGroup>
-                        {menuItems.map(({ icon: Icon, label }) => (
-                            <DropdownMenuItem key={label}>
-                                <Icon />
-                                {label}
-                            </DropdownMenuItem>
+                        {menuItems.map(({ icon: Icon, label, url }) => (
+                            <Link key={label} href={`/user${url}`}>
+                                <DropdownMenuItem key={label}>
+                                    <Icon />
+                                    {label}
+                                </DropdownMenuItem>
+                            </Link>
                         ))}
                     </DropdownMenuGroup>
 
