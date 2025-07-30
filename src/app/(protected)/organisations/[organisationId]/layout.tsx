@@ -4,11 +4,11 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
 import NotFound from "@/app/not-found"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/features/organisations/components/app-sidebar";
 import { CreateOrganisationModal } from '@/features/organisations/components/create-organisation-modal';
 import { OrganisationHeader } from '@/features/organisations/components/organisation-header';
 import { getOrganisationSummaryById } from '@/features/organisations/data/organizations';
 import { OrganisationClientProvider } from '@/features/organisations/context/organisation-client-provider';
+import { OrgSidebar } from '@/features/organisations/components/org-sidebar';
 
 interface PageProps {
   params: Promise<{ organisationId: string }>;
@@ -36,7 +36,7 @@ const OrgIdLayout = async ({children, params}: PageProps) => {
         
         <SidebarProvider>
           <OrganisationClientProvider organisation={organisation}>
-            <AppSidebar />
+            <OrgSidebar/>
             
             <SidebarInset>
               <OrganisationHeader/>

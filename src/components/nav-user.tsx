@@ -1,4 +1,5 @@
-// src/features/organisations/components/nav-user.tsx
+// src/components/nav-user.tsx
+
 "use client"
 
 import {

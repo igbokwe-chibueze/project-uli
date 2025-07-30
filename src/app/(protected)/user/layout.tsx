@@ -11,13 +11,14 @@ interface UserLayoutPageProps {
 const UserLayoutPage = async ({children}: UserLayoutPageProps) => {
   return (
     <div>
-        <SidebarProvider>
-            <UserSidebar/>
-            <SidebarInset>
-              <UserDashboardHeader/>
-                {children}
-            </SidebarInset>
-        </SidebarProvider>
+      <SidebarProvider>
+        <UserSidebar/>
+
+        <SidebarInset>
+          <UserDashboardHeader/>
+          {children}
+        </SidebarInset>
+      </SidebarProvider>
     </div>
   )
 }
