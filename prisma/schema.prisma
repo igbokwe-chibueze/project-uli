@@ -14,19 +14,26 @@ model User {
   id                    String                 @id @default(cuid())
   firstName             String
   lastName              String
+  username              String?
   email                 String                 @unique
   emailVerified         DateTime?
   image                 String?
   bannerImage           String?
   bio                   String?
+  website               String?
   password              String?
   passwordChangedAt     DateTime?
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   isTwoFactorEnabled    Boolean                @default(false)
+  loginAlertsEnabled    Boolean                @default(true)
   role                  UserRole               @default(USER)
   countryId             String?
+  stateId               String?
   platformInviteId      String?                @unique
+  phoneNumber           String?                @unique
+  streetAddress1        String?
+  streetAddress2        String?
   accounts              Account[]
   addresses             Address[]
   OrgInviteToken        OrgInviteToken[]
@@ -35,6 +42,7 @@ model User {
   sessions              Session[]
   twoFactorConfirmation TwoFactorConfirmation?
   country               Country?               @relation(fields: [countryId], references: [id])
+  state                 State?                 @relation("UserToState", fields: [stateId], references: [id])
   platformInvite        PlatformInviteToken?   @relation("PlatformInviteForUser", fields: [platformInviteId], references: [id])
   userCertifications    UserCertification[]
   userLanguages         UserLanguage[]
@@ -160,6 +168,7 @@ model State {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   organizations Organization[] @relation("StateToOrgs")
+  users         User[]         @relation("UserToState")
   country       Country        @relation(fields: [countryId], references: [id], onDelete: Cascade)
 
   @@index([countryId], map: "idx_states_country")
