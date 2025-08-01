@@ -1,12 +1,15 @@
 // src/features/user/components/profile-header.tsx
 
+import Link from "next/link"
+import Image from "next/image"
+import { UserPenIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { getInitials } from "@/lib/getInitials"
+
+import { buttonVariants } from "@/components/ui/button"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { UserPenIcon } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
 
 
 interface ProfileHeaderUser {
@@ -21,16 +24,6 @@ interface ProfileHeaderProps {
 }
 
 export const ProfileHeader = ({user, userDisplayName,}: ProfileHeaderProps) => {
-
-    // Function to get the initials (first letter of first name + first letter of last name)
-    const getUserInitials = () => {
-        const firstInitial = user?.firstName?.charAt(0) || '';
-        const lastInitial = user?.lastName?.charAt(0) || '';
-        // If both initials are available, combine them. Otherwise, fall back to the first two
-        // characters of the display name, or a default if that's also empty.
-        return (firstInitial + lastInitial).toUpperCase() || userDisplayName.slice(0, 2).toUpperCase() || '??';
-    };
-
   return (
     <section className="bg-background border-y border-border">
         <AspectRatio ratio={5 / 1} className="bg-muted">
@@ -52,7 +45,7 @@ export const ProfileHeader = ({user, userDisplayName,}: ProfileHeaderProps) => {
                     className="border-4 border-background"
                 />
                 <AvatarFallback className="border-4 border-background rounded-lg text-6xl">
-                    {getUserInitials()}
+                    {getInitials(user.firstName + " " + user.lastName)}
                 </AvatarFallback>
             </Avatar>
             
