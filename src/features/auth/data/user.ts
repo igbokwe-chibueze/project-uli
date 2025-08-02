@@ -19,8 +19,15 @@ export const getUserByEmail = async (email: string) => {
 export const getUserById = async (id: string) => {
     try {
         const user = await prisma.user.findUnique({
-            where: {
-                id,
+            where: { id },
+            include: {
+                country: true, // Includes the related country data
+                state: true,   // Includes the related state data
+                userLanguages: {
+                    include: {
+                        language: true, // Includes the related language data for each user language entry
+                    },
+                },
             },
         });
 
