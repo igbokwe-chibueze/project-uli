@@ -185,7 +185,7 @@ export const UserInfo = ({user, userDisplayName,}: UserInfoProps) => {
                         <p className="text-muted-foreground text-base  md:text-sm">
                             Two Factor Authentication
                         </p>
-                        <Badge variant= {user?.isTwoFactorEnabled ? 'default' : 'destructive'}>
+                        <Badge variant= {user?.isTwoFactorEnabled ? 'default' : 'secondary'}>
                             {user?.isTwoFactorEnabled ? 'Enabled' : 'Disabled'}
                         </Badge>
                     </div>
@@ -199,7 +199,7 @@ export const UserInfo = ({user, userDisplayName,}: UserInfoProps) => {
                         <p className="text-muted-foreground text-base  md:text-sm">
                             login Alerts
                         </p>
-                        <Badge variant= {user?.loginAlertsEnabled ? 'default' : 'destructive'}>
+                        <Badge variant= {user?.loginAlertsEnabled ? 'default' : 'secondary'}>
                             {user?.loginAlertsEnabled ? 'Enabled' : 'Disabled'}
                         </Badge>
                     </div>

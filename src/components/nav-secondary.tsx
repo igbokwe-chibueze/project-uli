@@ -16,7 +16,7 @@ import {
 export interface SecondaryItem {
   title: string;
   url: string;
-  icon: React.ComponentType<LucideProps>;
+  icon?: React.ComponentType<LucideProps>;
 }
 
 export interface NavSecondaryProps
@@ -34,7 +34,7 @@ export function NavSecondary({basePath, routes, ...props} : NavSecondaryProps) {
             <SidebarMenuItem key={route.title}>
               <SidebarMenuButton asChild >
                 <Link href={`${basePath}${route.url}`}>
-                  <route.icon />
+                  {route.icon && <route.icon/>}
                   <span>{route.title}</span>
                 </Link>
               </SidebarMenuButton>
