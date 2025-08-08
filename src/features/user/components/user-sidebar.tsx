@@ -22,15 +22,6 @@ const userNavRoutes: NavRoute[] = [
       { title: "Details", url: "/details" },
     ],
   },
-  {
-    title: "Settings",
-    segment: "/settings",
-    items: [
-      { title: "Profile", url: "/profile" },
-      { title: "Security", url: "/security" },
-      { title: "Preference", url: "/preference" },
-    ],
-  },
 ];
 
 

@@ -19,7 +19,7 @@ import Link from "next/link";
 interface UserWithRelations extends User {
   country?: { name: string } | null;
   state?: { name: string } | null;
-  userLanguages?: { language: { name: string; languageCode?: string | null }; fluency?: string | null }[];
+  userLanguages?: { language: { id: string; name: string; }; fluency?: string | null }[];
 }
 
 interface UserInfoProps {
@@ -81,6 +81,16 @@ export const UserInfo = ({user, userDisplayName,}: UserInfoProps) => {
                         <div className="space-y-2">
                             <p>Username</p>
                             <Input disabled value={user.username ?? ""}/>
+                        </div>
+
+                        <div className="space-y-2">
+                            <p>Other Name</p>
+                            <Input disabled value={user.otherName ?? ""}/>
+                        </div>
+
+                        <div className="space-y-2">
+                            <p>Gender</p>
+                            <Input disabled value={user.gender ?? ""}/>
                         </div>
 
                         <div className="space-y-2">

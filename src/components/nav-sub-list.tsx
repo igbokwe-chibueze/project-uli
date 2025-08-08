@@ -39,7 +39,7 @@ export const NavSubList = ({basePath, routes} : NavSubListProps) => {
                     )}
                     aria-current={isActive ? "page" : undefined}
                 >
-                    {route.icon && <route.icon/>}
+                    {route.icon && <route.icon className="size-4"/>}
                     <span>{route.title}</span>
                 </Link>
             )

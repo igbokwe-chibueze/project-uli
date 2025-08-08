@@ -144,7 +144,10 @@ export const SelectPopover = <T extends FieldValues>({
           </PopoverContent>
         </Popover>
       </FormControl>
-      {error && <FormMessage>{error.message}</FormMessage>}
+      {/* {error && <FormMessage>{error.message}</FormMessage>} */}
+      <div className="min-h-[1.25rem]">
+        <FormMessage className="text-left" />
+      </div>
     </FormItem>
   );
 };

@@ -23,9 +23,16 @@ export const getUserById = async (id: string) => {
             include: {
                 country: true, // Includes the related country data
                 state: true,   // Includes the related state data
+                // userLanguages: {
+                //     include: {
+                //         language: true, // Includes the related language data for each user language entry
+                //     },
+                // },
                 userLanguages: {
-                    include: {
-                        language: true, // Includes the related language data for each user language entry
+                    select: {
+                        language: {
+                            select: { id: true, name: true, countryCode: true, },
+                        },
                     },
                 },
             },
