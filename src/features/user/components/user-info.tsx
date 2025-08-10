@@ -143,7 +143,7 @@ export const UserInfo = ({user, userDisplayName,}: UserInfoProps) => {
                         <AspectRatio ratio={5 / 1} className="bg-muted rounded-lg">
                             {user.bannerImage && (
                                 <Image
-                                    src={""}
+                                    src={user.bannerImage}
                                     fill
                                     className="h-full w-full object-cover"
                                     alt="Profile Background"

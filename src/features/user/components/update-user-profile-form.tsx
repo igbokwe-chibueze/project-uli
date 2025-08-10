@@ -13,8 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { FormSuccess } from "@/components/form-success";
 import { SelectPopover } from "@/components/select-popover";
 import { FileUploadField } from "@/components/file-upload-field";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 import { User } from "@prisma/client";
@@ -96,7 +95,7 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
         streetAddress2:     initialData.streetAddress2  ?? "",
 
         bannerImage:        initialData.bannerImage     ?? "",
-        image:       initialData.image           ?? "",
+        image:              initialData.image           ?? "",
         gender:             initialData.gender          ?? "",
 
         languages:      initialData.userLanguages.map((l) => l.language.id) ?? [],
@@ -176,7 +175,7 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                             // New file uploaded
                             finalBannerImageValue = await uploadToCloudinary(
                                 values.bannerImage,
-                                "banner_upload_project_uli",
+                                "logo_upload_project_uli",
                                 "users/bannerImages"
                             );
                         } else if (typeof values.bannerImage === "string") {
@@ -753,8 +752,8 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                                 accept="image/*"
                                 acceptLabel="Images (PNG, JPG, SVG, etc.)"
                                 maxSizeMB={3}
-                                previewWidth={128}
-                                previewHeight={128}
+                                previewWidth={600}
+                                previewHeight={200}
                             />
                             {/* Pencil icon for Banner Image, placed separately due to FileUploadField's structure */}
                             {dirtyFields.bannerImage && (

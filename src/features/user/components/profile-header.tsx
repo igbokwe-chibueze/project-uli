@@ -16,6 +16,7 @@ interface ProfileHeaderUser {
     firstName: string;
     lastName: string;
     image: string | null;
+    bannerImage?: string | null;
 }
 
 interface ProfileHeaderProps {
@@ -27,9 +28,9 @@ export const ProfileHeader = ({user, userDisplayName,}: ProfileHeaderProps) => {
   return (
     <section className="bg-background border-y border-border">
         <AspectRatio ratio={5 / 1} className="bg-muted">
-            {user.firstName && (
+            {user.bannerImage && (
                 <Image
-                    src={""}
+                    src={user.bannerImage}
                     fill
                     className="h-full w-full object-cover"
                     alt="Profile Background"

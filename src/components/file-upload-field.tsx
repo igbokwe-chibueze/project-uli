@@ -1,7 +1,8 @@
 // src/components/file-upload-field.tsx
 
-import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
+
 import { Info, Upload, ImageIcon, X, Check } from "lucide-react";
 import { useRef, useState, DragEvent, MouseEvent, useEffect } from "react";
 import { useController, Control, FieldValues, Path } from "react-hook-form";
@@ -21,7 +22,7 @@ interface FileUploadFieldProps<T extends FieldValues> {
     previewHeight?: number;
 }
 
-export function FileUploadField<T extends FieldValues>({
+export const FileUploadField = <T extends FieldValues>({
     control,
     name,
     label,
@@ -30,7 +31,7 @@ export function FileUploadField<T extends FieldValues>({
     maxSizeMB = 3,
     previewWidth = 128,
     previewHeight = 128,
-}: FileUploadFieldProps<T>) {
+}: FileUploadFieldProps<T>) => {
 
     const {
         field: { onChange, onBlur, value: fileOrUrl, disabled },
@@ -114,7 +115,7 @@ export function FileUploadField<T extends FieldValues>({
                 }}
                 onClick={() => !disabled && inputRef.current?.click()}
                 className={cn(
-                    "relative border-2 border-dashed rounded-lg p-6 text-center transition",
+                    "relative border-2 border-dashed rounded-lg p-6 h-[280px] text-center transition",
                     disabled && "opacity-50 cursor-not-allowed",
                     isDragOver ? "border-primary bg-primary/10" :
                         previewUrl ? "border-green-500 bg-muted" :
@@ -133,14 +134,13 @@ export function FileUploadField<T extends FieldValues>({
 
                 {/* If previewUrl exists, show preview */}
                 {previewUrl ? (
-                    <div>
-                        <div className="relative mx-auto bg-accent-foreground" style={{ width: previewWidth, height: previewHeight }}>
+                    <>
+                        <div className="relative mx-auto" style={{ width: previewWidth, height: previewHeight }}>
                             <Image 
                                 src={previewUrl} 
                                 alt="Preview" 
                                 fill 
-                                className="object-scale-down rounded" 
-                                unoptimized 
+                                className="object-fill rounded"
                             />
                             {/* Button to remove selected file or clear existing URL */}
                             <button
@@ -177,21 +177,30 @@ export function FileUploadField<T extends FieldValues>({
                                 </p>
                             </div>
                         )}
-                        {/* Show "Existing Logo" or similar if it's an existing URL */}
+                        {/* Show "Existing Logo" or similar if it's an existing URL 
+                            this code block serves as a label to inform the user that the image they are seeing is the 
+                            logo currently saved in the database, not a new one they've just picked
+                        */}
                         {typeof fileOrUrl === "string" && fileOrUrl.trim() !== "" && !(maybeFile instanceof File) && (
                             <p className="text-sm text-muted-foreground mt-2">
                                 Current Logo
                             </p>
                         )}
-                    </div>
+                    </>
                 ) : (
                     /* Placeholder UI when no file is selected */
-                    <div className="text-center space-y-3">
+                    <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
                         <div className="mx-auto size-12 text-muted-foreground">
-                            {isDragOver ? <Upload className="w-full h-full animate-bounce" /> : <ImageIcon className="w-full h-full" />}
+                            {isDragOver ? (
+                                <Upload className="w-full h-full animate-bounce" />
+                            ) : (
+                                <ImageIcon className="w-full h-full" />
+                            )}
                         </div>
                         <p className="text-sm font-medium">
-                            {isDragOver ? `Drop ${label}` : `Click or drag to upload ${label.toLowerCase()}`}
+                            {isDragOver
+                                ? `Drop ${label}`
+                                : `Click or drag to upload ${label.toLowerCase()}`}
                         </p>
                         <p className="text-xs text-muted-foreground">
                             {acceptLabel} up to {maxSizeMB}MB
