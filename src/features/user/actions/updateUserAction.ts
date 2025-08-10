@@ -32,8 +32,8 @@ export const updateUserAction = async (
   if (typeof data.firstName=== "string") {
     updatePayload.firstName = data.firstName;
   }
-  if (typeof data.surname=== "string") {
-    updatePayload.lastname = data.surname;
+  if (typeof data.lastName=== "string") {
+    updatePayload.lastname = data.lastName;
   }
   if (typeof data.otherName=== "string") {
     updatePayload.otherName = data.otherName;

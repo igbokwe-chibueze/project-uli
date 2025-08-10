@@ -4,12 +4,9 @@
 import { CountryOptionProps, OptionProps, StateOptionProps } from "@/data/static-data";
 
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FormError } from "@/components/form-error";
-import { Progress } from "@/components/ui/progress";
 import { FormSuccess } from "@/components/form-success";
 import { SelectPopover } from "@/components/select-popover";
 import { FileUploadField } from "@/components/file-upload-field";
@@ -18,24 +15,19 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 
 import { User } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { UpdateUserSchema } from "@/features/user/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { updateUserAction } from "@/features/user/actions/updateUserAction";
-import { useConfirm } from "@/hooks/use-confirm";
-import { deleteUserAction } from "../actions/deleteUserAction";
 import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
 import { AtSignIcon, GlobeIcon, LetterTextIcon, LoaderCircleIcon, MailIcon, MapPinIcon, PencilLineIcon, RotateCcwIcon, SaveIcon, ShieldOffIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
 import { PhoneNumberInput } from "@/components/phone-number-input";
 import { Separator } from "@/components/ui/separator";
 import { LocationSelector } from "@/components/location-selector";
 import { MultiSelect } from "@/components/multi-select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
-import { getInitials } from "@/lib/getInitials";
 import { ProfileImageUpload } from "@/components/profile-image-uploader";
 
 interface UpdateUserProfileFormProps {
@@ -64,10 +56,6 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
     const [isPending, startTransition] = useTransition();
     // Specific for onSubmit
     const [isSavingChanges, setIsSavingChanges]     = useState(false);
-    // Specific for activate/deactivate
-    const [isActivatingDeactivating, setIsActivatingDeactivating] = useState(false);
-    // Specific for delete
-    const [isDeleting, setIsDeleting] = useState(false);
 
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
@@ -77,10 +65,13 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
 
     // Build defaultValues from initialData. For any null/undefined, we pass "" to keep controlled.
     // Correctly map fields from the Prisma model to the form schema.
-    // WRAP defaultValues in useMemo
+    // WRAP defaultValues in useMemo.
+    // Example
+    // This value, initialData.firstName, represents the source of truth for the user's first name as it's currently stored. 
+    // The entire line of code is about using this database value to set the initial state of the firstName field in your form.
     const memoizedDefaultValues = useMemo(() => ({
         firstName:          initialData.firstName       ?? "",
-        surname:            initialData.lastName        ?? "",
+        lastName:            initialData.lastName       ?? "",
         otherName:          initialData.otherName       ?? "",
         userName:           initialData.username        ?? "",
 
@@ -113,10 +104,8 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
         defaultValues: memoizedDefaultValues, // Use the memoized default values
     });
 
-    const { formState, watch } = form;
+    const { formState } = form;
     const { isDirty, dirtyFields } = formState;
-
-    const formValues = watch();
 
     // Calculate number of modified fields
     const modifiedCount = Object.keys(dirtyFields).length;
@@ -196,7 +185,7 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                     const payload: Partial<z.infer<typeof UpdateUserSchema>> = {};
 
                     if (dirtyFields.firstName) payload.firstName= values.firstName;
-                    if (dirtyFields.surname) payload.surname= values.surname;
+                    if (dirtyFields.lastName) payload.lastName= values.lastName;
                     if (dirtyFields.otherName) payload.otherName= values.otherName;
                     if (dirtyFields.userName) payload.userName= values.userName;
 
@@ -292,112 +281,6 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
         toast.info("Form Reset", { description: "All changes have been reverted." });
     };
 
-{/* ───────────────── Active Status ──────────────────────────────────────── */}
-    // For activation success/error message
-    const [activationError, setActivationError] = useState<string | undefined>("");
-    const [activationSuccess, setActivationSuccess] = useState<string | undefined>("");
-
-    const [ActivationDialog, confirmActivation] = useConfirm(
-        "Reactivate User",
-        "Reactivating your account would make it become visible and usable again."
-    )
-
-    const [DeactivationDialog, confirmDeactivation] = useConfirm(
-        "Deactivate User",
-        "Are you absolutely sure you want to deactivate your account? This will prevent other users from seeing or interacting with you."
-    )
-
-    // Handler for deactivation/reactivation action
-    const handleUserActivationStatusChange = async () => {
-        setActivationError(""); // Clear previous errors
-        setActivationSuccess(""); // Clear previous success
-
-        // Trigger the dialog
-        if (initialIsActive) {
-            const ok = await confirmDeactivation();
-            // User cancelled
-            if (!ok) return;
-        } else {
-            const ok = await confirmActivation();
-            // User cancelled
-            if (!ok) return;
-        }
-
-        setIsActivatingDeactivating(true); // Start activate/deactivate loading state
-
-        startTransition(async () => {
-            try {
-                const newIsActiveStatus = !initialIsActive; // Toggle the status
-                const res = await updateUserAction(userId, { isActive: newIsActiveStatus });
-
-                if (res.error) {
-                    setActivationError(res.error);
-                    toast.error(`Failed to ${newIsActiveStatus ? 'reactivate' : 'deactivate'} user`, { description: res.error });
-                } else {
-                    setActivationSuccess(`User ${newIsActiveStatus ? 'reactivated' : 'deactivated'} successfully!`);
-                    toast.success(`User ${newIsActiveStatus ? 'Reactivated' : 'Deactivated'}`, {
-                        description: `"${initialData.firstName}" is now ${newIsActiveStatus ? 'active' : 'inactive'}.`,
-                    });
-                    router.refresh(); // Revalidate data to show updated status
-                }
-            } catch (err: unknown) {
-                const msg = err instanceof Error ? err.message : "Something went wrong";
-                setActivationError(msg);
-                toast.error("Error", { description: msg });
-            } finally {
-                setIsActivatingDeactivating(false); // End activate/deactivate loading state
-            }
-        });
-    };
-
-{/* ───────────────── Deleting ──────────────────────────────────────── */}
-    // For delete success/error message
-    const [deleteError, setDeleteError] = useState<string | undefined>("");
-    const [deleteSuccess, setDeleteSuccess] = useState<string | undefined>("");
-
-    // State for confirming organization name before deletion
-    const [confirmYourName, setConfirmYourName] = useState("");// This should instead be confirm password
-
-    const [DeleteDialog, confirmDelete] = useConfirm(
-        "Delete User",
-        "Are you absolutely sure you want to delete your account? This action cannot be undone.",
-        "destructive"
-    )
-
-    const handleDelete = async () => {
-        if (confirmYourName !== initialData.firstName) {
-            setDeleteError("Please type your first name correctly to confirm deletion.");
-            return;
-        }
-
-        const ok = await confirmDelete(); // Trigger the dialog
-        if (!ok) return; // User cancelled
-
-        setIsDeleting(true); // Start deleting loading state
-
-        startTransition(async () => {
-            setDeleteError("");
-            setDeleteSuccess(""); // Clear previous messages
-
-            const result = await deleteUserAction(userId);
-            if (result?.error) {
-                setDeleteError(result.error);
-                toast.error("Delete Failed", { description: result.error });
-            } else {
-                setDeleteSuccess("User deleted successfully. Redirecting...");
-                toast.success("Organisation deleted successfully.", {
-                    description: `"${initialData.firstName}" has been deleted.`,
-                });
-                // Redirect to home, doing a hard refresh that clears any cache.
-                window.location.href = "/access";
-            }
-            setIsDeleting(false); // End deleting loading state
-        });
-    };
-
-
-
-
 
   return (
     <div className="lg:w-[900px] space-y-6">
@@ -457,12 +340,12 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                             {/* ── Surname ──────────────────────────────────────────────── */}
                             <FormField
                                 control={form.control}
-                                name="surname"
+                                name="lastName"
                                 render={({ field }) => (
                                     <FormItem>
                                         <div className="flex items-center gap-2">
                                             <FormLabel> Surname </FormLabel>
-                                            {dirtyFields.surname && (
+                                            {dirtyFields.lastName && (
                                                 <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
                                             )}
                                         </div>
@@ -473,7 +356,7 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                                                     {...field}
                                                     placeholder="Enter Surname"
                                                     type="text"
-                                                    autoComplete="surname"
+                                                    autoComplete="lastName"
                                                     className="pl-10"
                                                     disabled={isSavingChanges}
                                                 />

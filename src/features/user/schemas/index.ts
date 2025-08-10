@@ -6,7 +6,7 @@ import * as z from "zod";
 export const UserBaseSchema = z.object({
   // Basic identification
   firstName: z.string().min(1, { message: "First name is required" }).max(100, { message: "First name must not be more than 100 characters" }),
-  surname: z.string().min(1, { message: "Surname is required" }).max(100, { message: "Surname must not be more than 100 characters" }),
+  lastName: z.string().min(1, { message: "Surname is required" }).max(100, { message: "Surname must not be more than 100 characters" }),
   userName: z.string().optional(),
   otherName: z.string().optional(),
   gender: z.string().optional(),
