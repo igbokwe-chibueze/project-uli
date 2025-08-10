@@ -6,7 +6,7 @@ import { CountryOptionProps, OptionProps, StateOptionProps } from "@/data/static
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FormError } from "@/components/form-error";
 import { Progress } from "@/components/ui/progress";
@@ -19,7 +19,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 
 import { User } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { ChangeEvent, useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { UpdateUserSchema } from "@/features/user/schemas";
@@ -34,6 +34,10 @@ import { PhoneNumberInput } from "@/components/phone-number-input";
 import { Separator } from "@/components/ui/separator";
 import { LocationSelector } from "@/components/location-selector";
 import { MultiSelect } from "@/components/multi-select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import { getInitials } from "@/lib/getInitials";
+import { ProfileImageUpload } from "@/components/profile-image-uploader";
 
 interface UpdateUserProfileFormProps {
     initialData: User & {
@@ -92,7 +96,7 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
         streetAddress2:     initialData.streetAddress2  ?? "",
 
         bannerImage:        initialData.bannerImage     ?? "",
-        profileImage:       initialData.image           ?? "",
+        image:       initialData.image           ?? "",
         gender:             initialData.gender          ?? "",
 
         languages:      initialData.userLanguages.map((l) => l.language.id) ?? [],
@@ -137,7 +141,7 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
         startTransition(() => {
             (async () => {
                 try {
-                    // — Upload logo if user picked one
+                    // — Upload image if user picked one
                     let finalImageValue: string | null | undefined; // This will hold the value for the payload
 
                     // Only process image if it was changed
@@ -172,7 +176,7 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                             // New file uploaded
                             finalBannerImageValue = await uploadToCloudinary(
                                 values.bannerImage,
-                                "logo_upload_project_uli",
+                                "banner_upload_project_uli",
                                 "users/bannerImages"
                             );
                         } else if (typeof values.bannerImage === "string") {
@@ -405,6 +409,17 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                         {/* ─────────────────────────────────────────────────────────────────── */}
                             {/* ── Basic Information ──────────────────────────────────────── */}
                         {/* ─────────────────────────────────────────────────────────────────── */}
+
+                        {/* ── Profile Image ──────────────────────────────────────────────── */}
+                        <ProfileImageUpload
+                            form={form}
+                            name="image"
+                            label="Profile Image"
+                            userName={initialData.firstName}
+                            isDirty={dirtyFields.image}
+                            disabled={isSavingChanges}
+                        />
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* ── First Name ──────────────────────────────────────────────── */}
                             <FormField

@@ -73,6 +73,12 @@ export const updateUserAction = async (
     updatePayload.streetAddress2 = data.streetAddress2;
   }
 
+  if (data.image !== undefined) {
+    updatePayload.image = data.image === "" ? null : data.image;
+  }
+  if (data.bannerImage !== undefined) {
+    updatePayload.bannerImage = data.bannerImage === "" ? null : data.bannerImage;
+  }
 
   if (data.isActive !== undefined) {
     updatePayload.isActive = data.isActive;

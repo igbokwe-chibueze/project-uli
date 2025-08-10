@@ -60,10 +60,9 @@ export const UserInfo = ({user, userDisplayName,}: UserInfoProps) => {
                         <AvatarImage
                             src={user?.image || ""}
                             alt={userDisplayName || "User Avatar"}
-                            className="border-4 border-background"
                         />
-                        <AvatarFallback className="border-4 border-background rounded-lg text-4xl">
-                            {getInitials(user.firstName + " " + user.lastName)}
+                        <AvatarFallback className="rounded-lg text-4xl">
+                            {getInitials(user.firstName, user.lastName)}
                         </AvatarFallback>
                     </Avatar>
 
