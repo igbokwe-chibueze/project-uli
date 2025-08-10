@@ -33,22 +33,52 @@ export const updateUserAction = async (
     updatePayload.firstName = data.firstName;
   }
   if (typeof data.lastName=== "string") {
-    updatePayload.lastname = data.lastName;
+    updatePayload.lastName = data.lastName;
   }
   if (typeof data.otherName=== "string") {
     updatePayload.otherName = data.otherName;
   }
-  if (typeof data.userName=== "string") {
-    updatePayload.userName = data.userName;
+
+  if (typeof data.username=== "string") {
+    // Check if username is used by another user
+    const existingUserName = await prisma.user.findFirst({
+      where: {
+        username: {
+          equals: data.username,
+          mode: "insensitive", // makes it case-insensitive
+        },
+        NOT: { id: userId },
+      },
+      select: { id: true },
+    });
+
+    if (existingUserName) {
+      return { error: "Username already in use by another account." };
+    }
+    updatePayload.username = data.username;
   }
+
   if (typeof data.gender=== "string") {
     updatePayload.gender = data.gender;
   }
 
 
   if (data.email !== undefined && data.email !== "") {
+    // Check if email is used by another user
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email: data.email,
+        NOT: { id: userId }, // exclude current user
+      },
+      select: { id: true },
+    });
+
+    if (existingUser) {
+      return { error: "Email already in use by another account." };
+    }
     updatePayload.email = data.email;
   }
+
   if (data.phoneNumber !== undefined && data.phoneNumber !== "") {
     updatePayload.phoneNumber = data.phoneNumber;
   }

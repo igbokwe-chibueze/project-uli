@@ -7,9 +7,16 @@ export const UserBaseSchema = z.object({
   // Basic identification
   firstName: z.string().min(1, { message: "First name is required" }).max(100, { message: "First name must not be more than 100 characters" }),
   lastName: z.string().min(1, { message: "Surname is required" }).max(100, { message: "Surname must not be more than 100 characters" }),
-  userName: z.string().optional(),
+  
   otherName: z.string().optional(),
   gender: z.string().optional(),
+
+  username: z.string()
+  .min(3, { message: "Username must be at least 3 characters." })
+  .max(30, { message: "Username must not exceed 30 characters." })
+  .regex(/^[a-zA-Z0-9._-]+$/, { message: "Username can only contain letters, numbers, dots, underscores, and hyphens." })
+  .refine((val) => !val.includes("@"), { message: "Username cannot contain '@'." })
+  .transform((val) => val.trim().toLowerCase()),
 
   // Location and categorization
   country: z.string().optional(),

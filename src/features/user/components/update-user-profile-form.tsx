@@ -69,9 +69,9 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
     // The entire line of code is about using this database value to set the initial state of the firstName field in your form.
     const memoizedDefaultValues = useMemo(() => ({
         firstName:          initialData.firstName       ?? "",
-        lastName:            initialData.lastName       ?? "",
+        lastName:           initialData.lastName        ?? "",
         otherName:          initialData.otherName       ?? "",
-        userName:           initialData.username        ?? "",
+        username:           initialData.username        ?? "",
 
         email:              initialData.email           ?? "",
         phoneNumber:        initialData.phoneNumber     ?? "",
@@ -133,23 +133,45 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                     let finalBannerImageValue = initialData.bannerImage;
 
                     // --- PROFILE IMAGE LOGIC ---
+                    // Check if the profile image field has been modified by the user.
                     if (dirtyFields.image) {
+                        // If the user has uploaded a new image file...
                         if (values.image instanceof File) {
-                            finalImageValue = await uploadToCloudinary(values.image, "logo_upload_project_uli", "users/profiles");
+                            // Upload the new image to Cloudinary and get the public URL.
+                            // The image will be stored in a folder structure like "users/profiles".
+                            finalImageValue = await uploadToCloudinary(
+                                values.image, 
+                                "logo_upload_project_uli", 
+                                "users/profiles"
+                            );
+                            // If there was an old profile image, delete it from Cloudinary to clean up storage.
                             if (initialData.image) await deleteImageAction(initialData.image);
                         } else if (values.image === null) {
+                            // If the user has cleared the image, set the value to null.
                             finalImageValue = null;
+                            // Delete the old image from Cloudinary if it existed.
                             if (initialData.image) await deleteImageAction(initialData.image);
                         }
                     }
 
                     // --- BANNER IMAGE LOGIC ---
+                    // Check if the banner image field has been modified by the user.
                     if (dirtyFields.bannerImage) {
+                        // If the user has uploaded a new banner image file...
                         if (values.bannerImage instanceof File) {
-                            finalBannerImageValue = await uploadToCloudinary(values.bannerImage, "logo_upload_project_uli", "users/bannerImages");
+                            // Upload the new banner image to Cloudinary.
+                            // The image will be stored in a folder structure like "users/bannerImages".
+                            finalBannerImageValue = await uploadToCloudinary(
+                                values.bannerImage, 
+                                "logo_upload_project_uli", 
+                                "users/bannerImages"
+                            );
+                            // If there was an old banner image, delete it from Cloudinary.
                             if (initialData.bannerImage) await deleteImageAction(initialData.bannerImage);
                         } else if (values.bannerImage === null) {
+                            // If the user has cleared the banner image, set the value to null.
                             finalBannerImageValue = null;
+                            // Delete the old banner image from Cloudinary if it existed.
                             if (initialData.bannerImage) await deleteImageAction(initialData.bannerImage);
                         }
                     }
@@ -159,7 +181,7 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                     if (dirtyFields.firstName) payload.firstName= values.firstName;
                     if (dirtyFields.lastName) payload.lastName= values.lastName;
                     if (dirtyFields.otherName) payload.otherName= values.otherName;
-                    if (dirtyFields.userName) payload.userName= values.userName;
+                    if (dirtyFields.username) payload.username= values.username;
 
                     if (dirtyFields.email) payload.email= values.email;
                     if (dirtyFields.phoneNumber) payload.phoneNumber= values.phoneNumber;
@@ -268,7 +290,7 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                                 render={({ field }) => (
                                     <FormItem>
                                         <div className="flex items-center gap-2">
-                                            <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
+                                            <FormLabel>
                                                 First Name
                                             </FormLabel>
                                             {dirtyFields.firstName && (
@@ -362,12 +384,12 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                             {/* ── User Name ──────────────────────────────────────────────── */}
                             <FormField
                                 control={form.control}
-                                name="userName"
+                                name="username"
                                 render={({ field }) => (
                                     <FormItem>
                                         <div className="flex items-center gap-2">
-                                            <FormLabel> User Name </FormLabel>
-                                            {dirtyFields.userName && (
+                                            <FormLabel> Username </FormLabel>
+                                            {dirtyFields.username && (
                                                 <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
                                             )}
                                         </div>
