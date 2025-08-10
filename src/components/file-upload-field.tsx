@@ -64,11 +64,11 @@ export const FileUploadField = <T extends FieldValues>({
         // If file is explicitly passed as an empty string, set it as such
         // If file is undefined, it means clearing the selection
         if (file === undefined) {
-            onChange(undefined); // Clear form value to undefined
+            onChange(null); // normalize to null
             setPreviewUrl(undefined);
             if (inputRef.current) inputRef.current.value = ''; // Clear file input
         } else if (typeof file === 'string' && file.trim() === '') {
-            onChange(''); // Set form value to empty string
+            onChange(null); // <- normalize cleared value to null
             setPreviewUrl(undefined);
             if (inputRef.current) inputRef.current.value = ''; // Clear file input
         } else if (file instanceof File) {

@@ -61,9 +61,6 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
 
-    // We bump this key each time we want to reset the FileUploadField to show existing banner image as “preview”
-    const [bannerImageKey, setBannerImageKey] = useState(0);
-
     // Build defaultValues from initialData. For any null/undefined, we pass "" to keep controlled.
     // Correctly map fields from the Prisma model to the form schema.
     // WRAP defaultValues in useMemo.
@@ -130,60 +127,32 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
         startTransition(() => {
             (async () => {
                 try {
-                    // --- PROFILE IMAGE LOGIC ---
                     // — Upload image if user picked one
                     //let finalImageValue: string | null | undefined; // This will hold the value for the payload
                     let finalImageValue = initialData.image; // Start with the initial URL
+                    let finalBannerImageValue = initialData.bannerImage;
 
+                    // --- PROFILE IMAGE LOGIC ---
                     if (dirtyFields.image) {
                         if (values.image instanceof File) {
-                            // SCENARIO A: A new file was selected. Upload it.
-                            finalImageValue = await uploadToCloudinary(
-                                values.image,
-                                "logo_upload_project_uli",
-                                "users/profiles"
-                            );
-                            // If there was an old image, delete it after a successful upload
-                            if (initialData.image) {
-                                await deleteImageAction(initialData.image);
-                            }
+                            finalImageValue = await uploadToCloudinary(values.image, "logo_upload_project_uli", "users/profiles");
+                            if (initialData.image) await deleteImageAction(initialData.image);
                         } else if (values.image === null) {
-                            // SCENARIO B: Image was explicitly removed.
                             finalImageValue = null;
-                            // Delete the previous image from Cloudinary
-                            if (initialData.image) {
-                                await deleteImageAction(initialData.image);
-                            }
-                        } else {
-                            // SCENARIO C: Image field was touched but no new file uploaded (or was an empty string)
-                            // This scenario is effectively handled by scenario B with `null`
-                            finalImageValue = initialData.image;
+                            if (initialData.image) await deleteImageAction(initialData.image);
                         }
                     }
 
                     // --- BANNER IMAGE LOGIC ---
-                    let finalBannerImageValue = initialData.bannerImage; // Start with the initial URL
-
                     if (dirtyFields.bannerImage) {
                         if (values.bannerImage instanceof File) {
-                            finalBannerImageValue = await uploadToCloudinary(
-                                values.bannerImage,
-                                "logo_upload_project_uli",
-                                "users/bannerImages"
-                            );
-                            if (initialData.bannerImage) {
-                                await deleteImageAction(initialData.bannerImage);
-                            }
+                            finalBannerImageValue = await uploadToCloudinary(values.bannerImage, "logo_upload_project_uli", "users/bannerImages");
+                            if (initialData.bannerImage) await deleteImageAction(initialData.bannerImage);
                         } else if (values.bannerImage === null) {
                             finalBannerImageValue = null;
-                            if (initialData.bannerImage) {
-                                await deleteImageAction(initialData.bannerImage);
-                            }
-                        } else {
-                            finalBannerImageValue = initialData.bannerImage;
+                            if (initialData.bannerImage) await deleteImageAction(initialData.bannerImage);
                         }
                     }
-
 
                     const payload: Partial<z.infer<typeof UpdateUserSchema>> = {};
 
@@ -244,7 +213,6 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                             image: finalImageValue,
                             bannerImage: finalBannerImageValue,
                         });
-                        setBannerImageKey((prev) => prev + 1);
                         // revalidate the current page
                         router.refresh(); // This will eventually re-fetch the correct initialData
                     }
@@ -266,7 +234,6 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
      */
     const handleReset = () => {
         form.reset(memoizedDefaultValues); // Pass defaultValues to reset the form
-        setBannerImageKey((prev) => prev + 1); // Force FileUploadField to re-render with initial logo
         setError(""); // Clear any error messages
         setSuccess(""); // Clear any success messages
         toast.info("Form Reset", { description: "All changes have been reverted." });
@@ -619,7 +586,6 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
 
                             {/* ── Banner Image (existing URL or new File) ───────────────────────────────── */}
                             <FileUploadField
-                                key={bannerImageKey}
                                 control={form.control}
                                 name="bannerImage"
                                 label="User Banner Image"
