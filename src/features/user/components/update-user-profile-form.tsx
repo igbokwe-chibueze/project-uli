@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { LocationSelector } from "@/components/location-selector";
 import { MultiSelect } from "@/components/multi-select";
 import { ProfileImageUpload } from "@/components/profile-image-uploader";
+import { deleteImageAction } from "@/actions/deleteImageAction";
 
 interface UpdateUserProfileFormProps {
     initialData: User & {
@@ -129,59 +130,61 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
         startTransition(() => {
             (async () => {
                 try {
+                    // --- PROFILE IMAGE LOGIC ---
                     // — Upload image if user picked one
-                    let finalImageValue: string | null | undefined; // This will hold the value for the payload
+                    //let finalImageValue: string | null | undefined; // This will hold the value for the payload
+                    let finalImageValue = initialData.image; // Start with the initial URL
 
-                    // Only process image if it was changed
                     if (dirtyFields.image) {
                         if (values.image instanceof File) {
-                            // New file uploaded
+                            // SCENARIO A: A new file was selected. Upload it.
                             finalImageValue = await uploadToCloudinary(
                                 values.image,
                                 "logo_upload_project_uli",
                                 "users/profiles"
                             );
-                        } else if (typeof values.image === "string") {
-                            // Existing URL or explicitly cleared to empty string
-                            // If it's an empty string, set to null, otherwise keep the URL
-                            finalImageValue = values.image.trim() ? values.image.trim() : null;
+                            // If there was an old image, delete it after a successful upload
+                            if (initialData.image) {
+                                await deleteImageAction(initialData.image);
+                            }
+                        } else if (values.image === null) {
+                            // SCENARIO B: Image was explicitly removed.
+                            finalImageValue = null;
+                            // Delete the previous image from Cloudinary
+                            if (initialData.image) {
+                                await deleteImageAction(initialData.image);
+                            }
                         } else {
-                            // If values.image is undefined (e.g., cleared from new file selection)
-                            finalImageValue = null; // Explicitly set to null for deletion in DB
+                            // SCENARIO C: Image field was touched but no new file uploaded (or was an empty string)
+                            // This scenario is effectively handled by scenario B with `null`
+                            finalImageValue = initialData.image;
                         }
-                    } else {
-                        // Image field was NOT dirty, keep its initial value from DB.
-                        // Important: Initial value might be null in DB, which would be undefined in initialData
-                        finalImageValue = initialData.image ?? null;
                     }
 
-                    // — Upload banner image if user picked one
-                    let finalBannerImageValue: string | null | undefined; // This will hold the value for the payload
+                    // --- BANNER IMAGE LOGIC ---
+                    let finalBannerImageValue = initialData.bannerImage; // Start with the initial URL
 
-                    // Only process banner image if it was changed
                     if (dirtyFields.bannerImage) {
                         if (values.bannerImage instanceof File) {
-                            // New file uploaded
                             finalBannerImageValue = await uploadToCloudinary(
                                 values.bannerImage,
                                 "logo_upload_project_uli",
                                 "users/bannerImages"
                             );
-                        } else if (typeof values.bannerImage === "string") {
-                            // Existing URL or explicitly cleared to empty string
-                            // If it's an empty string, set to null, otherwise keep the URL
-                            finalBannerImageValue = values.bannerImage.trim() ? values.bannerImage.trim() : null;
+                            if (initialData.bannerImage) {
+                                await deleteImageAction(initialData.bannerImage);
+                            }
+                        } else if (values.bannerImage === null) {
+                            finalBannerImageValue = null;
+                            if (initialData.bannerImage) {
+                                await deleteImageAction(initialData.bannerImage);
+                            }
                         } else {
-                            // If values.image is undefined (e.g., cleared from new file selection)
-                            finalBannerImageValue = null; // Explicitly set to null for deletion in DB
+                            finalBannerImageValue = initialData.bannerImage;
                         }
-                    } else {
-                        // Image field was NOT dirty, keep its initial value from DB.
-                        // Important: Initial value might be null in DB, which would be undefined in initialData
-                        finalBannerImageValue = initialData.bannerImage ?? null;
                     }
 
-                    // Construct a payload with only the dirty fields
+
                     const payload: Partial<z.infer<typeof UpdateUserSchema>> = {};
 
                     if (dirtyFields.firstName) payload.firstName= values.firstName;
@@ -206,25 +209,13 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                     if (dirtyFields.loginAlertsEnabled) payload.loginAlertsEnabled = values.loginAlertsEnabled;
 
                     //handle social media links
-                    //if  (dirtyFields.isActive) payload.isActive = values.isActive;
 
-                    // IMPORTANT: If image is dirty, add it to payload.
-                    // This covers new upload, keeping existing, or clearing (null).
-                    // If image is dirty, include it in the payload
-                    if (dirtyFields.image) {
-                        payload.image = finalImageValue; // This will be URL string, or null
-                    } else {
-                        // Edge case: if image was in initialData, and user didn't touch it,
-                        // but it needs to be included for consistency or other reasons,
-                        // you might add it here. But typically, if !dirty, you don't send.
-                        // However, if the initialData.image was null, and the form default is undefined,
-                        // and nothing was done, it shouldn't be in dirtyFields.image.
-                        // The current structure correctly handles new uploads and explicit clears.
-                    }
+                    // Always include image and bannerImage if they were dirty.
+                    // This is crucial for both updates and deletions.
+                    if (dirtyFields.image) payload.image = finalImageValue;
+                    if (dirtyFields.bannerImage) payload.bannerImage = finalBannerImageValue;
 
-                    if (dirtyFields.bannerImage) {
-                        payload.bannerImage = finalBannerImageValue; // This will be URL string, or null
-                    }
+                    
 
                     if (Object.keys(payload).length === 0) {
                         setError("No changes detected. Please edit at least one field to save.");
