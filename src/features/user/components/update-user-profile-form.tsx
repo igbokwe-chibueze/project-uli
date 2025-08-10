@@ -239,14 +239,14 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                         //form.reset(values) // ******this seems better, the way below seems to take longer time*****************
                         form.reset({
                             ...values, // Use the submitted values
-                            // Ensure logo is correctly set for reset,
-                            // particularly if it went from File to URL, or to null
-                            image: finalImageValue === undefined ? initialData.image ?? undefined : finalImageValue ?? undefined,
-                            bannerImage: finalBannerImageValue === undefined ? initialData.bannerImage ?? undefined : finalBannerImageValue ?? undefined
+                            // Ensure image and bannerImage are set to their final, new values.
+                            // This is the key change.
+                            image: finalImageValue,
+                            bannerImage: finalBannerImageValue,
                         });
                         setBannerImageKey((prev) => prev + 1);
                         // revalidate the current page
-                        router.refresh();
+                        router.refresh(); // This will eventually re-fetch the correct initialData
                     }
                     } catch (err: unknown) {
                         const msg = err instanceof Error ? err.message : "Something went wrong";
