@@ -8,7 +8,6 @@ import { getVerificationTokenByToken } from "@/features/auth/data/verification-t
 
 export const emailVerificationAction = async (token: string) => {
     const existingToken = await getVerificationTokenByToken(token);
-    console.log ("Check the token here" + existingToken?.email)
 
     if (!existingToken) {
         return { error: "Invalid credentials!*no token" };
@@ -20,29 +19,49 @@ export const emailVerificationAction = async (token: string) => {
         return { error: "Token has expired!" };
     }
 
-    const existingUser = await getUserByEmail(existingToken.email);
-    
 
-    if (!existingUser) {
-        return { error: "Email does not exist!" };
+    let existingUser
+
+    if (existingToken.type === "REGISTRATION") {
+        // fetch user by email (initial registration flow)
+        existingUser = await getUserByEmail(existingToken.email);
     }
 
-    await prisma.user.update({
-        where: {
-            id: existingUser.id,
-        },
-        data: {
-            emailVerified: new Date(),
-            email: existingToken.email, //useful when user wants to update their email.
-        },
-    });
+    if (existingToken.type === "EMAIL_UPDATE") {
+        // fetch user by pendingEmail (email update flow)
+        existingUser = await prisma.user.findFirst({
+            where: { pendingEmail: existingToken.email },
+        });
+    }    
 
-    await prisma.verificationTokenCustom.delete({
-        where: {
-            id: existingToken.id,
-        },
-    });
+    if (!existingUser) {
+        return { error: "Email does not exist!!" };
+    }
 
-    return { success: "Email verified!" };
+    // Use a transaction to ensure both updates happen or none do
+    await prisma.$transaction([
+
+        prisma.user.update({
+            where: {
+                id: existingUser.id,
+            },
+            data: {
+                emailVerified: new Date(),
+                // Only for EMAIL_UPDATE, apply these changes:
+                ...(existingToken.type === "EMAIL_UPDATE" && {
+                    email: existingToken.email,
+                    pendingEmail: null,
+                }),
+            },
+        }),
+
+        prisma.verificationTokenCustom.delete({
+            where: {
+                id: existingToken.id,
+            },
+        }),
+    ]);
+
+    return { success: "Email verified!", type: existingToken.type };
 }
 

@@ -13,6 +13,7 @@ import { emailVerificationAction } from "@/features/auth/actions/email-verificat
 export const EmailVerificationForm = () => {
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
+    const [type, setType] = useState<string | undefined>("");
 
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
@@ -29,6 +30,7 @@ export const EmailVerificationForm = () => {
             .then((res) => {
                 setSuccess(res.success);
                 setError(res.error);
+                setType(res.type);
             })
             .catch((err) => {
                 setError(err.message);
@@ -47,8 +49,8 @@ export const EmailVerificationForm = () => {
     <CardWrapper
         headerHeading="Email Verification"
         headerLabel="Confirming your verification"
-        backButtonLabel="Back to login"
-        backButtonHref="/access"
+        backButtonLabel={type === "REGISTRATION" ? "Back to login" : "Back to profile"}
+        backButtonHref={type === "REGISTRATION" ? "/access" : "user/settings/profile"}
     >
         <div className="w-full flex flex-col items-center justify-center">
             { !success && !error && (

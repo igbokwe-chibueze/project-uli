@@ -23,7 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { updateUserAction } from "@/features/user/actions/updateUserAction";
 import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
-import { AtSignIcon, GlobeIcon, LetterTextIcon, LoaderCircleIcon, MailIcon, MapPinIcon, PencilLineIcon, RotateCcwIcon, SaveIcon, ShieldOffIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
+import { AtSignIcon, GlobeIcon, LetterTextIcon, LoaderCircleIcon, MapPinIcon, PencilLineIcon, RotateCcwIcon, SaveIcon, ShieldOffIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
 import { PhoneNumberInput } from "@/components/phone-number-input";
 import { Separator } from "@/components/ui/separator";
 import { LocationSelector } from "@/components/location-selector";
@@ -73,10 +73,9 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
         otherName:          initialData.otherName       ?? "",
         username:           initialData.username        ?? "",
 
-        email:              initialData.email           ?? "",
         phoneNumber:        initialData.phoneNumber     ?? "",
-        website:            initialData.website         ?? "",
         bio:                initialData.bio             ?? "",
+        website:            initialData.website         ?? "",
 
         country:            initialData.countryId       ?? "",
         state:              initialData.stateId         ?? "",
@@ -89,8 +88,6 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
 
         languages:      initialData.userLanguages.map((l) => l.language.id) ?? [],
         
-        isTwoFactorEnabled: initialData.isTwoFactorEnabled ?? false,
-        loginAlertsEnabled: initialData.loginAlertsEnabled ?? false,
         isActive:          initialIsActive,
     }), [initialData, initialIsActive]);
 
@@ -183,10 +180,9 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                     if (dirtyFields.otherName) payload.otherName= values.otherName;
                     if (dirtyFields.username) payload.username= values.username;
 
-                    if (dirtyFields.email) payload.email= values.email;
                     if (dirtyFields.phoneNumber) payload.phoneNumber= values.phoneNumber;
-                    if (dirtyFields.website) payload.website= values.website;
                     if (dirtyFields.bio) payload.bio= values.bio;
+                    if (dirtyFields.website) payload.website= values.website;
 
                     if (dirtyFields.country) payload.country = values.country;
                     if (dirtyFields.state) payload.state = values.state;
@@ -195,9 +191,6 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
 
                     if (dirtyFields.languages) payload.languages = values.languages;
                     if (dirtyFields.gender) payload.gender = values.gender;
-
-                    if (dirtyFields.isTwoFactorEnabled) payload.isTwoFactorEnabled = values.isTwoFactorEnabled;
-                    if (dirtyFields.loginAlertsEnabled) payload.loginAlertsEnabled = values.loginAlertsEnabled;
 
                     //handle social media links
 
@@ -423,6 +416,38 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                                 icon={<VenusAndMarsIcon/>}
                                 isDirty={dirtyFields.gender}
                             />
+
+                            {/* ── Website ──────────────────────────────────────────────── */}
+                            <FormField
+                                control={form.control}
+                                name="website"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel> Website </FormLabel>
+                                            {dirtyFields.website && (
+                                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                            )}
+                                        </div>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <GlobeIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
+                                                <Input
+                                                    {...field}
+                                                    placeholder="Enter website url"
+                                                    type="url"
+                                                    autoComplete="website"
+                                                    className="pl-10"
+                                                    disabled={isSavingChanges}
+                                                />
+                                            </div>
+                                        </FormControl>
+                                        <div className="min-h-[1.25rem]">
+                                            <FormMessage className="text-left" />
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
                         </div>
 
                         {/* ── Bio ────────────────────────────────────────────────────── */}
@@ -461,74 +486,6 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                         {/* ─────────────────────────────────────────────────────────────────── */}
                             {/* ── Contact Information ──────────────────────────────────────── */}
                         {/* ─────────────────────────────────────────────────────────────────── */}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* ── Email ──────────────────────────────────────────────── */}
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <div className="flex items-center gap-2">
-                                            <FormLabel> Email </FormLabel>
-                                            {dirtyFields.email && (
-                                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                                            )}
-                                        </div>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                                <Input
-                                                    {...field}
-                                                    placeholder="Enter your email"
-                                                    type="email"
-                                                    autoComplete="email"
-                                                    className="pl-10"
-                                                    //disabled={isSavingChanges}
-                                                    disabled
-                                                />
-                                            </div>
-                                        </FormControl>
-                                        <div className="min-h-[1.25rem]">
-                                            <FormMessage className="text-left" />
-                                        </div>
-                                    </FormItem>
-                                )}
-                            />
-
-                            {/* ── Website ──────────────────────────────────────────────── */}
-                            <FormField
-                                control={form.control}
-                                name="website"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <div className="flex items-center gap-2">
-                                            <FormLabel> Website </FormLabel>
-                                            {dirtyFields.website && (
-                                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                                            )}
-                                        </div>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <GlobeIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"/>
-                                                <Input
-                                                    {...field}
-                                                    placeholder="Enter website url"
-                                                    type="url"
-                                                    autoComplete="website"
-                                                    className="pl-10"
-                                                    disabled={isSavingChanges}
-                                                />
-                                            </div>
-                                        </FormControl>
-                                        <div className="min-h-[1.25rem]">
-                                            <FormMessage className="text-left" />
-                                        </div>
-                                    </FormItem>
-                                )}
-                            />
-
-                        </div>
 
                         {/* ── Country ────────────────────────────────────────────────────────── */}
                         <LocationSelector
@@ -667,62 +624,62 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                             {/* ── Modified Fields & Buttons ──────────────────────────────────────── */}
                         {/* ─────────────────────────────────────────────────────────────────── */}
                         
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        {/* Note for modified fields */}
-                                        {isDirty && (
-                                            <div className="flex justify-end items-center space-x-2 animate-in slide-in-from-bottom duration-200">
-                                                <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
-                                                <span className="text-right text-sm text-muted-foreground">
-                                                    {modifiedCount} {modifiedCount === 1 ? 'field' : 'fields'} modified
-                                                </span>
-                                            </div>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                {/* Note for modified fields */}
+                                {isDirty && (
+                                    <div className="flex justify-end items-center space-x-2 animate-in slide-in-from-bottom duration-200">
+                                        <PencilLineIcon className="h-4 w-4 text-primary animate-in zoom-in duration-300" />
+                                        <span className="text-right text-sm text-muted-foreground">
+                                            {modifiedCount} {modifiedCount === 1 ? 'field' : 'fields'} modified
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <FormError message={error} />
+                            <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
+                                <FormSuccess message={success} />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+
+                                {/* Reset Changes Button */}
+                                {isDirty && ( // Only show reset button if there are changes
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={handleReset}
+                                        disabled={isSavingChanges}
+                                    >
+                                        <RotateCcwIcon className="size-4 mr-2" />
+                                        Reset Changes
+                                    </Button>
+                                )}
+
+                                {/* Save Changes */}
+                                <Button
+                                    type="submit"
+                                    className="flex-1 transition-all duration-200 hover:scale-[1.02]"
+                                    disabled={!isDirty || isSavingChanges}
+                                >
+                                    <div className="flex items-center justify-center gap-2">
+                                        {isSavingChanges ? (
+                                            <>
+                                                <LoaderCircleIcon className="size-4 mr-2 animate-spin" />
+                                                <span>Saving Changes…</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <SaveIcon className="size-4 mr-2" />
+                                                <span>Save Changes</span>
+                                            </>
                                         )}
                                     </div>
-
-                                    <FormError message={error} />
-                                    <div className={isPending ? "opacity-50" : "opacity-100 transition-opacity"}>
-                                        <FormSuccess message={success} />
-                                    </div>
-
-                                    <div className="flex gap-3 pt-4">
-
-                                        {/* Reset Changes Button */}
-                                        {isDirty && ( // Only show reset button if there are changes
-                                            <Button
-                                                type="button"
-                                                variant="secondary"
-                                                onClick={handleReset}
-                                                disabled={isSavingChanges}
-                                            >
-                                                <RotateCcwIcon className="size-4 mr-2" />
-                                                Reset Changes
-                                            </Button>
-                                        )}
-
-                                        {/* Save Changes */}
-                                        <Button
-                                            type="submit"
-                                            className="flex-1 transition-all duration-200 hover:scale-[1.02]"
-                                            disabled={!isDirty || isSavingChanges}
-                                        >
-                                            <div className="flex items-center justify-center gap-2">
-                                                {isSavingChanges ? (
-                                                    <>
-                                                        <LoaderCircleIcon className="size-4 mr-2 animate-spin" />
-                                                        <span>Saving Changes…</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <SaveIcon className="size-4 mr-2" />
-                                                        <span>Save Changes</span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </Button>
-                                    </div>
-                                    
-                                </div>
+                                </Button>
+                            </div>
+                            
+                        </div>
                     </div>
                 )   : (
                     // Deactivated Organization Message Card

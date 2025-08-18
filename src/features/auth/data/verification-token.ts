@@ -14,10 +14,16 @@ export const getVerificationTokenByToken = async (token: string) => {
     }
 };
 
-export const getVerificationTokenByEmail = async (email: string) => {
+export const getVerificationTokenByEmail = async (
+    email: string,
+    type?: "REGISTRATION" | "EMAIL_UPDATE"
+) => {
     try {
         const verificationToken = await prisma.verificationTokenCustom.findFirst({
-            where: { email },
+            where: { 
+                email, 
+                ...(type && { type }), // only apply type filter if provided
+            },
         });
 
         return verificationToken;

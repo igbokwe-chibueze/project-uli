@@ -15,22 +15,27 @@ import { getTwoFactorTokenByEmail } from "@/features/auth/data/two-factor-token"
  * Generates a new email verification token.
  *
  * - Creates a new UUID as the token.
+ * - Default type is "REGISTRATION", unless another type is explicitly passed.
  * - Sets an expiration time 1 hour from now.
  * - Checks for an existing token in the database for the provided email.
  *   If one exists, it deletes it.
  * - Creates a new verification token record in the database.
  *
  * @param email - The user's email address for which to generate a token.
+ * @param type - Token purpose ("REGISTRATION" | "EMAIL_UPDATE"). Defaults to "REGISTRATION".
  * @returns The newly created verification token record.
  */
-export const generateVerificationToken = async (email: string) => {
+export const generateVerificationToken = async (
+    email: string,
+    type: "REGISTRATION" | "EMAIL_UPDATE" = "REGISTRATION"
+) => {
     // Generate a unique token using UUID v4.
     const token = uuidv4();
     // Set expiration time: current time plus 1 hour (3600 seconds * 1000 ms).
     const expires = new Date(new Date().getTime() + 3600 * 1000); // 1 hour
 
     // Check if a verification token already exists for the given email.
-    const existingToken = await getVerificationTokenByEmail(email);
+    const existingToken = await getVerificationTokenByEmail(email, type);
 
     if (existingToken) {
         // Delete the existing token from the database.
@@ -47,6 +52,7 @@ export const generateVerificationToken = async (email: string) => {
             email,  // Associate token with user's email.
             token,  // The generated token string.
             expires, // Expiration time.
+            type,   // The type of email verification ("REGISTRATION" | "EMAIL_UPDATE").
         },
     });
 

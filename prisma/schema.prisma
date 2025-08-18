@@ -17,6 +17,7 @@ model User {
   otherName             String?
   username              String                 @unique
   email                 String                 @unique
+  pendingEmail          String?
   emailVerified         DateTime?
   image                 String?
   bannerImage           String?
@@ -81,12 +82,18 @@ model Session {
 }
 
 model VerificationTokenCustom {
-  id      String   @id @default(cuid())
+  id      String                     @id @default(cuid())
   email   String
-  token   String   @unique
+  token   String                     @unique
   expires DateTime
+  type    EmailVerificationTokenType @default(REGISTRATION)
 
   @@unique([email, token])
+}
+
+enum EmailVerificationTokenType {
+  REGISTRATION
+  EMAIL_UPDATE
 }
 
 model PasswordResetToken {

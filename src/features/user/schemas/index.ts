@@ -63,7 +63,6 @@ export const UserBaseSchema = z.object({
 
   email: z
     .union([z.string().email({ message: "Email must be valid." }), z.literal("")])
-    .optional()
     .transform((v) => (v === "" ? undefined : v)),
 
   phoneNumber: z
@@ -81,17 +80,18 @@ export const UserBaseSchema = z.object({
   confirmNewPassword: z.optional(z.string().min(6)),
 });
 
-// 2. Define the complete schema with all fields (for new user creation or full updates).
-// This is the one you will use for your form, since it has the refine methods.
-export const UserSettingSchema = UserBaseSchema
+// 2. Define the partial schema for updates by using .partial() on the base schema.
+export const UpdateUserSchema = UserBaseSchema.partial();
+
+export const UpdateUserFormSchema = UpdateUserSchema
   .refine((data) => {
-    if (data.password && !data.newPassword) {
+    if (data.email && !data.password) {
       return false;
     }
     return true;
   }, {
-    message: "New Password is required",
-    path: ["newPassword"],
+    message: "Password is required to change email",
+    path: ["password"],
   })
   .refine((data) => {
     if (data.newPassword && !data.password) {
@@ -111,6 +111,3 @@ export const UserSettingSchema = UserBaseSchema
     message: "Passwords do not match",
     path: ["confirmNewPassword"],
   });
-
-// 3. Define the partial schema for updates by using .partial() on the base schema.
-export const UpdateUserSchema = UserBaseSchema.partial();
