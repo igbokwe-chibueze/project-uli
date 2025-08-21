@@ -15,9 +15,8 @@ import { Button } from "@/components/ui/button"
 import { CardWrapper } from "@/features/auth/components/card-wrapper"
 import { InitiatePasswordResetSchema } from "@/features/auth/schemas";
 import { InitiatePasswordResetAction } from "@/features/auth/actions/initiate-password-reset-action";
-import { CheckIcon, CopyIcon, LoaderCircleIcon, MailIcon } from "lucide-react";
-import { ResponsiveModal } from "@/components/responsive-modal";
-import Link from "next/link";
+import { LoaderCircleIcon, MailIcon } from "lucide-react";
+import { DevVerificationModal } from "@/components/dev-verification-modal";
 
 
 export const InitiatePasswordResetForm = () => {
@@ -27,8 +26,7 @@ export const InitiatePasswordResetForm = () => {
 
     //Using this to display tokens in dev mode.
     const [devLink, setDevLink] = useState<string | null>(null);
-    // Track copy feedback
-    const [copied, setCopied] = useState(false);
+    const [devEmail, setDevEmail] = useState<string | null>(null);
 
     const form = useForm<z.infer<typeof InitiatePasswordResetSchema>>({
         resolver: zodResolver(InitiatePasswordResetSchema),
@@ -44,10 +42,11 @@ export const InitiatePasswordResetForm = () => {
         startTransition(() => {
         InitiatePasswordResetAction(values)
             .then((res) => {
-                //setSuccess(res?.success);
                 
                 if ("resetLink" in res) {
+                    console.log("Show rest link:...." + res.resetLink)
                     setDevLink(res.resetLink!);
+                    setDevEmail(res.userEmail!);
                     return;
                 }
                 if (res.error) setError(res.error);
@@ -59,56 +58,17 @@ export const InitiatePasswordResetForm = () => {
         });
     };
 
-    // Handle copy action
-    const handleCopy = () => {
-        if (!devLink) return;
-        navigator.clipboard.writeText(devLink);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
   return (
     <>
         {/* Dev-only modal using ResponsiveModal */}
-        <ResponsiveModal
-            open={!!devLink}
-            onOpenChange={(open) => !open && setDevLink(null)}
-            title="Dev Reset Password Link"
-            description="URL to reset your password"
-        >
-            <CardWrapper
-                headerHeading="Reset Your Password"
-                className="lg:w-[620px]"
-            >
-                <div className="flex items-center gap-x-2">
-                    <Input disabled value={devLink ?? ""}/>
-                    <Button
-                        onClick={handleCopy}
-                        variant={"secondary"}
-                        className="size-12"
-                        type="button"
-                        disabled={isPending}
-                    >
-                        {copied ? <CheckIcon className="size-5 text-green-500" /> : <CopyIcon className="size-5" />}
-                    </Button>
-                </div>
-
-                <div className="pt-4 w-full flex flex-col gap-y-2 lg:flex-row gap-x-2 items-center justify-end">
-                    <Button variant="outline" onClick={() => setDevLink(null)}>
-                        Close
-                    </Button>
-
-                    {devLink && (
-                        <Button asChild>
-                            <Link href={devLink} target="_blank" rel="noopener noreferrer">
-                                Continue
-                            </Link>
-                        </Button>
-                    )}
-                </div>
-            </CardWrapper>
-        </ResponsiveModal>
-
+        <DevVerificationModal
+            link={devLink}
+            email={devEmail}
+            onClose={() => {
+                setDevLink(null);
+                setDevEmail(null); // reset when closed
+            }}
+        />
 
         <CardWrapper
             headerHeading="Reset your password"

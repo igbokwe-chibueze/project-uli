@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { DevVerificationModal } from "@/components/dev-verification-modal";
+import { signOut } from "next-auth/react";
 
 interface UpdateUserEmailPasswordProps {
     initialData: User
@@ -38,9 +39,11 @@ const UpdateUserEmailPasswordForm = ({initialData}: UpdateUserEmailPasswordProps
 
     //Using this to display tokens in dev mode.
     const [devLink, setDevLink] = useState<string | null>(null);
+    const [devNewEmail, setDevNewEmail] = useState<string | null>(null);
 
     const memoizedDefaultValues = useMemo(() => ({
         email:              initialData.email              ?? "",
+        
         password:           undefined,
         newPassword:        undefined,
         confirmNewPassword: undefined,
@@ -83,9 +86,18 @@ const UpdateUserEmailPasswordForm = ({initialData}: UpdateUserEmailPasswordProps
                 try {
                     const payload: Partial<z.infer<typeof UpdateUserFormSchema>> = {};
 
-                    if (dirtyFields.email) payload.email= values.email;
-                    if (dirtyFields.password) payload.password= values.password;
-
+                    // Email change requires current password
+                    if (dirtyFields.email) {
+                        payload.email = values.email;
+                        payload.password = values.password; // always needed when changing email
+                    }
+                    
+                    // Password change requires current + new + confirm
+                    if (dirtyFields.newPassword || dirtyFields.confirmNewPassword) {
+                        payload.password = values.password;
+                        payload.newPassword = values.newPassword;
+                        payload.confirmNewPassword = values.confirmNewPassword;
+                    }
 
                     if (dirtyFields.isTwoFactorEnabled) payload.isTwoFactorEnabled = values.isTwoFactorEnabled;
                     if (dirtyFields.loginAlertsEnabled) payload.loginAlertsEnabled = values.loginAlertsEnabled;
@@ -97,7 +109,6 @@ const UpdateUserEmailPasswordForm = ({initialData}: UpdateUserEmailPasswordProps
                         setIsSavingChanges(false);
                         return;
                     }
-                    console.log("see}}}}}}}}}")
 
                     // Call the server action with the constructed payload
                     const res = await updateUserAction(userId, payload);
@@ -109,7 +120,17 @@ const UpdateUserEmailPasswordForm = ({initialData}: UpdateUserEmailPasswordProps
                     } else {
                         if ("confirmLink" in res) {
                             setDevLink(res.confirmLink!);
+                            setDevNewEmail(res.userNewEmail!);
                             return;
+                        }
+
+                        if (res.passwordChanged) {
+                            // Use signOut with a callbackUrl that includes your flash message
+                            signOut({
+                                callbackUrl: `/user/settings/security?message=${encodeURIComponent(
+                                    "Password changed successfully. Please log in with your new password."
+                                )}`
+                            });
                         }
 
                         setSuccess(res.success!);
@@ -146,13 +167,24 @@ const UpdateUserEmailPasswordForm = ({initialData}: UpdateUserEmailPasswordProps
         setError(""); // Clear any error messages
         setSuccess(""); // Clear any success messages
         toast.info("Form Reset", { description: "All changes have been reverted." });
+
+        // Optional: I am only doing this to true clear the password fields.
+        //Without it any inputes to the password field would remain on reset.
+        // If i make the fields empty strings, that would trick zod into thinking the fields are filled even though they are empty.
+        if (dirtyFields.password || dirtyFields.newPassword || dirtyFields.confirmNewPassword) {
+            window.location.reload();
+        }
     };
 
   return (
     <>
         <DevVerificationModal
             link={devLink}
-            onClose={() => setDevLink(null)}
+            email={devNewEmail}
+            onClose={() => {
+                setDevLink(null);
+                setDevNewEmail(null); // reset when closed
+            }}
         />
 
         <div className="lg:w-[900px] space-y-6">
@@ -199,7 +231,12 @@ const UpdateUserEmailPasswordForm = ({initialData}: UpdateUserEmailPasswordProps
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel> Current Password </FormLabel>
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel> Current Password </FormLabel>
+                                            {dirtyFields.newPassword && (
+                                                <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
+                                            )}
+                                        </div>
 
                                         <div className="relative">
                                             <FormControl>

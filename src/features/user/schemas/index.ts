@@ -74,7 +74,7 @@ export const UserBaseSchema = z.object({
   isActive: z.boolean().optional(),
   isTwoFactorEnabled: z.boolean().optional(),
   loginAlertsEnabled: z.boolean().optional(),
-
+  
   password: z.optional(z.string().min(6)),
   newPassword: z.optional(z.string().min(6)),
   confirmNewPassword: z.optional(z.string().min(6)),
@@ -101,6 +101,15 @@ export const UpdateUserFormSchema = UpdateUserSchema
   }, {
     message: "Password is required",
     path: ["password"],
+  })
+  .refine((data) => {
+    if (data.newPassword && !data.confirmNewPassword) {
+      return false;
+    }
+    return true;
+  }, {
+    message: "Must confirm new password to continue",
+    path: ["confirmNewPassword"],
   })
   .refine((data) => {
     if (data.newPassword) {

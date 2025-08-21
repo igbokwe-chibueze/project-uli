@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache";
 import { UpdateUserSchema } from "@/features/user/schemas"
 import { generateVerificationToken } from "@/features/auth/lib/tokens";
 import { getUserByEmail, getUserById } from "@/features/auth/data/user";
-import { DevMailResult, sendVerificationEmail } from "@/features/auth/lib/mail";
+import { DevMailResult, sendPasswordChangeConfirmationEmail, sendVerificationEmail } from "@/features/auth/lib/mail";
 
 
 export const updateUserAction = async (
@@ -120,6 +120,35 @@ export const updateUserAction = async (
     emailChanged = true;
   }
 
+  // Process password update:
+  let passwordChanged = false;
+  // check if both current and new passwords are provided.
+  if (data.newPassword !== undefined && data.password !==undefined && dbUser.password) {
+    // Compare the provided current password with the stored hashed password.
+    const passwordMatch = await bcrypt.compare(data.password, dbUser.password);
+
+    if (!passwordMatch) {
+        return { error: "Invalid password!" };
+    }
+
+    // Check if the new password is the same as the current password.
+    const isSamePassword = await bcrypt.compare(data.newPassword, dbUser.password);
+    if (isSamePassword) {
+      return { error: "You cannot use the same password. Please choose a new one." };
+    }
+
+    passwordChanged = true;
+
+    // Hash the new password with a salt round of 10.
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+    // Replace the current password field with the hashed new password.
+    updatePayload.password = hashedPassword;
+
+    // Clear the newPassword and confirmNewPassword fields as they are no longer needed.
+    values.newPassword = undefined;
+    values.confirmNewPassword = undefined;
+  }
+
 
   if (data.country !== undefined && data.country !== "") {
     updatePayload.countryId = data.country;
@@ -166,7 +195,10 @@ export const updateUserAction = async (
       // 1) Update scalar fields on the user
       const userUpdate = tx.user.update({
         where: { id: userId },
-        data: { ...updatePayload },
+        data: { 
+          ...updatePayload,
+          ...(passwordChanged ? { passwordChangedAt: new Date() } : {}), // Update passwordChangedAt if password was changed
+        },
       });
 
       // 2) If languages were provided, replace the join‑table rows
@@ -194,6 +226,8 @@ export const updateUserAction = async (
       return user;
     });
 
+
+
     // If a email change occurred, send a confirmation email.
     if (emailChanged && data.email !== undefined && data.email !=="") {
       const newEmail = data.email;
@@ -206,14 +240,22 @@ export const updateUserAction = async (
       // If dev, send back the link so the client can show a modal
       if (mailResult && "confirmLink" in mailResult) {
         const { confirmLink } = mailResult as DevMailResult;
-        return { success: "Dev mode - copy this link to verify:", confirmLink };
+        return { success: "Dev mode - copy this link to verify:", confirmLink, userNewEmail };
       }
+
+      //TODO: Send mail also to old email warning about the changed email
+    }
+
+    // If a password change occurred, send a confirmation email.
+    if (passwordChanged) {
+      await sendPasswordChangeConfirmationEmail(dbUser.email);
+      return { success: "Password changed. Please sign-in again.", passwordChanged: true}
     }
 
     revalidatePath(`/user/${userId}`);
     revalidatePath(`/user/${userId}/details`);
     
-    return { success: "User updated successfully.", user: updatedUser };
+    return { success: "User updated successfully.", user: updatedUser, emailChanged: false, passwordChanged: false };
   } catch (err) {
     console.error("Error updating user:", err);
     return { error: "Failed to update user." };

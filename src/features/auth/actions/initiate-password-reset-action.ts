@@ -37,7 +37,7 @@ export const InitiatePasswordResetAction = async (values: z.infer<typeof Initiat
     // If dev, send back the link so the client can show a modal
     if (mailResult && "resetLink" in mailResult) {
         const { resetLink } = mailResult as DevMailResult;
-        return { success: "Dev mode - copy this link to reset your password:", resetLink };
+        return { success: "Dev mode - copy this link to reset your password:", resetLink, userEmail };
     }
 
     return { success: "Reset email sent! Check your email" };

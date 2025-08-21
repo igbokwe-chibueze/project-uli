@@ -46,10 +46,11 @@ import { CardWrapper } from "@/features/auth/components/card-wrapper";
 
 interface DevVerificationModalProps {
     link: string | null;
+    email?: string | null;
     onClose: () => void;
 }
 
-export const DevVerificationModal = ({link, onClose}: DevVerificationModalProps) => {
+export const DevVerificationModal = ({link, email, onClose}: DevVerificationModalProps) => {
 
     const [copied, setCopied] = useState(false);
     const [isPending, setIsPending] = useState(false);
@@ -71,13 +72,19 @@ export const DevVerificationModal = ({link, onClose}: DevVerificationModalProps)
     <ResponsiveModal
       open={!!link}
       onOpenChange={(open) => !open && onClose()}
-      title="Dev Verification Link"
-      description="URL to verify your email"
+      title=""
+      description=""
     >
       <CardWrapper
         headerHeading="Email Verification"
         className="lg:w-[620px]"
       >
+        {email && (
+            <p className="text-sm text-muted-foreground">
+                Confirm your new email: <span className="font-medium">{email}</span>
+            </p>
+        )}
+
         {/* Verification link + copy button */}
         <div className="flex items-center gap-x-2">
           <Input disabled value={link ?? ""} />
