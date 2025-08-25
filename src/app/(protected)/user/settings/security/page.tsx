@@ -11,6 +11,7 @@ import UpdateUserEmailPasswordForm from "@/features/user/components/update-user-
 import { Metadata } from "next";
 import { UpdateSecurityPreferencesForm } from "@/features/user/components/update-security-preferences-form";
 import { StatusMessageCard } from "@/components/status-message-card";
+import { ActiveSessions } from "@/features/user/components/active-sessions";
 
 // Define metadata for the page
 export const metadata: Metadata = {
@@ -77,7 +78,7 @@ const UserSecurityUpdatePage = async () => {
 
             <CardContent>
               <div className="space-y-4">
-
+                <ActiveSessions/>
               </div>
             </CardContent>
           </Card>

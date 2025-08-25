@@ -19,6 +19,8 @@ export default auth((req) => {
     // Determine if the user is logged in. req.auth is set after NextAuth processes the request.
     const isLoggedIn = !!req.auth;
 
+    const hasPasswordChanged = req.auth?.hasPasswordChanged; // 🔑 read flag from session/JWT
+
     // Check if the current route is an API authentication route by matching the prefix.
     const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
     // Check if the current route is a public route (accessible without authentication).
@@ -58,6 +60,12 @@ export default auth((req) => {
             `/access?callbackUrl=${encodedCallbackUrl}`, 
             nextUrl
         ));
+    }
+
+    // If password has changed → force re-login
+    if (isLoggedIn && hasPasswordChanged) {
+    console.log("See.........."+ hasPasswordChanged)
+        return Response.redirect(new URL("/access", nextUrl));
     }
 
     if (isLoggedIn && isMarketingRoute ) {
