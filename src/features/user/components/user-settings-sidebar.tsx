@@ -1,7 +1,7 @@
 // src/features/user/components/user-settings-sidebar.tsx
 "use client"
 
-import { PaletteIcon, UserIcon, UserLockIcon } from "lucide-react";
+import { KeyIcon, PaletteIcon, UserIcon, UserLockIcon } from "lucide-react";
 
 import { NavSubList } from "@/components/nav-sub-list"
 
@@ -20,6 +20,11 @@ const userSettingsNavRoutes2 = [
     title: "Preference",
     url: "/preference",
     icon: PaletteIcon,
+  },
+  {
+    title: "Account",
+    url: "/account",
+    icon: KeyIcon,
   },
 ];
 

@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 
-const page = () => {
+const PreferencePage = () => {
   return (
     <div>
       <Card>
@@ -24,4 +24,4 @@ const page = () => {
   )
 }
 
-export default page
+export default PreferencePage

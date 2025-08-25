@@ -38,7 +38,7 @@ export const GlobalLogoutButton = ({ children }: GlobalLogoutButtonProps) => {
     return (
         <span
             onClick={onClick}
-            className="flex items-center justify-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
             {isPending ? (
                 <span className="flex items-center gap-2">
