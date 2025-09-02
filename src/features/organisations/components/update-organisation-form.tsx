@@ -1253,7 +1253,7 @@ const UpdateOrganisationForm = ({
                 <DeactivationDialog/>
                 <ActivationDialog/>
 
-                <Card className="border-destructive-foreground"> {/* Use a red border for emphasis */}
+                <Card className="border-destructive"> {/* Use a red border for emphasis */}
                     <CardHeader>
                         <div className="flex items-center gap-2 text-destructive"> {/* Apply red text to header */}
                             <AlertTriangleIcon className="size-5" /> {/* Warning icon */}
