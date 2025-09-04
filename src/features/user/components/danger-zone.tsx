@@ -2,6 +2,7 @@
 "use client"
 
 import { User } from "@prisma/client";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -14,10 +15,10 @@ import { Button } from "@/components/ui/button";
 
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
+import { ConfirmPasswordModal } from "@/components/confirm-password-modal";
+
 import { updateUserAction } from "@/features/user/actions/updateUserAction";
 import { deleteUserAction } from "@/features/user/actions/deleteUserAction";
-import { signOut } from "next-auth/react";
-
 
 interface DangerZoneProps {
     initialData: User
@@ -97,35 +98,40 @@ const DangerZone = ({initialData}: DangerZoneProps) => {
     const [deleteSuccess, setDeleteSuccess] = useState<string | undefined>("");
 
     const [DeleteDialog, confirmDelete] = useConfirm(
-        "Delete Organisation",
-        "Are you absolutely sure you want to delete this organisation? This action cannot be undone.",
+        "Delete Account",
+        "Are you absolutely sure you want to delete this account? This action cannot be undone.",
         "destructive"
     )
+
+    // Show password dialog state
+    const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
     const handleDelete = async () => {
         const ok = await confirmDelete(); // Trigger the dialog
         if (!ok) return; // User cancelled
+        setShowPasswordDialog(true);
+    };
 
+    const handlePasswordConfirm = async (password: string) => {
         setIsDeleting(true); // Start deleting loading state
+        // Clear previous messages
+        setDeleteError("");
+        setDeleteSuccess("");
 
-        startTransition(async () => {
-            setDeleteError("");
-            setDeleteSuccess(""); // Clear previous messages
-
-            const result = await deleteUserAction(userId);
-            if (result?.error) {
-                setDeleteError(result.error);
-                toast.error("Delete Failed", { description: result.error });
-            } else {
-                setDeleteSuccess("Account deleted successfully. Redirecting...");
-                toast.success("Account deleted successfully.", {
-                    description: `"${initialData.firstName}" has been deleted.`,
-                });
-                // Force clear NextAuth session and redirect to home
-                await signOut({ callbackUrl: "/" });
-            }
-            setIsDeleting(false); // End deleting loading state
-        });
+        const result = await deleteUserAction(userId, password); // use pwd from modal
+        if (result?.error) {
+            setDeleteError(result.error);
+            toast.error("Delete Failed", { description: result.error });
+            setIsDeleting(false);
+        } else {
+            setDeleteSuccess("Account deleted successfully. Redirecting...");
+            toast.success("Account deleted successfully.", {
+                description: `"${initialData.firstName}" has been deleted.`,
+            });
+            // Force clear NextAuth session and redirect to home
+            await signOut({ callbackUrl: "/" });
+        }
+        setShowPasswordDialog(false);
     };
 
   return (
@@ -215,6 +221,14 @@ const DangerZone = ({initialData}: DangerZoneProps) => {
                 )}
             </Button>
         </div>
+
+        <ConfirmPasswordModal
+            open={showPasswordDialog}
+            onOpenChange={setShowPasswordDialog}
+            onConfirm={handlePasswordConfirm}
+            loading={isDeleting}
+        />
+
     </div>
   )
 }
