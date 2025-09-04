@@ -15,18 +15,29 @@ export const LoginSchema = z.object({
 
 
 export const RegisterSchema = z.object({
+    firstName: z.string().min(1, { message: "First name is required" }).max(100, { message: "First name must not be more than 100 characters" }),
+    lastName: z.string().min(1, { message: "Surname is required" }).max(100, { message: "Surname must not be more than 100 characters" }),
+    
+    username: z.string()
+      .min(3, { message: "Username must be at least 3 characters." })
+      .max(30, { message: "Username must not exceed 30 characters." })
+      .regex(/^[a-zA-Z0-9._-]+$/, { message: "Username can only contain letters, numbers, dots, underscores, and hyphens." })
+      .refine((val) => !val.includes("@"), { message: "Username cannot contain '@'." })
+      .transform((val) => val.trim().toLowerCase()),
+
     email: z.string().email({
         message: "Email is required",
     }),
+
+    gender: z.enum(["MALE", "FEMALE", "PREFER_NOT_TO_SAY"]),
+
     password: z.string().min(6, {
         message: "Minimum 6 characters required",
     }),
     confirmPassword: z.string().min(6, {
         message: "Minimum 6 characters required",
     }),
-    name: z.string().min(1, {
-        message: "Name is required",
-    }),
+
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"], // sets the error on the confirmPassword field

@@ -6,10 +6,10 @@ import { useForm } from "react-hook-form";
 
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircleIcon, CheckIcon, CopyIcon, EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon, UserIcon } from "lucide-react";
+import { CheckCircleIcon, CheckIcon, CopyIcon, EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
 
 import { RegisterSchema } from "@/features/auth/schemas";
-import { register } from "@/features/auth/actions/register";
+import { registerAction } from "@/features/auth/actions/register-action";
 import { CardWrapper } from "@/features/auth/components/card-wrapper";
 
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -20,12 +20,21 @@ import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { ResponsiveModal } from "@/components/responsive-modal";
 import Link from "next/link";
+import { SelectPopover } from "@/components/select-popover";
+import { Gender } from "@prisma/client";
 
 export const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
+
+  // Create the options array from the Gender enum
+  const genderOptions = [
+    { value: Gender.MALE, label: "Male" },
+    { value: Gender.FEMALE, label: "Female" },
+    { value: Gender.PREFER_NOT_TO_SAY, label: "Prefer not to say" },
+  ];
 
   //Using this to display tokens in dev mode.
   const [devLink, setDevLink] = useState<string | null>(null);
@@ -37,7 +46,9 @@ export const RegisterForm = () => {
     mode: "onBlur",
     reValidateMode: "onBlur",
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -49,7 +60,7 @@ export const RegisterForm = () => {
     setSuccess("");
 
     startTransition(() => {
-      register(values)
+      registerAction(values)
         .then((res) => {
           //I used this before i was doing the dev or prod environment check
           // setError(res.error);
@@ -130,21 +141,21 @@ export const RegisterForm = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              {/* Name */}
+              {/* ── First Name ──────────────────────────────────────────────── */}
               <FormField
                 control={form.control}
-                name="name"
+                name="firstName"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>FirstName</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                         <Input
                           {...field}
-                          placeholder="Enter your name"
+                          placeholder="Enter your first name here"
                           type="text"
-                          autoComplete="name"
+                          autoComplete="firstName"
                           className="pl-10"
                           disabled={isPending}
                         />
@@ -159,7 +170,65 @@ export const RegisterForm = () => {
                 )}
               />
 
-              {/* Email */}
+              {/* ── Last Name ──────────────────────────────────────────────── */}
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>Surname</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          placeholder="Enter your surname here"
+                          type="text"
+                          autoComplete="lastName"
+                          className="pl-10"
+                          disabled={isPending}
+                        />
+                        {/* show check icon when valid */}
+                        {!fieldState.invalid && field.value && (
+                          <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-left"/>
+                  </FormItem>
+                )}
+              />
+
+              {/* ── Username ──────────────────────────────────────────────── */}
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          placeholder="Enter your username here"
+                          type="text"
+                          autoComplete="username"
+                          className="pl-10"
+                          disabled={isPending}
+                        />
+                        {/* show check icon when valid */}
+                        {!fieldState.invalid && field.value && (
+                          <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-left"/>
+                  </FormItem>
+                )}
+              />
+
+              {/* ── Email ───────────────────────────────────────────────────── */}
               <FormField
                 control={form.control}
                 name="email"
@@ -188,7 +257,17 @@ export const RegisterForm = () => {
                 )}
               />
 
-              {/* Password */}
+              {/* ── Gender ───────────────────────────────────────────────────── */}
+              <SelectPopover
+                control={form.control}
+                name="gender"
+                label="Gender"
+                placeholder="Select a gender"
+                options={genderOptions}
+                icon={<VenusAndMarsIcon/>}
+              />
+
+              {/* ── Password ───────────────────────────────────────────────────── */}
               <FormField
                 control={form.control}
                 name="password"
@@ -229,7 +308,7 @@ export const RegisterForm = () => {
                 )}
               />
 
-              {/* Confirm Password */}
+              {/* ── Confirm Password ───────────────────────────────────────────────────── */}
               <FormField
                 control={form.control}
                 name="confirmPassword"

@@ -1,4 +1,4 @@
-// src/features/auth/actions/register.ts
+// src/features/auth/actions/register-action.ts
 "use server";
 
 import * as z from "zod";
@@ -11,14 +11,14 @@ import { getUserByEmail } from "@/features/auth/data/user";
 import { generateVerificationToken } from "@/features/auth/lib/tokens";
 import { DevMailResult, sendVerificationEmail } from "@/features/auth/lib/mail";
 
-export const register = async (values: z.infer<typeof RegisterSchema>) => {
+export const registerAction = async (values: z.infer<typeof RegisterSchema>) => {
     const validatedFields = RegisterSchema.safeParse(values);
 
     if (!validatedFields.success) {
         return { error: "Invalid fields!" };
     }
 
-    const { email, password, name } = validatedFields.data;
+    const { email, password, firstName, lastName, username, gender } = validatedFields.data;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const existingUser = await getUserByEmail(email);
@@ -30,7 +30,10 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
     await prisma.user.create({
         data: {
-            name,
+            firstName,
+            lastName,
+            username,
+            gender,
             email,
             password: hashedPassword,
         },
