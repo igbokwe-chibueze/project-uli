@@ -700,7 +700,10 @@ const UpdateOrganisationForm = ({
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
-                                                <FormMessage />
+                                                {/* ⚠️ Fixed Height for error message */}
+                                                <div className="h-5 overflow-auto">
+                                                    <FormMessage className="text-left" />
+                                                </div>
                                             </FormItem>
                                         )}
                                     />
@@ -747,7 +750,10 @@ const UpdateOrganisationForm = ({
                                                         disabled={isSavingChanges}
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
+                                                {/* ⚠️ Fixed Height for error message */}
+                                                <div className="h-5 overflow-auto">
+                                                    <FormMessage className="text-left" />
+                                                </div>
                                             </FormItem>
                                         )}
                                     />
@@ -772,7 +778,10 @@ const UpdateOrganisationForm = ({
                                                     disabled={isSavingChanges}
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
+                                                {/* ⚠️ Fixed Height for error message */}
+                                                <div className="h-5 overflow-auto">
+                                                    <FormMessage className="text-left" />
+                                                </div>
                                             </FormItem>
                                         )}
                                     />
