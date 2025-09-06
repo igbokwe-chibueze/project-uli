@@ -1,12 +1,12 @@
 // src/features/auth/components/register-form.tsx
 "use client"
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircleIcon, CheckIcon, CopyIcon, EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
+import { AtSignIcon, CheckCircleIcon, CheckIcon, CopyIcon, EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
 
 import { RegisterSchema } from "@/features/auth/schemas";
 import { registerAction } from "@/features/auth/actions/register-action";
@@ -22,12 +22,17 @@ import { ResponsiveModal } from "@/components/responsive-modal";
 import Link from "next/link";
 import { SelectPopover } from "@/components/select-popover";
 import { Gender } from "@prisma/client";
+import { useDebounce } from "@/hooks/use-debounce";
+import { checkUsername } from "../actions/check-username";
 
 export const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
+
+  const [usernameStatus, setUsernameStatus] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
 
   // Create the options array from the Gender enum
   const genderOptions = [
@@ -86,6 +91,31 @@ export const RegisterForm = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const usernameValue = form.watch("username");
+  const debouncedUsername = useDebounce(usernameValue, 500);
+
+  useEffect(() => {
+    const check = async () => {
+      if (!debouncedUsername) {
+        setUsernameStatus(null);
+        return;
+      }
+      setChecking(true);
+      const res = await checkUsername(debouncedUsername);
+      setChecking(false);
+
+      if (!res.available) {
+        form.setError("username", { message: res.message });
+        setUsernameStatus("taken");
+      } else {
+        form.clearErrors("username");
+        setUsernameStatus("available");
+      }
+    };
+
+    check();
+  }, [debouncedUsername, form]);
 
   return (
     <>
@@ -199,35 +229,6 @@ export const RegisterForm = () => {
                 )}
               />
 
-              {/* ── Username ──────────────────────────────────────────────── */}
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                        <Input
-                          {...field}
-                          placeholder="Enter your username here"
-                          type="text"
-                          autoComplete="username"
-                          className="pl-10"
-                          disabled={isPending}
-                        />
-                        {/* show check icon when valid */}
-                        {!fieldState.invalid && field.value && (
-                          <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-left"/>
-                  </FormItem>
-                )}
-              />
-
               {/* ── Email ───────────────────────────────────────────────────── */}
               <FormField
                 control={form.control}
@@ -257,15 +258,58 @@ export const RegisterForm = () => {
                 )}
               />
 
-              {/* ── Gender ───────────────────────────────────────────────────── */}
-              <SelectPopover
-                control={form.control}
-                name="gender"
-                label="Gender"
-                placeholder="Select a gender"
-                options={genderOptions}
-                icon={<VenusAndMarsIcon/>}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* ── Username ──────────────────────────────────────────────── */}
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <AtSignIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                          <Input
+                            {...field}
+                            placeholder="Enter your username here"
+                            type="text"
+                            autoComplete="username"
+                            className="pl-10"
+                            disabled={isPending}
+                          />
+                          {checking && (
+                            <LoaderCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 animate-spin text-muted-foreground" />
+                          )}
+                          {/* show check icon when valid */}
+                          {!fieldState.invalid && field.value && (
+                            <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
+                          )}
+                          {!checking && usernameStatus === "available" && !fieldState.invalid && field.value && (
+                            <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
+                          )}
+                        </div>
+                      </FormControl>
+
+                      {/* ⚠️ Fixed Height for error message */}
+                      <div className="h-5 overflow-auto">
+                        <FormMessage className="text-left" />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                
+                {/* ── Gender ───────────────────────────────────────────────────── */}
+                <SelectPopover
+                  control={form.control}
+                  name="gender"
+                  label="Gender"
+                  required
+                  placeholder="Select a gender"
+                  options={genderOptions}
+                  icon={<VenusAndMarsIcon/>}
+                />
+              </div>
+
 
               {/* ── Password ───────────────────────────────────────────────────── */}
               <FormField

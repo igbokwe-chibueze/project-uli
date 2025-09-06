@@ -79,7 +79,7 @@ export const SelectPopover = <T extends FieldValues>({
               role="combobox"
               aria-expanded={open}
               className={cn(
-                "w-full h-11 justify-between",
+                "w-full h-12 justify-between",
                 error && "border-red-500"
               )}
             >
@@ -144,8 +144,8 @@ export const SelectPopover = <T extends FieldValues>({
           </PopoverContent>
         </Popover>
       </FormControl>
-      {/* {error && <FormMessage>{error.message}</FormMessage>} */}
-      <div className="min-h-[1.25rem]">
+      {/* ⚠️ Fixed Height for error message */}
+      <div className="h-5 overflow-auto">
         <FormMessage className="text-left" />
       </div>
     </FormItem>
