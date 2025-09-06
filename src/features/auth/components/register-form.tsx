@@ -1,29 +1,32 @@
 // src/features/auth/components/register-form.tsx
 "use client"
 
-import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
+import { useEffect, useState, useTransition } from "react";
 
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AtSignIcon, CheckCircleIcon, CheckIcon, CopyIcon, EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
+import { AtSignIcon, CheckCircleIcon, EyeIcon, EyeOffIcon, LoaderCircleIcon, MailIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
 
-import { RegisterSchema } from "@/features/auth/schemas";
-import { registerAction } from "@/features/auth/actions/register-action";
-import { CardWrapper } from "@/features/auth/components/card-wrapper";
+import { Gender } from "@prisma/client";
 
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useDebounce } from "@/hooks/use-debounce";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+import { RegisterSchema } from "@/features/auth/schemas";
+import { CardWrapper } from "@/features/auth/components/card-wrapper";
+import { checkUsername } from "@/features/auth/actions/check-username";
+import { registerAction } from "@/features/auth/actions/register-action";
+
 
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
-import { ResponsiveModal } from "@/components/responsive-modal";
-import Link from "next/link";
 import { SelectPopover } from "@/components/select-popover";
-import { Gender } from "@prisma/client";
-import { useDebounce } from "@/hooks/use-debounce";
-import { checkUsername } from "../actions/check-username";
+import { DevVerificationModal } from "@/components/dev-verification-modal";
+import { PasswordInput } from "@/components/password-input";
 
 export const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -43,8 +46,6 @@ export const RegisterForm = () => {
 
   //Using this to display tokens in dev mode.
   const [devLink, setDevLink] = useState<string | null>(null);
-  // Track copy feedback
-  const [copied, setCopied] = useState(false);
 
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
@@ -84,14 +85,6 @@ export const RegisterForm = () => {
     });
   };
 
-  // Handle copy action
-  const handleCopy = () => {
-    if (!devLink) return;
-    navigator.clipboard.writeText(devLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const usernameValue = form.watch("username");
   const debouncedUsername = useDebounce(usernameValue, 500);
 
@@ -119,47 +112,13 @@ export const RegisterForm = () => {
 
   return (
     <>
-
       {/* Dev-only modal using ResponsiveModal */}
-      <ResponsiveModal
-        open={!!devLink}
-        onOpenChange={(open) => !open && setDevLink(null)}
-        title="Dev Verification Link"
-        description="URL to verify your email"
-      >
-        <CardWrapper
-          headerHeading="Registration Verification"
-          className="lg:w-[620px]"
-        >
-          <div className="flex items-center gap-x-2">
-            <Input disabled value={devLink! ?? ""}/>
-            <Button
-              onClick={handleCopy}
-              variant={"secondary"}
-              className="size-12"
-              type="button"
-              disabled={isPending}
-            >
-              {copied ? <CheckIcon className="size-5 text-green-500" /> : <CopyIcon className="size-5" />}
-            </Button>
-          </div>
-
-          <div className="pt-4 w-full flex flex-col gap-y-2 lg:flex-row gap-x-2 items-center justify-end">
-            <Button variant="outline" onClick={() => setDevLink(null)}>
-              Close
-            </Button>
-
-            {devLink && (
-              <Button asChild>
-                <Link href={devLink} target="_blank" rel="noopener noreferrer">
-                  Continue
-                </Link>
-              </Button>
-            )}
-            
-          </div>
-        </CardWrapper>
-      </ResponsiveModal>
+      <DevVerificationModal
+        link={devLink}
+        onClose={() => {
+          setDevLink(null);
+        }}
+      />
 
       <CardWrapper
         headerHeading="Create an account"
@@ -177,7 +136,7 @@ export const RegisterForm = () => {
                 name="firstName"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>FirstName</FormLabel>
+                    <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">FirstName</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -206,7 +165,7 @@ export const RegisterForm = () => {
                 name="lastName"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Surname</FormLabel>
+                    <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">Surname</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -235,7 +194,7 @@ export const RegisterForm = () => {
                 name="email"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">Email</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -265,7 +224,7 @@ export const RegisterForm = () => {
                   name="username"
                   render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormLabel>Username</FormLabel>
+                      <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">Username</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <AtSignIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -317,37 +276,13 @@ export const RegisterForm = () => {
                 name="password"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Enter your password"
-                          type={showPassword ? "text" : "password"}
-                          autoComplete="new-password"
-                          disabled={isPending}
-                        />
-                      </FormControl>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
-                      >
-                        {showPassword ? (
-                          <EyeOffIcon />
-                        ) : (
-                          <EyeIcon />
-                        )}
-                      </Button>
-                    </div>
-                    <FormDescription
-                      className={`text-left ${!fieldState.invalid && field.value ? "text-green-500" : ""}`}
-                    >
-                      At least 6 characters
-                    </FormDescription>
-                    <FormMessage className="text-left"/>
+                    <PasswordInput
+                      label="Password"
+                      placeholder="Enter your password"
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={fieldState.error?.message}
+                    />
                   </FormItem>
                 )}
               />
@@ -358,7 +293,7 @@ export const RegisterForm = () => {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">Confirm Password</FormLabel>
                     <div className="relative">
                       <FormControl>
                         <Input
