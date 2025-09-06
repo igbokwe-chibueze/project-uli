@@ -30,28 +30,32 @@ import { CountryOptionProps, OptionProps, StateOptionProps } from "@/data/static
 
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FormError } from "@/components/form-error";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { FormSuccess } from "@/components/form-success";
 import { SelectPopover } from "@/components/select-popover";
-import { FileUploadField } from "@/components/file-upload-field";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+import { deleteImageAction } from "@/actions/deleteImageAction";
 
 import { UpdateOrganisationSchema } from "@/features/organisations/schemas";
 import { updateOrganisationAction } from "@/features/organisations/actions/updateOrganisationAction";
 import { deleteOrganisationAction } from "@/features/organisations/actions/deleteOrganisationAction";
 
-import { Label } from "@/components/ui/label";
+
 import YearSelector from "@/components/year-selector";
-import { Separator } from "@/components/ui/separator";
 import { MultiSelect } from "@/components/multi-select";
 import { LocationSelector } from "@/components/location-selector";
 import { PhoneNumberInput } from "@/components/phone-number-input";
+import { ProfileImageUpload } from "@/components/profile-image-uploader";
+
 
 interface UpdateOrganisationFormProps {
     //Its ok for me to use prisma generated types here, 
@@ -102,9 +106,6 @@ const UpdateOrganisationForm = ({
 
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
-
-    // We bump this key each time we want to reset the FileUploadField to show existing logo as “preview”
-    const [logoKey, setLogoKey] = useState(0);
 
     // Build defaultValues from initialData. For any null/undefined, we pass "" to keep controlled.
     // Correctly map fields from the Prisma model to the form schema.
@@ -213,32 +214,31 @@ const UpdateOrganisationForm = ({
             (async () => {
                 try {
                     // — Upload logo if user picked one
-                    let finalLogoValue: string | null | undefined; // This will hold the value for the payload
+                    //let finalLogoValue: string | null | undefined; // This will hold the value for the payload
+                    let finalLogoValue = initialData.logo; // Start with the initial URL
 
-                    // Only process logo if it was changed
+                    // --- LOGO LOGIC ---
+                    // Check if the logo field has been modified by the user.
                     if (dirtyFields.logo) {
+                        // If the user has uploaded a new image file...
                         if (values.logo instanceof File) {
-                            // New file uploaded
+                            // Upload the new image to Cloudinary and get the public URL.
+                            // The image will be stored in a folder structure like "organisations/logos".
                             finalLogoValue = await uploadToCloudinary(
-                                values.logo,
-                                "logo_upload_project_uli",
+                                values.logo, 
+                                "logo_upload_project_uli", 
                                 "organisations/logos"
                             );
-                        } else if (typeof values.logo === "string") {
-                            // Existing URL or explicitly cleared to empty string
-                            // If it's an empty string, set to null, otherwise keep the URL
-                            finalLogoValue = values.logo.trim() ? values.logo.trim() : null;
-                        } else {
-                            // If values.logo is undefined (e.g., cleared from new file selection)
-                            finalLogoValue = null; // Explicitly set to null for deletion in DB
+                            // If there was an old logo, delete it from Cloudinary to clean up storage.
+                            if (initialData.logo) await deleteImageAction(initialData.logo);
+                        } else if (values.logo === null) {
+                            // If the user has cleared the image, set the value to null.
+                            finalLogoValue = null;
+                            // Delete the old image from Cloudinary if it existed.
+                            if (initialData.logo) await deleteImageAction(initialData.logo);
                         }
-                    } else {
-                        // Logo field was NOT dirty, keep its initial value from DB.
-                        // Important: Initial value might be null in DB, which would be undefined in initialData
-                        finalLogoValue = initialData.logo ?? null;
                     }
-
-                    // Construct a payload with only the dirty fields
+                    
                     const payload: Partial<z.infer<typeof UpdateOrganisationSchema>> = {};
 
                     if (dirtyFields.organizationName) payload.organizationName = values.organizationName;
@@ -248,16 +248,8 @@ const UpdateOrganisationForm = ({
                     // IMPORTANT: If logo is dirty, add it to payload.
                     // This covers new upload, keeping existing, or clearing (null).
                     // If logo is dirty, include it in the payload
-                    if (dirtyFields.logo) {
-                        payload.logo = finalLogoValue; // This will be URL string, or null
-                    } else {
-                        // Edge case: if logo was in initialData, and user didn't touch it,
-                        // but it needs to be included for consistency or other reasons,
-                        // you might add it here. But typically, if !dirty, you don't send.
-                        // However, if the initialData.logo was null, and the form default is undefined,
-                        // and nothing was done, it shouldn't be in dirtyFields.logo.
-                        // The current structure correctly handles new uploads and explicit clears.
-                    }
+                    // This is crucial for both updates and deletions.
+                    if (dirtyFields.logo) payload.logo = finalLogoValue;
 
                     if (dirtyFields.description) payload.description = values.description;
                     if (dirtyFields.industry) payload.industry = values.industry;
@@ -311,10 +303,9 @@ const UpdateOrganisationForm = ({
                         form.reset({
                             ...values, // Use the submitted values
                             // Ensure logo is correctly set for reset,
-                            // particularly if it went from File to URL, or to null
-                            logo: finalLogoValue === undefined ? initialData.logo ?? undefined : finalLogoValue ?? undefined
+                            logo: finalLogoValue,
+                            //logo: finalLogoValue === undefined ? initialData.logo ?? undefined : finalLogoValue ?? undefined
                         });
-                        setLogoKey((prev) => prev + 1);
                         // revalidate the current page
                         router.refresh();
                     }
@@ -336,7 +327,6 @@ const UpdateOrganisationForm = ({
      */
     const handleReset = () => {
         form.reset(memoizedDefaultValues); // Pass defaultValues to reset the form
-        setLogoKey((prev) => prev + 1); // Force FileUploadField to re-render with initial logo
         setError(""); // Clear any error messages
         setSuccess(""); // Clear any success messages
         toast.info("Form Reset", { description: "All changes have been reverted." });
@@ -511,23 +501,14 @@ const UpdateOrganisationForm = ({
                             <CardContent>
                                 <div className="space-y-4">
                                     {/* ── Logo (existing URL or new File) ───────────────────────────────── */}
-                                    <FileUploadField
-                                        key={logoKey}
-                                        control={form.control}
+                                    <ProfileImageUpload
+                                        form={form}
                                         name="logo"
                                         label="Organization Logo"
-                                        accept="image/*"
-                                        acceptLabel="Images (PNG, JPG, SVG, etc.)"
-                                        maxSizeMB={3}
-                                        previewWidth={128}
-                                        previewHeight={128}
+                                        userName={initialData.name}
+                                        isDirty={dirtyFields.logo}
+                                        disabled={isSavingChanges}
                                     />
-                                    {/* Pencil icon for Logo, placed separately due to FileUploadField's structure */}
-                                    {dirtyFields.logo && (
-                                        <div className="flex justify-end -mt-4 mr-2"> {/* Adjust margin as needed */}
-                                            <PencilLineIcon className="size-4 text-primary animate-in zoom-in duration-300" />
-                                        </div>
-                                    )}
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* ── Organization Name ──────────────────────────────────────────────── */}

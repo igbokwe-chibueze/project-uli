@@ -154,7 +154,7 @@ export const ProfileImageUpload = <TForm extends FieldValues>({
             </div>
 
             <FormDescription>
-              Upload a new profile picture. Max size: 3MB.
+              Upload a new {label}. Max size: 3MB.
             </FormDescription>
 
             <FormMessage />
