@@ -445,7 +445,7 @@ model Unit {
 
 model Organization {
   id                     String                      @id @default(cuid())
-  name                   String                      @unique
+  name                   String
   description            String?
   logo                   String?
   createdAt              DateTime                    @default(now())

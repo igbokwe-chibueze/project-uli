@@ -227,7 +227,7 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
                 name="organizationName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Organization Name</FormLabel>
+                    <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">Organization Name</FormLabel>
                     <FormControl>
                       <OrganizationNameAutocomplete
                         label=""
