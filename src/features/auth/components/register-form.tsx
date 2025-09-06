@@ -25,8 +25,8 @@ import { registerAction } from "@/features/auth/actions/register-action";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { SelectPopover } from "@/components/select-popover";
-import { DevVerificationModal } from "@/components/dev-verification-modal";
 import { PasswordInput } from "@/components/password-input";
+import { DevVerificationModal } from "@/components/dev-verification-modal";
 
 export const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -85,19 +85,31 @@ export const RegisterForm = () => {
     });
   };
 
+// --- Check Username ---
+  // Get the current value of the username field from the form
   const usernameValue = form.watch("username");
+  
+  // Debounce the username value to avoid making a request on every keystroke
+  // → waits 500ms after user stops typing before updating
   const debouncedUsername = useDebounce(usernameValue, 500);
 
   useEffect(() => {
     const check = async () => {
+      // 1. Skip check if:
+      // - Username is empty
       if (!debouncedUsername) {
-        setUsernameStatus(null);
+        setUsernameStatus(null); // reset status
         return;
       }
+
+      // Perform async check against the server
       setChecking(true);
       const res = await checkUsername(debouncedUsername);
       setChecking(false);
 
+      // Handle server response:
+      // - If unavailable, mark as "taken" and set form error
+      // - If available, clear errors and mark as "available"
       if (!res.available) {
         form.setError("username", { message: res.message });
         setUsernameStatus("taken");
@@ -107,6 +119,7 @@ export const RegisterForm = () => {
       }
     };
 
+    // Call the check function
     check();
   }, [debouncedUsername, form]);
 

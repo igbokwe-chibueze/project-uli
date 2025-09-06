@@ -1,11 +1,27 @@
 // src/features/user/components/update-user-profile-form.tsx
 "use client"
 
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+
+import { z } from "zod";
+import { toast } from "sonner";
+import { User } from "@prisma/client";
+import { AtSignIcon, CheckCircleIcon, GlobeIcon, LetterTextIcon, LoaderCircleIcon, MapPinIcon, PencilLineIcon, RotateCcwIcon, SaveIcon, ShieldOffIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
+
+import { useDebounce } from "@/hooks/use-debounce";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
 import { CountryOptionProps, OptionProps, StateOptionProps } from "@/data/static-data";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+
+import { deleteImageAction } from "@/actions/deleteImageAction";
+
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { SelectPopover } from "@/components/select-popover";
@@ -13,23 +29,14 @@ import { FileUploadField } from "@/components/file-upload-field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
-import { User } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { UpdateUserSchema } from "@/features/user/schemas";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { checkUsername } from "@/features/auth/actions/check-username";
 import { updateUserAction } from "@/features/user/actions/updateUserAction";
-import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
-import { AtSignIcon, GlobeIcon, LetterTextIcon, LoaderCircleIcon, MapPinIcon, PencilLineIcon, RotateCcwIcon, SaveIcon, ShieldOffIcon, UserIcon, VenusAndMarsIcon } from "lucide-react";
-import { PhoneNumberInput } from "@/components/phone-number-input";
-import { Separator } from "@/components/ui/separator";
-import { LocationSelector } from "@/components/location-selector";
+
 import { MultiSelect } from "@/components/multi-select";
+import { LocationSelector } from "@/components/location-selector";
+import { PhoneNumberInput } from "@/components/phone-number-input";
 import { ProfileImageUpload } from "@/components/profile-image-uploader";
-import { deleteImageAction } from "@/actions/deleteImageAction";
 
 interface UpdateUserProfileFormProps {
     initialData: User & {
@@ -60,6 +67,9 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
 
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
+
+    const [usernameStatus, setUsernameStatus] = useState<string | null>(null);
+    const [checking, setChecking] = useState(false);
 
     // Build defaultValues from initialData. For any null/undefined, we pass "" to keep controlled.
     // Correctly map fields from the Prisma model to the form schema.
@@ -255,6 +265,61 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
     };
 
 
+// --- Check Username ---
+// Get the current value of the username field from the form
+const usernameValue = form.watch("username");
+
+// Debounce the username value to avoid making a request on every keystroke
+// → waits 500ms after user stops typing before updating
+const debouncedUsername = useDebounce(usernameValue, 500);
+
+// A ref to cache previously checked usernames so we don't call the server twice for the same input
+const checkedCache = useRef<Record<string, boolean>>({});
+
+// Effect runs whenever the debounced username or dependencies change
+useEffect(() => {
+  const check = async () => {
+    // 1. Skip check if:
+    // - Username is empty
+    // - Username hasn't changed from the initial value
+    if (!debouncedUsername || debouncedUsername === initialData.username) {
+      setUsernameStatus(null); // reset status
+      return;
+    }
+
+    // 2. If we've already checked this username before, reuse cached result
+    if (checkedCache.current[debouncedUsername]) {
+      setUsernameStatus(
+        checkedCache.current[debouncedUsername] ? "available" : "taken"
+      );
+      return;
+    }
+
+    // 3. Otherwise, perform async check against the server
+    setChecking(true);
+    const res = await checkUsername(debouncedUsername, userId);
+    setChecking(false);
+
+    // 4. Save the result into the cache so it can be reused later
+    checkedCache.current[debouncedUsername] = res.available;
+
+    // 5. Handle server response:
+    // - If unavailable, mark as "taken" and set form error
+    // - If available, clear errors and mark as "available"
+    if (!res.available) {
+      form.setError("username", { message: res.message });
+      setUsernameStatus("taken");
+    } else {
+      form.clearErrors("username");
+      setUsernameStatus("available");
+    }
+  };
+
+  // Call the check function
+  check();
+}, [debouncedUsername, userId, form, initialData.username]);
+
+
   return (
     <div className="lg:w-[900px] space-y-6">
         <Form {...form}>
@@ -397,6 +462,13 @@ const UpdateUserProfileForm = ({initialData, countries, states, languageOptions,
                                                     className="pl-10"
                                                     disabled={isSavingChanges}
                                                 />
+
+                                                {checking && (
+                                                    <LoaderCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 animate-spin text-muted-foreground" />
+                                                )}
+                                                {!checking && usernameStatus === "available" && dirtyFields.username && (
+                                                    <CheckCircleIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-green-500" />
+                                                )}
                                             </div>
                                         </FormControl>
                                         <div className="min-h-[1.25rem]">

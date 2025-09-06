@@ -79,7 +79,7 @@ export const UserInfo = ({user, userDisplayName,}: UserInfoProps) => {
 
                         <div className="space-y-2">
                             <p>Username</p>
-                            <Input disabled value={user.username ?? ""}/>
+                            <Input disabled value={user.username ? `@${user.username}` : ""} />
                         </div>
 
                         <div className="space-y-2">
