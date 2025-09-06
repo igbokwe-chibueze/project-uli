@@ -23,8 +23,8 @@ import { Callout } from "@/components/callout";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { ResponsiveModal } from "@/components/responsive-modal";
-import { FileUploadField } from "@/components/file-upload-field";
 import { LocationSelector } from "@/components/location-selector";
+import { ProfileImageUpload } from "@/components/profile-image-uploader";
 import { OrganizationNameAutocomplete } from "@/components/organization-name-autocomplete";
 
 import { CardWrapper } from "@/features/auth/components/card-wrapper"
@@ -54,7 +54,6 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
-  const [logoKey, setLogoKey] = useState(0);
 
   // State to control the guidelines modal
   const [isGuideOpen, setIsGuideOpen] = useState(false);
@@ -126,12 +125,18 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
         try {
           // — Upload logo if user picked one
           let logoUrl: string | undefined;
+          // If the user has uploaded a new image file...
           if (values.logo instanceof File) {
+            // Upload the new image to Cloudinary and get the public URL.
+            // The image will be stored in a folder structure like "organisations/logos".
             logoUrl = await uploadToCloudinary(
               values.logo,
               "logo_upload_project_uli",
               "organisations/logos"
-            );
+            ) 
+          } else if (values.logo === null) {
+            // If the user has cleared the image, set the value to null.
+            logoUrl = undefined;
           }
 
           // — Persist to Prisma
@@ -147,7 +152,6 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
               description: `"${values.organizationName}" is ready!`,
             });
             form.reset();
-            setLogoKey((prev) => prev + 1);
             router.push(`/organisations/${res.organizationId}?created=true`);
           }
         } catch (err: unknown) {
@@ -221,6 +225,14 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
+              {/* Organization Logo */}
+              <ProfileImageUpload
+                form={form}
+                name="logo"
+                label="Organization Logo"
+                disabled={isLoading}
+              />
+
               {/* Organization Name Autocomplete Field */}
               <FormField
                 control={form.control}
@@ -300,19 +312,6 @@ const CreateOrganisationForm = ({ onCancel, countries, states = [], isModal = fa
                     )}
                   </FormItem>
                 )}
-              />
-
-              {/* Organization Logo */}
-              <FileUploadField
-                key={logoKey}
-                control={form.control}
-                name="logo"
-                label="Organization Logo"
-                accept="image/*"
-                acceptLabel="Images/ PNG, JPG, SVG"
-                maxSizeMB={3}
-                previewWidth={128}
-                previewHeight={128}
               />
 
               <LocationSelector

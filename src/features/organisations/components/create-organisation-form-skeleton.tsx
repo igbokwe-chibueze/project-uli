@@ -14,16 +14,19 @@ export const CreateOrganisationFormSkeleton = () => {
         >
             <div className="space-y-6">
                 <div className="space-y-4">
+                    {/* Organization Logo */}
+                    <div className="flex items-center space-x-4">
+                        <Skeleton className="size-28 rounded-lg" /> {/* Image preview skeleton */}
+                        <div className="flex flex-col gap-2">
+                            <Skeleton className="h-10 w-52" /> {/* Upload Button skeleton */}
+                            <Skeleton className="h-10 w-52" /> {/* Delete Button skeleton */}
+                        </div>
+                    </div>
+
                     {/* Organization Name */}
                     <div className="space-y-2">
                         <Skeleton className="h-4 w-20" /> {/* Label skeleton */}
                         <Skeleton className="h-12 w-full" /> {/* Input skeleton */}
-                    </div>
-
-                    {/* Organization Logo */}
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-20" /> {/* Label skeleton */}
-                        <Skeleton className="h-40 w-full rounded-lg" /> {/* Image preview skeleton */}
                     </div>
 
                     {/* Location Selector (Country) */}
