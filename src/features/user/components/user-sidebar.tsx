@@ -3,11 +3,12 @@
 "use client"
 
 import { NavMain, NavRoute } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
 
 import {
   Sidebar,
   SidebarContent,
-  //SidebarFooter,
+  SidebarFooter,
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
@@ -24,8 +25,27 @@ const userNavRoutes: NavRoute[] = [
   },
 ];
 
+const secondaryRoutes = [
+  {
+    title: "Membership",
+    url: "/membership",
+  },
+  {
+    title: "Get Help",
+    url: "/#",
+  },
+  {
+    title: "Search",
+    url: "/#",
+  },
+]
+
 
 export const UserSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+
+  // const basePath = `/organisations/${organisationId}`
+  const basePath = `/user`
+  
   return (
     <Sidebar variant="floating" collapsible="offcanvas" {...props}>
         <SidebarHeader>
@@ -33,8 +53,13 @@ export const UserSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) 
         </SidebarHeader>
 
         <SidebarContent>
-          <NavMain label="User" basePath="/user" routes={userNavRoutes} />
+          <NavMain label="User" basePath={basePath} routes={userNavRoutes} />
+          <NavSecondary basePath={basePath} routes={secondaryRoutes} className = "mt-auto"/>
         </SidebarContent>
+
+        <SidebarFooter>
+          Logout UserName
+        </SidebarFooter>
 
         <SidebarRail />
     </Sidebar>
