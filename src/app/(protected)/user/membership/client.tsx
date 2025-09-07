@@ -1,15 +1,20 @@
 // src/app/(protected)/user/membership/client.tsx
 'use client';
 
+import { format } from "date-fns";
+import { CalendarIcon, EditIcon, EyeIcon, MoreHorizontalIcon, PlusIcon, UsersIcon } from "lucide-react";
+
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+
+import { getInitials } from "@/lib/getInitials";
 import { DashboardPageHeaders } from "@/components/dashboard-page-headers";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { getInitials } from "@/lib/getInitials";
-import { CalendarIcon, EditIcon, EyeIcon, MoreHorizontalIcon, PlusIcon, UsersIcon } from "lucide-react";
 
 // Define a type for the incoming data based on the Prisma query
 type Membership = {
@@ -40,22 +45,7 @@ type MembershipClientProps = {
  */
 export const MembershipClient = ({userName, memberships}: MembershipClientProps) => {
     const router = useRouter();
-
-    // If the memberships array is empty, display a message to the user
-    if (memberships.length === 0) {
-        return (
-
-            // <div className="flex justify-center items-center h-full p-4">
-            //     <p className="text-muted-foreground">You are not a member of any organization.</p>
-            // </div>
-
-            <Card className="p-8 text-center">
-                <div className="text-lg font-medium">You are not a member of any organization yet</div>
-                <p className="text-sm mt-2 text-muted-foreground">When you join or get invited, they will appear here.</p>
-            </Card>
-        );
-    }
-
+    
     const handleCreateNew = () => {
         router.push("/organisations/create")
     }
@@ -68,12 +58,51 @@ export const MembershipClient = ({userName, memberships}: MembershipClientProps)
         router.push(`/organisations/${id}/settings/general`)
     }
 
-    // Define options for long date format
-    const dateFormatOptions: Intl.DateTimeFormatOptions = {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    };
+
+    // If the memberships array is empty, display a message to the user
+    if (memberships.length === 0) {
+        return (
+            <div className="flex flex-1 p-4">
+                <Card className="flex flex-1 items-center justify-center text-center">
+                    <CardContent className="flex flex-col items-center gap-6">
+                        
+                        {/* Illustration for empty state */}
+                        <div className="relative size-56 md:size-72 lg:size-80 ">
+                            <Image
+                                src="/illustrations/characters/character-02.svg"
+                                alt="No memberships illustration"
+                                fill
+                                className="object-contain"
+                                priority
+                            />
+                        </div>
+
+                        {/* Text */}
+                        <div>
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold">No memberships yet</h2>
+                            <p className="mt-2 text-sm sm:text-base md:text-lg text-muted-foreground">
+                                You haven’t joined or created any organization.  
+                                Start by creating one or accept an invite.
+                            </p>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <Button onClick={handleCreateNew}>
+                                <PlusIcon className="mr-2 size-4" />
+                                Create Organisation
+                            </Button>
+                            <Button variant="outline">
+                                <UsersIcon className="mr-2 size-4" />
+                                Join with Invite
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
 
   return (
     <div className="flex flex-1 flex-col">
@@ -154,7 +183,7 @@ export const MembershipClient = ({userName, memberships}: MembershipClientProps)
                                         {"active"}
                                     </Badge>
                                     <span className="text-muted-foreground">
-                                        {membership.organization.employeeCountRange?.label} employees
+                                        {membership.organization.employeeCountRange?.label || "0"} employees
                                     </span>
                                 </div>
 
@@ -169,7 +198,7 @@ export const MembershipClient = ({userName, memberships}: MembershipClientProps)
 
                                     <div className="flex items-center gap-1">
                                         <CalendarIcon className="size-3" />
-                                        <span>Joined {new Date(membership.joinedAt).toLocaleDateString("en-US", dateFormatOptions)}</span>
+                                        <span>Joined {format(new Date(membership.joinedAt), "MMMM d, yyyy")}</span>
                                     </div>
                                 </div>
                             </div>
