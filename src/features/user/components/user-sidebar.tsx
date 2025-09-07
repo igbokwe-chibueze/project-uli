@@ -1,10 +1,11 @@
 // src/features/user/components/user-sidebar.tsx
-
 "use client"
 
+import { LogOutIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { NavMain, NavRoute } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
-
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +13,8 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+
+import { LogoutButton } from "@/features/auth/components/logout-button";
 
 const userNavRoutes: NavRoute[] = [
   {
@@ -58,7 +61,12 @@ export const UserSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) 
         </SidebarContent>
 
         <SidebarFooter>
-          Logout UserName
+          <LogoutButton className="flex items-center">
+            <Button variant={"outline"} className="w-full">
+              <LogOutIcon className="size-4" />
+              Log out
+            </Button>
+          </LogoutButton>
         </SidebarFooter>
 
         <SidebarRail />
