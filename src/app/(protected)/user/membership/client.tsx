@@ -132,7 +132,7 @@ export const MembershipClient = ({userName, memberships}: MembershipClientProps)
                         <CardHeader>
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                    <Avatar className="w-22 h-12 rounded-lg">
+                                    <Avatar className="w-22 h-16 rounded-lg">
                                         <AvatarImage src={membership.organization.logo || undefined} alt={membership.organization.name} />
                                         <AvatarFallback className="rounded-lg text-2xl">
                                             {getInitials(membership.organization.name)}
@@ -141,7 +141,7 @@ export const MembershipClient = ({userName, memberships}: MembershipClientProps)
                                     <div>
                                         <CardTitle className="flex flex-col">
                                             <span className="text-lg">{membership.organization.name}</span>
-                                            <span className="text-sm truncate">[{membership.organization.country?.name}]</span>
+                                            <span className="text-sm truncate">[{membership.organization.country?.name || "country"}]</span>
                                         </CardTitle>
                                         
                                         <CardDescription className="text-sm">
