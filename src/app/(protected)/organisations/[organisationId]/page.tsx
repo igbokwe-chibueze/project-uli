@@ -11,6 +11,7 @@ import { getOrganisationSummaryById, isUserOrganizationMember } from "@/features
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DashboardPageHeaders } from "@/components/dashboard-page-headers";
 
 interface OrganisationIdPageProps {
   searchParams: Promise<{ created?: string }>;
@@ -19,10 +20,10 @@ interface OrganisationIdPageProps {
 
 const OrganisationIdPage = async ({searchParams, params}: OrganisationIdPageProps) => {
     // Authenticate user by getting the session Id
-    const user = await currentID();
+    const userId = await currentID();
 
     // Not logged in → send to login (access)
-    if (!user) redirect('/access');
+    if (!userId) redirect('/access');
 
     const { organisationId } = await params;
 
@@ -32,7 +33,7 @@ const OrganisationIdPage = async ({searchParams, params}: OrganisationIdPageProp
 
     // Check if the authenticated user is a member of the organization.
     // If not a member, render a 404-like page with an access denied message.
-    const isMember = await isUserOrganizationMember(user, organisation?.id);
+    const isMember = await isUserOrganizationMember(userId, organisation?.id);
     if (!isMember) {
         // return (
         //     <NotFound message="Access denied: you are not a member of this organisation." />
@@ -93,10 +94,10 @@ const OrganisationIdPage = async ({searchParams, params}: OrganisationIdPageProp
 
             <div className="flex flex-1 flex-col">
                 <div className="@container/main flex flex-1 flex-col gap-2">
-                    <div className="flex flex-col space-y-4 px-4 lg:px-6 py-4 md:py-6">
-                        <h1 className="text-3xl font-bold">{organisation.name}</h1>
-                        <p className="text-muted-foreground">Oraganisation overview and key metrics</p>
-                    </div>
+                    <DashboardPageHeaders
+                        title={organisation.name}
+                        description="Organization overview and key metrics"
+                    />
 
                     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
                         

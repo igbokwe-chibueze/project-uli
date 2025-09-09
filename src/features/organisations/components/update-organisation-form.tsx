@@ -1192,7 +1192,7 @@ const UpdateOrganisationForm = ({
                                         {/* Save Changes */}
                                         <Button
                                             type="submit"
-                                            className="flex-1 transition-all duration-200 hover:scale-[1.02]"
+                                            className="flex-1"
                                             disabled={!isDirty || isSavingChanges}
                                         >
                                             <div className="flex items-center justify-center gap-2">
@@ -1305,7 +1305,8 @@ const UpdateOrganisationForm = ({
                                 </>
                             )}
                         </Button>
-
+                        
+                        {/* Delete Button */}
                         <Button
                             variant="destructive"
                             type="button"
