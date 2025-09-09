@@ -56,9 +56,13 @@ export const InitiatePasswordResetSchema = z.object({
 
 
 export const CompletePasswordResetSchema = z.object({
-    password: z.string().min(6, {
-        message: "Minimum 6 characters required",
-    }),
+    password: z.string()
+        .min(6, "Minimum 6 characters required")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/\d/, "Password must contain at least one number")
+        .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain at least one special character"),
+
     confirmPassword: z.string().min(6, {
         message: "Minimum 6 characters required",
     }),

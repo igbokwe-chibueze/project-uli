@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 
+import { PasswordInput } from "@/components/password-input";
 import { CardWrapper } from "@/features/auth/components/card-wrapper";
 import { CompletePasswordResetSchema } from "@/features/auth/schemas";
 import { CompletePasswordResetAction } from "@/features/auth/actions/complete-password-reset-action";
@@ -79,34 +80,15 @@ export const CompletePasswordResetForm = () => {
                     <FormField
                         control={form.control}
                         name="password"
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                             <FormItem>
-                                <FormLabel>Password</FormLabel>
-                                <div className="relative">
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            placeholder="Enter your password"
-                                            type={showPassword ? "text" : "password"}
-                                            autoComplete="new-password"
-                                            disabled={isPending}
-                                        />
-                                    </FormControl>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setShowPassword((prev) => !prev)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
-                                    >
-                                        {showPassword ? (
-                                            <EyeOffIcon/>
-                                        ) : (
-                                            <EyeIcon/>
-                                        )}
-                                    </Button>
-                                </div>
-                                <FormMessage />
+                                <PasswordInput
+                                    label="Password"
+                                    placeholder="Enter your password"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={fieldState.error?.message}
+                                />
                             </FormItem>
                         )}
                     />
