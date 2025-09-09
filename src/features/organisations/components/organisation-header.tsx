@@ -1,17 +1,22 @@
 // src/features/organisations/components/organisation-header.tsx
 "use client"
 
+import Link from "next/link"
 import { BellIcon } from "lucide-react"
 
+import { getInitials } from "@/lib/getInitials"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
 import { ThemeToggle } from "@/components/theme-toggle"
 //import { Skeleton } from "@/components/ui/skeleton"
 
 import { SearchForm } from "@/features/organisations/components/search-form"
 import { useOrganisation } from "@/features/organisations/context/organisation-context"
-import { OrganisationAvatar } from "@/features/organisations/components/organisation-avatar"
 
 
 export const OrganisationHeader = () => {
@@ -21,32 +26,48 @@ export const OrganisationHeader = () => {
     <header className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 flex h-16 shrink-0 items-center 
         gap-2 border-b transition-[width,height] ease-linear"
     >
-        <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+        <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6 py-4">
             <SidebarTrigger className="-ml-1" />
 
             <Separator
                 orientation="vertical"
-                className="mx-2 data-[orientation=vertical]:h-6"
+                className="mx-2 data-[orientation=vertical]:h-8"
             />
 
             <div className="flex justify-between items-center w-full">
                 {/* Organisation Data */}
 
                 <div className="flex items-center gap-2">
-                    <div className="flex aspect-square w-20 h-14 items-center justify-center rounded-lg">
-                        <OrganisationAvatar
-                            image={org.logo}
-                            name={org.name}
-                            className="size-20"
+                    <Avatar className="size-14 rounded-md flex items-center justify-center overflow-hidden">
+                        <AvatarImage
+                            src={org.logo || undefined}
+                            alt={org.name}
+                            className="object-contain p-1 bg-transparent rounded-lg"
                         />
-                    </div>
+                        <AvatarFallback className="rounded-lg text-lg font-semibold">
+                            {getInitials(org.name)}
+                        </AvatarFallback>
+                    </Avatar>
 
-                    <div className="flex items-center gap-2 text-sm leading-tight">
-                        <span className="truncate font-semibold">{org?.name}</span>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-lg font-semibold text-foreground">{org?.name}</h1>
 
                         {org?.country ? (
-                            <span className="truncate">[{org?.country.name}]</span>
-                        ) : (<span>(Update your country)</span>)}
+                            <Badge variant="secondary" className="text-xs">
+                                {/* Desktop: full name */}
+                                <span className="hidden sm:inline">{org.country.name}</span>
+
+                                {/* Mobile: only ISO3 */}
+                                <span className="sm:hidden">{org.country.iso3}</span>
+                            </Badge>
+                        ) : (
+                            <Badge asChild variant="secondary"
+                                className="hidden sm:inline text-xs cursor-pointer"
+                            >
+                                <Link href={`/organisations/${org.id}/settings/general`}>Update your country</Link>
+                            </Badge>
+                        )}
+
                     </div>
                 </div>
 
