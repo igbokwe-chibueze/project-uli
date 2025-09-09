@@ -1,6 +1,5 @@
 // src/app/(protected)/organisations/[organisationId]/marketplace/page.tsx
 
-//import Link from "next/link";
 import { redirect } from "next/navigation"
 
 import NotFound from "@/app/not-found"

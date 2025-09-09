@@ -3,9 +3,10 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { getIcon } from "@/lib/get-icon"
 import { ModuleType } from "@prisma/client"
-import { Download, Trash2, ExternalLink, Check } from "lucide-react"
+import { LockIcon, CheckIcon, ExternalLinkIcon, Trash2Icon, DownloadCloudIcon } from "lucide-react"
+
+import { getIcon } from "@/lib/get-icon"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -53,7 +54,7 @@ export function ModuleCard({ module, isInstalled, onInstall, onUninstall, isLoad
   }
 
   const isAnyLoading = parentIsLoading || localIsLoading;
-  const isUninstallForbidden = module.type === ModuleType.HRMS;
+  const isCoreModule = module.type === ModuleType.HRMS;
 
   const handleInstallClick = async () => {
     setLocalIsLoading(true);
@@ -90,8 +91,14 @@ export function ModuleCard({ module, isInstalled, onInstall, onUninstall, isLoad
             </Badge>
             {isInstalled && (
               <Badge variant="outline" className="text-xs gap-1">
-                <Check className="size-3" />
+                <CheckIcon className="size-3" />
                 Installed
+              </Badge>
+            )}
+            {isCoreModule && (
+              <Badge variant="destructive" className="text-xs gap-1">
+                <LockIcon className="size-3" />
+                Core Module
               </Badge>
             )}
           </div>
@@ -112,19 +119,22 @@ export function ModuleCard({ module, isInstalled, onInstall, onUninstall, isLoad
           <div className="flex w-full gap-2">
             <Button asChild variant="default" className="flex-1">
               <Link href={`/organisations/${orgId}/modules/${module.type.toLowerCase()}`} className="gap-2">
-                <ExternalLink className="size-4" />
+                <ExternalLinkIcon className="size-4" />
                 Open
               </Link>
             </Button>
-            <Button
-              variant="outline"
-              onClick={handleUninstallClick}
-              disabled={isAnyLoading || isUninstallForbidden}
-              className="gap-2 bg-transparent"
-            >
-              <Trash2 className="size-4" />
-              {isAnyLoading ? "..." : (isUninstallForbidden ? "Core Module" : "Remove")}
-            </Button>
+            {/* Conditionally render the "Remove" button only if it's NOT a core module */}
+            {!isCoreModule && (
+                <Button
+                    variant="outline"
+                    onClick={handleUninstallClick}
+                    disabled={isAnyLoading}
+                    className="gap-2 bg-transparent"
+                >
+                    <Trash2Icon className="size-4" />
+                    {isAnyLoading ? "..." : "Remove"}
+                </Button>
+            )}
           </div>
         ) : (
           <Button
@@ -132,7 +142,7 @@ export function ModuleCard({ module, isInstalled, onInstall, onUninstall, isLoad
             disabled={isAnyLoading}
             className="w-full gap-2"
           >
-            <Download className="size-4" />
+            <DownloadCloudIcon className="size-4" />
             {isAnyLoading ? "Installing..." : "Install"}
           </Button>
         )}

@@ -2,18 +2,21 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from "react";
 import { ModuleType } from "@prisma/client";
-import { installModule, uninstallModule, getAvailableModules, getOrganizationInstalledModules } from "@/features/organisations/actions/module";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 import { SearchIcon, RefreshCwIcon, ChevronLeftIcon } from "lucide-react";
+
+import { toast } from "sonner";
+
 import { useDebounce } from "@/hooks/use-debounce";
+
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModuleCard } from "@/features/organisations/components/module-card";
-import { useRouter } from "next/navigation";
+import { installModule, uninstallModule, getAvailableModules, getOrganizationInstalledModules } from "@/features/organisations/actions/module";
 
 // Define the structure of a module as it will be used in the client
 interface ClientModule {
