@@ -4,19 +4,16 @@
 import Link from "next/link"
 import { BellIcon } from "lucide-react"
 
-import { getInitials } from "@/lib/getInitials"
-
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 import { ThemeToggle } from "@/components/theme-toggle"
-//import { Skeleton } from "@/components/ui/skeleton"
 
 import { SearchForm } from "@/features/organisations/components/search-form"
 import { useOrganisation } from "@/features/organisations/context/organisation-context"
+import { OrganisationAvatar } from "./organisation-avatar"
 
 
 export const OrganisationHeader = () => {
@@ -38,16 +35,10 @@ export const OrganisationHeader = () => {
                 {/* Organisation Data */}
 
                 <div className="flex items-center gap-2">
-                    <Avatar className="size-14 rounded-md flex items-center justify-center overflow-hidden">
-                        <AvatarImage
-                            src={org.logo || undefined}
-                            alt={org.name}
-                            className="object-contain p-1 bg-transparent rounded-lg"
-                        />
-                        <AvatarFallback className="rounded-lg text-lg font-semibold">
-                            {getInitials(org.name)}
-                        </AvatarFallback>
-                    </Avatar>
+                    <OrganisationAvatar
+                        orgName ={org.name}
+                        logo={org.logo}
+                    />
 
                     <div className="flex items-center gap-2">
                         <h1 className="text-lg font-semibold text-foreground">{org?.name}</h1>

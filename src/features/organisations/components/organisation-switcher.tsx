@@ -1,7 +1,7 @@
 // src/features/organisations/components/organisation-switcher.tsx
 "use client";
 
-import { CheckCircleIcon, ChevronsUpDown, CirclePlusIcon, Plus } from "lucide-react";
+import { CheckCircleIcon, ChevronsUpDown, CirclePlusIcon, PlusIcon } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -114,11 +114,13 @@ export const OrganisationSwitcher = ({ organizations, loading, error }: Organisa
               >
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                   <OrganisationAvatar
-                    image={org.logo}
-                    name={org.name}
-                    className="size-8"
+                    orgName ={org.name}
+                    logo={org.logo}
+                    avatarClassName="size-12"
+                    fallbackClassName="size-10"
                   />
                 </div>
+                
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{org.name}</span>
                   <span className="truncate text-xs">{org.country}</span>
@@ -153,9 +155,9 @@ export const OrganisationSwitcher = ({ organizations, loading, error }: Organisa
                     >
                       {/* ORGANISATION AVATAR HERE */}
                       <OrganisationAvatar
-                        image={org.logo}
-                        name={org.name}
-                        className="size-7 rounded-sm border"
+                        orgName ={org.name}
+                        logo={org.logo}
+                        avatarClassName="size-11"
                       />
 
                       <span className="flex-1">{org.name}</span>
@@ -179,7 +181,7 @@ export const OrganisationSwitcher = ({ organizations, loading, error }: Organisa
                   className="flex gap-2 items-center"
                 >
                   <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-                    <Plus className="size-4" />
+                    <PlusIcon className="size-4" />
                   </div>
                   <div className="font-medium text-muted-foreground">Add Organisation</div>
                 </Link>
