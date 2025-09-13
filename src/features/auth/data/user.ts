@@ -21,13 +21,8 @@ export const getUserById = async (id: string) => {
         const user = await prisma.user.findUnique({
             where: { id },
             include: {
-                country: true, // Includes the related country data
-                state: true,   // Includes the related state data
-                // userLanguages: {
-                //     include: {
-                //         language: true, // Includes the related language data for each user language entry
-                //     },
-                // },
+                country: { select: { id: true, } }, // Includes the related country data
+                state: { select: { id: true, } }, // Includes the related state data
                 userLanguages: {
                     select: {
                         language: {
