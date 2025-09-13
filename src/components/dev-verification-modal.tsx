@@ -45,49 +45,58 @@ import { CardWrapper } from "@/features/auth/components/card-wrapper";
  */
 
 interface DevVerificationModalProps {
-    link: string | null;
+    value: string | null;                // the string to display (URL or code)
     email?: string | null;
     onClose: () => void;
+    headerHeading?: string;
 }
 
-export const DevVerificationModal = ({link, email, onClose}: DevVerificationModalProps) => {
+export const DevVerificationModal = ({
+  value,
+  email, 
+  onClose,
+  headerHeading = "Email Verification", // default value
+}: DevVerificationModalProps) => {
 
-    const [copied, setCopied] = useState(false);
-    const [isPending, setIsPending] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
-    // ✅ Handle copy-to-clipboard
-    const handleCopy = async () => {
-        if (!link) return;
+  // Detect if value looks like a URL
+  const isLink = value?.startsWith("http");
 
-        try {
-            setIsPending(true);
-            await navigator.clipboard.writeText(link);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000); // reset feedback after 2s
-        } finally {
-            setIsPending(false);
-        }
-    };
+  // ✅ Handle copy-to-clipboard
+  const handleCopy = async () => {
+    if (!value) return;
+
+    try {
+      setIsPending(true);
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // reset feedback after 2s
+    } finally {
+      setIsPending(false);
+    }
+  };
   return (
     <ResponsiveModal
-      open={!!link}
+      open={!!value}
       onOpenChange={(open) => !open && onClose()}
       title=""
       description=""
     >
       <CardWrapper
-        headerHeading="Email Verification"
+        headerHeading={headerHeading}
         className="lg:w-[620px]"
       >
         {email && (
             <p className="text-sm text-muted-foreground">
-                Confirm your new email: <span className="font-medium">{email}</span>
+                Confirm your email: <span className="font-medium">{email}</span>
             </p>
         )}
 
-        {/* Verification link + copy button */}
+        {/* Verification value + copy button */}
         <div className="flex items-center gap-x-2">
-          <Input disabled value={link ?? ""} />
+          <Input disabled value={value ?? ""} />
           <Button
             onClick={handleCopy}
             variant="secondary"
@@ -109,9 +118,10 @@ export const DevVerificationModal = ({link, email, onClose}: DevVerificationModa
             Close
           </Button>
 
-          {link && (
+          {/* Only show Continue if this is a URL */}
+          {isLink && (
             <Button asChild>
-              <Link href={link} target="_blank" rel="noopener noreferrer">
+              <Link href={value!} target="_blank" rel="noopener noreferrer">
                 Continue
               </Link>
             </Button>

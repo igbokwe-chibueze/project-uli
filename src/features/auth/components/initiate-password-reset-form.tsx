@@ -62,7 +62,7 @@ export const InitiatePasswordResetForm = () => {
     <>
         {/* Dev-only modal using ResponsiveModal */}
         <DevVerificationModal
-            link={devLink}
+            value={devLink}
             email={devEmail}
             onClose={() => {
                 setDevLink(null);

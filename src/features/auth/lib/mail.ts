@@ -116,7 +116,7 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
  * Sends a password change confirmation email to the user.
  */
 export const sendPasswordChangeConfirmationEmail = async (email: string) => {
-    const loginLink = `${process.env.NEXT_PUBLIC_APP_URL}/access`;
+    const loginLink = `${domain}/access`;
 
     // In dev: skip Resend and return the payload outright
     if (isDev) {

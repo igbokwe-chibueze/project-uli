@@ -113,10 +113,13 @@ export const LoginForm = () => {
     <>
       {/* Dev-only modal using ResponsiveModal */}
       <DevVerificationModal
-        link={devLink}
-        onClose={() => {
-          setDevLink(null);
-        }}
+        value={devLink}
+        onClose={() => setDevLink(null)}
+        headerHeading={
+          devLink?.startsWith("http")
+            ? "Email Verification"
+            : "Two Factor Token"
+        }
       />
 
       <CardWrapper 

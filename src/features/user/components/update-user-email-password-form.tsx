@@ -171,7 +171,7 @@ const UpdateUserEmailPasswordForm = ({initialData}: UpdateUserEmailPasswordProps
   return (
     <>
         <DevVerificationModal
-            link={devLink}
+            value={devLink}
             email={devNewEmail}
             onClose={() => {
                 setDevLink(null);

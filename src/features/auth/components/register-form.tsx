@@ -127,7 +127,7 @@ export const RegisterForm = () => {
     <>
       {/* Dev-only modal using ResponsiveModal */}
       <DevVerificationModal
-        link={devLink}
+        value={devLink}
         onClose={() => {
           setDevLink(null);
         }}
