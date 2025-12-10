@@ -1,6 +1,7 @@
 // src/features/organisations/schemas/index.ts
 
 import * as z from "zod";
+import { InviteExpiryOption, OrgRole } from "@prisma/client";
 
 // Define the base schema for organization data.
 export const OrganisationSchema = z.object({
@@ -180,3 +181,24 @@ export const CreateOrganisationSchema = OrganisationSchema.pick({
   state: true,
   logo: true,
 });
+
+
+/**
+ * Schema for batch invite creation + email sending.
+ * - orgId: organisation id (required)
+ * - emails: list of recipient emails (at least 1)
+ * - invitedRole: optional OrgRole that will be stored on each invite (if present)
+ * - message: optional admin message
+ * - expiryOption: optional expiry option (defaults will be applied server-side)
+ */
+export const sendOrgInviteBatchEmailSchema = z.object({
+  orgId: z.string().min(1),
+  emails: z.array(z.string().email()).min(1),
+  invitedRole: z.nativeEnum(OrgRole).optional(),
+  message: z.string().optional(),
+  expiryOption: z.nativeEnum(InviteExpiryOption).optional(),
+});
+
+export type SendOrgInviteBatchEmailInput = z.infer<
+  typeof sendOrgInviteBatchEmailSchema
+>;

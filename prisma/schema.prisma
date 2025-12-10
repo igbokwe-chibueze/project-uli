@@ -40,7 +40,6 @@ model User {
   gender                Gender?
   accounts              Account[]
   addresses             Address[]
-  OrgInviteToken        OrgInviteToken[]
   organizations         OrganizationMember[]
   invitesSent           PlatformInviteToken?   @relation("PlatformInvitesByUser")
   sessions              Session[]
@@ -51,6 +50,8 @@ model User {
   userCertifications    UserCertification[]
   userLanguages         UserLanguage[]
   userSocialLinks       UserSocialLink[]
+  orgInviteTokens       OrgInviteToken[]
+  actedOnOrgInvites     OrgInviteToken[]       @relation("OrgInviteActor")
 }
 
 model Account {
@@ -532,17 +533,34 @@ model OrganizationMember {
 }
 
 model OrgInviteToken {
-  id           String       @id @default(cuid())
-  email        String?
-  token        String       @unique
-  expires      DateTime?
-  createdAt    DateTime     @default(now())
-  orgId        String
-  role         OrgRole      @default(MEMBER)
-  acceptedById String?
-  acceptedAt   DateTime?
-  acceptedBy   User?        @relation(fields: [acceptedById], references: [id], onDelete: Cascade)
-  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id    String  @id @default(cuid())
+  orgId String
+  email String? // email when admin used "send by email" (for audit)
+  token String  @unique
+
+  isValid Boolean      @default(true)
+  status  InviteStatus @default(PENDING)
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  expiresAt    DateTime
+  expiryOption InviteExpiryOption @default(DAYS_7)
+
+  invitedRole OrgRole? // <- optional: store role admin selected for emailed invite
+  message     String? // optional admin message
+
+  // --- Audit Trail ---
+  createdAt  DateTime  @default(now())
+  acceptedAt DateTime?
+  rejectedAt DateTime?
+  expiredAt  DateTime? // When system marks expired
+  actedById  String? // who accepted/rejected
+  actedBy    User?     @relation("OrgInviteActor", fields: [actedById], references: [id])
+
+  organization Organization @relation(fields: [orgId], references: [id])
+
+  @@index([orgId, isValid, status])
 }
 
 // This defines what modules are AVAILABLE in your ecosystem.
@@ -573,6 +591,19 @@ model OrganizationModule {
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, moduleId])
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum InviteExpiryOption {
+  HOURS_24
+  DAYS_7
+  DAYS_30
 }
 
 model Incident {
