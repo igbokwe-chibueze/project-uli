@@ -2,10 +2,12 @@
 'use client';
 
 import { useEffect, useState, useTransition } from "react";
-import { CheckIcon, CopyIcon, RefreshCcw, SendIcon, ShareIcon, UsersIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, LoaderCircleIcon, RefreshCcw, SendIcon, ShareIcon, UsersIcon } from "lucide-react";
 
 import { InviteExpiryOption, OrgRole } from "@prisma/client";
 import { expiryLabels, expiryOptions } from "@/lib/invite-utils";
+
+import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,7 +116,7 @@ export const MembersClient = ({ id: organisationId, roleData }: MembersClientPro
                 .filter(Boolean);
 
             if (emails.length === 0) {
-                alert("Please enter at least one email address.");
+                toast.error("Please enter at least one email address.");
                 return;
             }
 
@@ -131,15 +133,15 @@ export const MembersClient = ({ id: organisationId, roleData }: MembersClientPro
             const failed = res.results.filter((r) => !r.emailSent);
             if (failed.length > 0) {
                 console.warn("Some invites failed to send:", failed);
-                alert(`${failed.length} invites failed to send. Check console for details.`);
+                toast.warning(`${failed.length} of ${emails.length} invites failed to send. Check console for details.`);
             } else {
-                alert("All invitations processed successfully.");
+                toast.success("All invitations sent successfully!");
                 setInviteEmail("");
                 setInviteMessage("");
             }
             } catch (err) {
                 console.error("Batch invite error:", err);
-                alert("Failed to send invites. See console for details.");
+                toast.error("Failed to send invites. Please try again.");
             }
         });
     };
@@ -264,8 +266,17 @@ export const MembersClient = ({ id: organisationId, roleData }: MembersClientPro
                                 </div>
 
                                 <Button className="w-full" onClick={handleSendEmailInvite} disabled={isPending}>
-                                    <SendIcon className="size-4 mr-2"/>
-                                    {isPending ? "Sending..." : "Send Email Invite"}
+                                    {isPending ? (
+                                        <>
+                                            <LoaderCircleIcon className="size-4 mr-2 animate-spin" />
+                                            <span>Sending...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <SendIcon className="size-4 mr-2"/>
+                                            <span>Send Email Invite</span>
+                                        </>
+                                    )}
                                 </Button>
                             </TabsContent>
 
