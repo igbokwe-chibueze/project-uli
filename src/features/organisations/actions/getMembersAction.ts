@@ -3,7 +3,7 @@
 
 import { prisma } from "@/lib/prisma/prisma";
 import { Prisma, OrgRole } from "@prisma/client";
-import { MemberListItem, MemberStatus } from "@/types/organisations/member.types";
+import { MemberListItem, MemberStatus } from "@/features/organisations/types/member.types";
 
 // --------------------
 // Types

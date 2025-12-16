@@ -1,4 +1,4 @@
-// src/types/organisations/member.types.ts
+// src/features/organisations/types/member.types.ts
 
 import { OrgRole } from "@prisma/client";
 

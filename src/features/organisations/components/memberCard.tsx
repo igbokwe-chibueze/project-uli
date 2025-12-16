@@ -2,11 +2,12 @@
 
 "use client";
 
-import { MemberListItem } from "@/types/organisations/member.types";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+import { MemberListItem } from "@/features/organisations/types/member.types";
 
 interface MembersCardProps {
   data: { members: MemberListItem[]; total: number } | null;

@@ -3,10 +3,12 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { MemberListItem } from "@/types/organisations/member.types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+import { MemberListItem } from "@/features/organisations/types/member.types";
+import { MemberColumn } from "@/features/organisations/constants/memberColumns";
 
 interface MembersTableProps {
   data: { members: MemberListItem[]; total: number } | null;
@@ -14,9 +16,11 @@ interface MembersTableProps {
   perPage: number;
   onPageChange: (page: number) => void;
   isPending: boolean;
+  visibleColumns: Record<MemberColumn, boolean>;
+  onToggleColumn: (column: MemberColumn) => void;
 }
 
-export const MembersTable = ({ data, page, perPage, onPageChange, isPending }: MembersTableProps) => {
+export const MembersTable = ({ data, page, perPage, onPageChange, isPending, visibleColumns }: MembersTableProps) => {
   if (!data && isPending) {
     return (
       <div className="space-y-2">
@@ -34,12 +38,12 @@ export const MembersTable = ({ data, page, perPage, onPageChange, isPending }: M
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Department</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Joined</TableHead>
+            {visibleColumns.name && <TableHead>Name</TableHead>}
+            {visibleColumns.email && <TableHead>Email</TableHead>}
+            {visibleColumns.role && <TableHead>Role</TableHead>}
+            {visibleColumns.department && <TableHead>Department</TableHead>}
+            {visibleColumns.status && <TableHead>Status</TableHead>}
+            {visibleColumns.joinedAt && <TableHead>Joined</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -52,24 +56,30 @@ export const MembersTable = ({ data, page, perPage, onPageChange, isPending }: M
           ) : (
             data.members.map((m) => (
               <TableRow key={m.id} className="transition-colors hover:bg-muted/50">
-                <TableCell className="font-medium">{m.name}</TableCell>
-                <TableCell>{m.email}</TableCell>
-                <TableCell>{m.role}</TableCell>
-                <TableCell>{m.department ?? "-"}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      m.status === "active"
-                        ? "default"
-                        : m.status === "invited"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                  >
-                    {m.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{new Date(m.joinedAt).toLocaleDateString()}</TableCell>
+                {visibleColumns.name && <TableCell className="font-medium">{m.name}</TableCell>}
+                {visibleColumns.email && <TableCell>{m.email}</TableCell>}
+                {visibleColumns.role && <TableCell>{m.role}</TableCell>}
+                {visibleColumns.department && (
+                  <TableCell>{m.department ?? "-"}</TableCell>
+                )}
+                {visibleColumns.status && (
+                  <TableCell>
+                    <Badge
+                      variant={
+                        m.status === "active"
+                          ? "default"
+                          : m.status === "invited"
+                          ? "destructive"
+                          : "secondary"
+                      }
+                    >
+                      {m.status}
+                    </Badge>
+                  </TableCell>
+                )}
+                {visibleColumns.joinedAt && (  
+                  <TableCell>{new Date(m.joinedAt).toLocaleDateString()}</TableCell>
+                )}
               </TableRow>
             ))
           )}

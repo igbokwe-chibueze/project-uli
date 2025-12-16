@@ -2,21 +2,22 @@
 
 'use client';
 
-import { useState, useEffect, useTransition } from "react";
-import { LayoutGridIcon, ListIcon, ShareIcon } from "lucide-react";
 import { OrgRole } from "@prisma/client";
+import { useState, useEffect, useTransition } from "react";
+import { ChevronDownIcon, ColumnsIcon, LayoutGridIcon, ListIcon, ShareIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-import { MembersTable } from "@/features/organisations/components/memberTable";
 import { MembersCard } from "@/features/organisations/components/memberCard";
-
+import { MemberListItem } from "@/features/organisations/types/member.types";
+import { MembersTable } from "@/features/organisations/components/memberTable";
 import { getMembersAction } from "@/features/organisations/actions/getMembersAction";
-import { MemberListItem } from "@/types/organisations/member.types";
 import { InviteMembersModal } from "@/features/organisations/components/inviteMembersModal";
+import { MEMBER_COLUMNS, MemberColumn } from "@/features/organisations/constants/memberColumns";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface RoleData {
   options: OrgRole[];
@@ -47,6 +48,18 @@ export const MembersClient = ({ organisationId, roleData }: MembersClientProps) 
 
   const [isPending, startTransition] = useTransition();
 
+  // 🔑 Column visibility map
+  const [visibleColumns, setVisibleColumns] = useState<
+    Record<MemberColumn, boolean>
+  >({
+    name: true,
+    email: true,
+    role: true,
+    department: true,
+    status: true,
+    joinedAt: true,
+  });
+
   // -------------------------------
   // Fetch members whenever filters/page change
   // -------------------------------
@@ -65,80 +78,116 @@ export const MembersClient = ({ organisationId, roleData }: MembersClientProps) 
 
   return (
     <>
-        {/* Invite modal */}
-        <InviteMembersModal
-            open={inviteOpen}
-            onOpenChange={setInviteOpen}
-            organisationId={organisationId}
-            roleData={roleData}
-            //onInviteSuccess={fetchMembers} // refresh list after invite
-        />
-        <div className="space-y-4">
+      {/* Invite modal */}
+      <InviteMembersModal
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        organisationId={organisationId}
+        roleData={roleData}
+        //onInviteSuccess={fetchMembers} // refresh list after invite
+      />
+
+      <div className="space-y-4">
+
         {/* Toolbar */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-1 gap-2">
+          <div className="flex flex-1 gap-2">
             <Input
-                placeholder="Search members..."
-                value={search}
-                onChange={(e) => {
+              placeholder="Search members..."
+              value={search}
+              onChange={(e) => {
                 const value = e.target.value;
                 startTransition(() => {
-                    setSearch(value);
-                    setPage(1); // reset pagination
+                  setSearch(value);
+                  setPage(1); // reset pagination
                 });
-                }}
-                className="max-w-sm"
+              }}
+              className="max-w-sm"
             />
 
             <Select
-                value={role}
-                onValueChange={(value) => {
+              value={role}
+              onValueChange={(value) => {
                 setRole(value as OrgRole);
                 setPage(1); // reset pagination
-                }}
+              }}
             >
-                <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by role" />
-                </SelectTrigger>
-                <SelectContent>
+              </SelectTrigger>
+              <SelectContent>
                 {roleData.options.map((r) => (
-                    <SelectItem key={r} value={r}>
+                  <SelectItem key={r} value={r}>
                     {r}
-                    </SelectItem>
+                  </SelectItem>
                 ))}
-                </SelectContent>
+              </SelectContent>
             </Select>
-            </div>
+          </div>
 
-            <div className="flex gap-2">
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="lg">
+                  <ColumnsIcon className="mr-2 size-4"/>
+                  Columns
+                  <ChevronDownIcon />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end">
+                {MEMBER_COLUMNS.map((col) => (
+                  <DropdownMenuCheckboxItem
+                    key={col}
+                    checked={visibleColumns[col]}
+                    onCheckedChange={() =>
+                      setVisibleColumns((prev) => ({
+                        ...prev,
+                        [col]: !prev[col],
+                      }))
+                    }
+                  >
+                    {col}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
-                <TabsList>
+              <TabsList>
                 <TabsTrigger value="table">
-                    <ListIcon className="size-4 mr-1" />
-                    Table
+                  <ListIcon className="size-4 mr-1" />
+                  Table
                 </TabsTrigger>
                 <TabsTrigger value="card">
-                    <LayoutGridIcon className="size-4 mr-1" />
-                    Cards
+                  <LayoutGridIcon className="size-4 mr-1" />
+                  Cards
                 </TabsTrigger>
-                </TabsList>
+              </TabsList>
             </Tabs>
 
             <Button variant="outline" onClick={() => setInviteOpen(true)}>
-                <ShareIcon className="size-4 mr-2" />
-                Invite
+              <ShareIcon className="size-4 mr-2" />
+              Invite
             </Button>
-            </div>
+          </div>
         </div>
 
         {/* Content */}
         {view === "table" ? (
             <MembersTable
-            data={data}
-            page={page}
-            perPage={perPage}
-            onPageChange={setPage}
-            isPending={isPending}
+              data={data}
+              page={page}
+              perPage={perPage}
+              onPageChange={setPage}
+              isPending={isPending}
+              visibleColumns={visibleColumns}
+              onToggleColumn={(col) =>
+              setVisibleColumns((prev) => ({
+                  ...prev,
+                  [col]: !prev[col],
+                }))
+              }
             />
         ) : (
             <MembersCard
