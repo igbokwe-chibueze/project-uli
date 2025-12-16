@@ -14,6 +14,7 @@ interface MembersPageProps {
 const MembersPage = async ({params}: MembersPageProps) => {
   const { organisationId } = await params;
 
+  // Auth guard
   const userID = await requireUserID(); // user ID from auth
 
   // Fetch the organisation using the ID from the route
@@ -26,6 +27,7 @@ const MembersPage = async ({params}: MembersPageProps) => {
     return <NotFound message="Access denied: you are not a member of this organisation." />;
   }
 
+  // Role metadata passed to client
   const roleData = {
     // Get enum values directly from Prisma
     options: Object.values(OrgRole),
@@ -44,7 +46,7 @@ const MembersPage = async ({params}: MembersPageProps) => {
           
           <div className="flex flex-col space-y-4 px-4 lg:px-6 py-4 md:py-6">
             <MembersClient
-              id={organisation.id}
+              organisationId={organisation.id}
               roleData={roleData}
             />
           </div>
